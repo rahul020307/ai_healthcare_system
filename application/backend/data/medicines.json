@@ -1,5 +1,37 @@
 [
   {
+    "medicine_id": "MED-TEMP-000",
+    "brand_name": "CuraAssist Example Health Boost 500mg (Temporary Sample)",
+    "generic_name": "Multivitamin & Mineral Complex + Zinc",
+    "composition": "Zinc (15 mg) + Ascorbic Acid (500 mg) + Vitamin D3 (2000 IU)",
+    "category": "Vitamins & Minerals",
+    "dosage_form": "Capsule",
+    "strength": "500 mg",
+    "manufacturer": "CuraAssist Health Labs",
+    "uses": [
+      "Immunity boosting",
+      "Fatigue reduction",
+      "Daily wellness & energy support"
+    ],
+    "dosage": "1 capsule daily post breakfast with water.",
+    "age_restriction": "Above 18 years",
+    "side_effects": [
+      "None under normal daily dosage"
+    ],
+    "warnings": [
+      "⭐ [EXAMPLE TEMPORARY MEDICINE] Added temporarily for live testing & store demonstration",
+      "Do not exceed recommended daily dose"
+    ],
+    "contraindications": [
+      "Known hypersensitivity to any ingredient"
+    ],
+    "storage": "Store in a cool dry place below 25°C.",
+    "prescription_required": false,
+    "barcode": "8901234567890",
+    "image_url": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=400",
+    "price": 35.0
+  },
+  {
     "medicine_id": "MED-001",
     "brand_name": "Dolo 650",
     "generic_name": "Paracetamol",

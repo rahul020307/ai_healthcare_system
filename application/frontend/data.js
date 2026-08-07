@@ -178,6 +178,32 @@ const INITIAL_DATA = {
   // Detailed Medicines List with Barcode, Usage, Side Effects & Warnings
   medicines: [
     {
+      id: "med-example-temp",
+      name: "CuraAssist Example Health Boost 500mg (Temporary Sample)",
+      genericName: "Multivitamin & Mineral Complex + Zinc",
+      brandName: "CuraBoost Example",
+      barcode: "8901234567890",
+      category: "Vitamins & Supplements",
+      subcategory: "Immunity Booster",
+      price: 35.00,
+      genericPrice: 12.00,
+      savingsPercent: 65,
+      rating: 5.0,
+      reviewsCount: 120,
+      rxRequired: false,
+      form: "Capsule",
+      packSize: "30 Capsules",
+      dosage: "1 Capsule daily post breakfast",
+      salt: "Zinc 15mg + Vit C 500mg + Vit D3 2000IU",
+      manufacturer: "CuraAssist Health Labs",
+      genericManufacturer: "HealthCare Generics",
+      description: "⭐ [EXAMPLE TEMPORARY MEDICINE] High-potency daily wellness supplement with Zinc, Vitamin C, and D3 for immune defense and energy. Added temporarily for feature demonstration & store testing.",
+      sideEffects: ["None under normal dosage"],
+      usageInstructions: "Swallow 1 capsule daily after breakfast with water.",
+      safetyWarnings: "Keep out of reach of children. Store in a cool dry place.",
+      image: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=300"
+    },
+    {
       id: "med-para",
       name: "Paracetamol 650 mg",
       genericName: "Paracetamol / Acetaminophen",
