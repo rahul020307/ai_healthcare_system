@@ -36,10 +36,35 @@ INTERACTIONS_DB = load_data("drug_interactions.json")
 FIRST_AID_DB = load_data("first_aid.json")
 
 
+def get_env_variable(var_name: str) -> Optional[str]:
+    """Reads environment variable from os.getenv or parses .env file directly."""
+    val = os.getenv(var_name)
+    if val and val.strip():
+        return val.strip()
+
+    env_paths = [
+        os.path.join(os.path.dirname(__file__), "..", "..", ".env"),
+        os.path.join(os.path.dirname(__file__), "..", "..", "..", ".env")
+    ]
+    for env_path in env_paths:
+        if os.path.exists(env_path):
+            try:
+                with open(env_path, "r", encoding="utf-8") as f:
+                    for line in f:
+                        line = line.strip()
+                        if line and not line.startswith("#") and "=" in line:
+                            k, v = line.split("=", 1)
+                            if k.strip() == var_name:
+                                return v.strip().strip("'\"")
+            except Exception as e:
+                print(f"Error reading .env at {env_path}:", e)
+    return None
+
+
 def call_remote_ai(user_prompt: str, patient_context: str) -> Optional[str]:
-    """Attempts calling Google Gemini API or OpenAI API if API keys are configured in environment."""
-    gemini_key = os.getenv("GEMINI_API_KEY")
-    openai_key = os.getenv("OPENAI_API_KEY")
+    """Attempts calling Google Gemini API or OpenAI API using keys loaded from .env."""
+    gemini_key = get_env_variable("GEMINI_API_KEY")
+    openai_key = get_env_variable("OPENAI_API_KEY")
 
     system_prompt = (
         f"You are CuraBot AI, a helpful, empathetic, and scientifically accurate medical AI health assistant. "
@@ -48,48 +73,57 @@ def call_remote_ai(user_prompt: str, patient_context: str) -> Optional[str]:
         f"and always mention safety precautions or when to consult a doctor."
     )
 
+    # 1. Try Google Gemini API first
     if gemini_key:
-        try:
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
-            payload = json.dumps({
-                "contents": [
-                    {
-                        "parts": [
-                            {"text": system_prompt},
-                            {"text": f"Patient Query: {user_prompt}"}
-                        ]
-                    }
-                ]
-            }).encode('utf-8')
-            req = urllib.request.Request(url, data=payload, headers={'Content-Type': 'application/json'})
-            with urllib.request.urlopen(req, timeout=8) as response:
-                if response.status == 200:
-                    data = json.loads(response.read().decode('utf-8'))
-                    return data["candidates"][0]["content"]["parts"][0]["text"]
-        except Exception as e:
-            print("Gemini API call error:", e)
+        for model in ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro"]:
+            try:
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={gemini_key}"
+                payload = json.dumps({
+                    "contents": [
+                        {
+                            "parts": [
+                                {"text": f"{system_prompt}\n\nPatient Query: {user_prompt}"}
+                            ]
+                        }
+                    ]
+                }).encode('utf-8')
+                req = urllib.request.Request(url, data=payload, headers={'Content-Type': 'application/json'})
+                with urllib.request.urlopen(req, timeout=10) as response:
+                    if response.status == 200:
+                        data = json.loads(response.read().decode('utf-8'))
+                        candidates = data.get("candidates", [])
+                        if candidates and "content" in candidates[0]:
+                            parts = candidates[0]["content"].get("parts", [])
+                            if parts:
+                                return parts[0].get("text")
+            except Exception as e:
+                print(f"Gemini API ({model}) call note:", e)
 
+    # 2. Try OpenAI API
     if openai_key:
-        try:
-            url = "https://api.openai.com/v1/chat/completions"
-            payload = json.dumps({
-                "model": "gpt-3.5-turbo",
-                "messages": [
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt}
-                ],
-                "temperature": 0.4
-            }).encode('utf-8')
-            req = urllib.request.Request(url, data=payload, headers={
-                "Authorization": f"Bearer {openai_key}",
-                "Content-Type": "application/json"
-            })
-            with urllib.request.urlopen(req, timeout=8) as response:
-                if response.status == 200:
-                    data = json.loads(response.read().decode('utf-8'))
-                    return data["choices"][0]["message"]["content"]
-        except Exception as e:
-            print("OpenAI API call error:", e)
+        for model in ["gpt-3.5-turbo", "gpt-4o-mini"]:
+            try:
+                url = "https://api.openai.com/v1/chat/completions"
+                payload = json.dumps({
+                    "model": model,
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt}
+                    ],
+                    "temperature": 0.4
+                }).encode('utf-8')
+                req = urllib.request.Request(url, data=payload, headers={
+                    "Authorization": f"Bearer {openai_key}",
+                    "Content-Type": "application/json"
+                })
+                with urllib.request.urlopen(req, timeout=10) as response:
+                    if response.status == 200:
+                        data = json.loads(response.read().decode('utf-8'))
+                        choices = data.get("choices", [])
+                        if choices and "message" in choices[0]:
+                            return choices[0]["message"].get("content")
+            except Exception as e:
+                print(f"OpenAI API ({model}) call note:", e)
 
     return None
 
