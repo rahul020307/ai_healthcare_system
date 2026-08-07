@@ -131,59 +131,93 @@ def call_remote_ai(user_prompt: str, patient_context: str) -> Optional[str]:
 def ai_clinical_reasoning(message: str, patient_context: str) -> str:
     msg = message.lower()
 
-    # 1. Search Symptoms DB
+    # Match dataset records
     matched_symptoms = [s for s in SYMPTOMS_DB if any(kw in msg for kw in [s.get("symptom_name", "").lower()] + [c.lower() for c in s.get("possible_causes", [])])]
-
-    # 2. Search Diseases DB
     matched_diseases = [d for d in DISEASES_DB if any(kw in msg for kw in [d.get("disease_name", "").lower()] + [s.lower() for s in d.get("symptoms", [])])]
-
-    # 3. Search Medicines DB
     matched_meds = [m for m in MEDICINES_DB if m.get("brand_name", "").lower() in msg or m.get("generic_name", "").lower() in msg or any(u.lower() in msg for u in m.get("uses", []))]
+    matched_aid = [a for a in FIRST_AID_DB if a.get("emergency_type", "").lower() in msg or any(s.lower() in msg for s in a.get("symptoms", []))]
 
-    # Build AI clinical response
-    lines = [f"🤖 **CuraBot AI Clinical Analysis for {patient_context}**:\n"]
+    response_blocks = []
 
+    # 1. Header
+    response_blocks.append(f"🩺 **CuraBot AI Clinical Assessment**\n*Patient Profile: {patient_context}*\n")
+
+    # 2. Symptom & Condition Correlation
     if matched_symptoms:
         sym = matched_symptoms[0]
-        lines.append(f"• **Symptom Recognized**: {sym.get('symptom_name', 'General Discomfort')} (Severity: {sym.get('severity', 'Moderate')})")
-        lines.append(f"• **Suggested Specialist**: {sym.get('suggested_specialist', 'General Physician')}")
-        lines.append(f"• **Home Care**: {sym.get('home_care', 'Stay hydrated and rest')}\n")
+        response_blocks.append(
+            f"📋 **Symptom Analysis & Severity**:\n"
+            f"• **Identified Symptom**: {sym.get('symptom_name')} ({sym.get('severity', 'Moderate')} Severity)\n"
+            f"• **Potential Causes**: {', '.join(sym.get('possible_causes', []))}\n"
+            f"• **Specialist Referral**: {sym.get('suggested_specialist', 'General Physician')}\n"
+        )
 
     if matched_diseases:
         dis = matched_diseases[0]
-        lines.append(f"• **Possible Condition Correlation**: {dis.get('disease_name')}")
-        lines.append(f"• **Prevention/Care**: {dis.get('prevention', 'Consult healthcare provider')}\n")
+        response_blocks.append(
+            f"🔍 **Medical Condition Correlation**:\n"
+            f"• **Condition**: {dis.get('disease_name')}\n"
+            f"• **Prevention & Care**: {dis.get('prevention')}\n"
+            f"• **Recommended Doctor**: {dis.get('specialist')}\n"
+        )
 
+    # 3. Medication & OTC Guidance
     if matched_meds:
         med = matched_meds[0]
-        lines.append(f"💊 **Medication Insights ({med.get('brand_name')})**:")
-        lines.append(f"• Active Salt: {med.get('composition', med.get('generic_name'))}")
-        lines.append(f"• Typical Dosage: {med.get('dosage')}")
-        lines.append(f"• Primary Uses: {', '.join(med.get('uses', []))}")
-        if med.get('warnings'):
-            lines.append(f"• ⚠️ Precaution: {med.get('warnings')[0]}\n")
+        response_blocks.append(
+            f"💊 **Medication Profile ({med.get('brand_name')})**:\n"
+            f"• **Active Ingredient**: {med.get('composition', med.get('generic_name'))}\n"
+            f"• **Dosage Form**: {med.get('dosage_form')} ({med.get('strength')})\n"
+            f"• **Recommended Usage**: {med.get('dosage')}\n"
+            f"• **Primary Indications**: {', '.join(med.get('uses', []))}\n"
+            f"• **Prescription Status**: {'🔒 Rx Prescription Required' if med.get('prescription_required') else '✅ Over The Counter (OTC)'}\n"
+        )
     elif "fever" in msg or "headache" in msg or "pain" in msg:
-        lines.append("💊 **Recommended OTC Relief**:")
-        lines.append("• **Paracetamol 650mg**: 1 tablet post meal for fever and pain reduction.")
-        lines.append("• **Hydration**: Consume 2.5L+ fluids (water, ORS, warm broths).")
-        lines.append("• **Rest**: Adequate bed rest is strongly advised.\n")
-    elif "stomach" in msg or "acid" in msg or "ulcer" in msg or "gas" in msg:
-        lines.append("💊 **Recommended Gastro Relief**:")
-        lines.append("• **Pan 40 (Pantoprazole 40mg)**: 1 tablet 30 minutes before breakfast.")
-        lines.append("• **Dietary Advice**: Avoid spicy, greasy, or caffeine-rich foods.\n")
-    elif "cough" in msg or "throat" in msg or "cold" in msg:
-        lines.append("💊 **Cold & Respiratory Care**:")
-        lines.append("• **Vitamin C 500mg**: Daily chewable tablet for immune support.")
-        lines.append("• **Steam Inhalation**: 2x daily with eucalyptus/saline.")
-        lines.append("• **Gargle**: Warm salt water gargles every 6 hours.\n")
+        response_blocks.append(
+            "💊 **Clinical OTC Recommendations**:\n"
+            "• **Dolo 650 / Paracetamol 650mg**: 1 tablet every 6 hours post meals for fever & headache relief.\n"
+            "• **Combiflam Tablet**: For joint pain, dental pain, or severe body ache (take with meals).\n"
+        )
+    elif "stomach" in msg or "acid" in msg or "ulcer" in msg or "gas" in msg or "heartburn" in msg:
+        response_blocks.append(
+            "💊 **Gastrointestinal Care Plan**:\n"
+            "• **Pan 40 (Pantoprazole 40mg)**: 1 tablet 30 minutes before morning breakfast.\n"
+            "• **ProGastro Suspension**: 10ml after meals for rapid neutralization of heartburn & acidity.\n"
+        )
+    elif "cold" in msg or "cough" in msg or "throat" in msg or "allergy" in msg:
+        response_blocks.append(
+            "💊 **Cold & Respiratory Care Plan**:\n"
+            "• **Cetzine 10 (Cetirizine 10mg)**: 1 tablet at bedtime for allergy & sneezing relief.\n"
+            "• **Limcee 500 (Vitamin C)**: 1 chewable tablet daily for immunity boost.\n"
+        )
     else:
-        lines.append(f"• **AI Observation**: Analysis of *\"{message}\"* indicates general wellness query.")
-        lines.append("• **General Guidance**: Maintain balanced nutrition, hydration, and regular exercise.")
-        lines.append("• **Medicine Insights**: You can use the Medicine Scanner or Search Bar to explore active ingredients and dosages.\n")
+        response_blocks.append(
+            f"💬 **AI Insights on \"{message}\"**:\n"
+            "• Your query has been cross-analyzed against registered medical datasets.\n"
+            "• You can search any specific medicine, scan prescription slips, or check nearby hospital ER wait times directly in CuraAssist.\n"
+        )
 
-    lines.append("⚠️ *Medical Notice*: CuraBot AI provides clinical informational support based on registered healthcare datasets. For severe or persisting symptoms beyond 48h, please consult a certified doctor.")
+    # 4. Lifestyle & Home Care
+    if matched_aid:
+        aid = matched_aid[0]
+        response_blocks.append(
+            f"🚑 **First Aid & Immediate Care ({aid.get('emergency_type')})**:\n" +
+            "\n".join([f"• Step {i+1}: {step}" for i, step in enumerate(aid.get('first_aid_steps', []))]) + "\n"
+        )
+    else:
+        response_blocks.append(
+            "🌿 **Lifestyle & Recovery Protocol**:\n"
+            "• **Hydration**: Maintain 2.5 to 3.0 Liters of water daily.\n"
+            "• **Rest**: Ensure 7-8 hours of uninterrupted sleep for physiological healing.\n"
+        )
 
-    return "\n".join(lines)
+    # 5. Red-Flag Warning & Disclaimer
+    response_blocks.append(
+        "🚨 **Red-Flag Warning**: Seek emergency medical attention (Call 108) if experiencing shortness of breath, severe chest pain, sudden numbness, or persistent fever > 103°F.\n\n"
+        "*Disclaimer: CuraBot AI provides clinical decision support. Always consult a licensed medical practitioner before starting or changing medications.*"
+    )
+
+    return "\n".join(response_blocks)
 
 
 @router.post("/ask")
