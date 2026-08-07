@@ -491,8 +491,37 @@ function toggleCartDrawer(forceOpen) {
   else drawer.classList.toggle('hidden');
 }
 
-function processCheckout() {
-  alert("Prototype Checkout Complete! Order ORD-9923 created.");
+async function processCheckout() {
+  if (state.cart.length === 0) {
+    alert("Your cart is empty.");
+    return;
+  }
+
+  const items = state.cart.map(c => {
+    const med = INITIAL_DATA.medicines.find(m => m.id === c.id) || { name: "Medicine", price: 30 };
+    return { id: c.id, name: med.name, price: med.price, quantity: c.qty };
+  });
+
+  const total = items.reduce((acc, curr) => acc + (curr.price * curr.quantity), 0);
+
+  try {
+    const res = await fetch('http://localhost:8000/store/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId: state.activeFamilyId,
+        items: items,
+        totalAmount: total,
+        address: "Home (Hyderabad, Telangana)",
+        paymentMethod: "UPI / Cash on Delivery"
+      })
+    });
+    const data = await res.json();
+    alert(`✅ FastAPI Order Confirmed!\nOrder ID: ${data.orderId}\nMessage: ${data.message}`);
+  } catch (err) {
+    alert("✅ Checkout Complete! Order ORD-9923 created (Offline Mode).");
+  }
+
   state.cart = [];
   renderCart();
   toggleCartDrawer(false);
@@ -915,7 +944,7 @@ function sendQuickAIPrompt(text) {
   sendAIMessage();
 }
 
-function sendAIMessage() {
+async function sendAIMessage() {
   const input = document.getElementById('ai-chat-input');
   const container = document.getElementById('ai-chat-messages');
   if (!input || !container || !input.value.trim()) return;
@@ -923,25 +952,66 @@ function sendAIMessage() {
   const userText = input.value.trim();
   input.value = '';
 
+  const memberName = document.getElementById('active-family-name')?.innerText || 'Rahul Sharma';
+
   container.innerHTML += `
     <div class="flex justify-end">
-      <div class="bg-teal-600 text-white p-3 rounded-2xl max-w-[85%]">
+      <div class="bg-teal-600 text-white p-3 rounded-2xl max-w-[85%] text-xs shadow-lg">
         ${userText}
       </div>
     </div>
   `;
+  container.scrollTop = container.scrollHeight;
 
-  setTimeout(() => {
+  const typingId = 'typing-' + Date.now();
+  container.innerHTML += `
+    <div id="${typingId}" class="flex justify-start">
+      <div class="bg-slate-900 border border-slate-800 text-slate-400 p-3 rounded-2xl max-w-[85%] text-xs flex items-center gap-2">
+        <i data-lucide="loader" class="w-4 h-4 animate-spin text-teal-400"></i>
+        <span>Connecting to FastAPI Backend (http://localhost:8000)...</span>
+      </div>
+    </div>
+  `;
+  container.scrollTop = container.scrollHeight;
+  lucide.createIcons();
+
+  try {
+    const res = await fetch('http://localhost:8000/chat/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: userText, patientContext: memberName })
+    });
+    const data = await res.json();
+    document.getElementById(typingId)?.remove();
+
+    const formattedReply = (data.reply || '').replace(/\n/g, '<br>');
+
     container.innerHTML += `
       <div class="flex justify-start">
-        <div class="bg-slate-900 border border-slate-800 text-slate-200 p-3.5 rounded-2xl max-w-[85%] space-y-1">
-          <p class="font-semibold text-teal-300">🤖 CuraBot Response:</p>
+        <div class="bg-slate-900 border border-teal-500/30 text-slate-200 p-3.5 rounded-2xl max-w-[85%] space-y-1 text-xs shadow-xl">
+          <div class="flex items-center justify-between text-[10px] text-teal-400 font-bold border-b border-slate-800 pb-1 mb-1">
+            <span class="flex items-center gap-1"><i data-lucide="bot" class="w-3.5 h-3.5"></i> ${data.sender || 'CuraBot AI'}</span>
+            <span class="text-slate-400 font-normal">FastAPI Live API</span>
+          </div>
+          <div class="leading-relaxed text-slate-300 font-medium">
+            ${formattedReply}
+          </div>
+        </div>
+      </div>
+    `;
+  } catch (err) {
+    document.getElementById(typingId)?.remove();
+    container.innerHTML += `
+      <div class="flex justify-start">
+        <div class="bg-slate-900 border border-slate-800 text-slate-200 p-3.5 rounded-2xl max-w-[85%] space-y-1 text-xs">
+          <p class="font-semibold text-teal-300">🤖 CuraBot Offline Fallback:</p>
           <p>Analysis for "${userText}": Drink fluids and monitor symptoms. If symptoms persist beyond 24h, consult your physician.</p>
         </div>
       </div>
     `;
-    container.scrollTop = container.scrollHeight;
-  }, 500);
+  }
+  container.scrollTop = container.scrollHeight;
+  lucide.createIcons();
 }
 
 // EMERGENCY ENGINE
