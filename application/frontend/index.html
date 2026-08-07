@@ -691,93 +691,71 @@
       </section>
 
       <!-- ================= 3. MAPS MODULE VIEW ================= -->
-      <section id="view-maps" class="hidden space-y-6">
+      <section id="view-maps" class="hidden relative w-full h-[calc(100vh-120px)] min-h-[600px] rounded-3xl overflow-hidden shadow-2xl border border-slate-800">
         
-        <!-- Header -->
-        <div class="flex items-center justify-between">
-          <div>
-            <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Maps</h2>
-            <p class="text-xs sm:text-sm text-slate-400 font-medium mt-0.5">Find healthcare services near you</p>
-          </div>
-          <button onclick="locateUserOnMap()" class="p-2.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/40 hover:bg-teal-500/30 transition-colors shadow">
-            <i data-lucide="crosshair" class="w-5 h-5"></i>
-          </button>
-        </div>
+        <!-- Full Window Map Canvas -->
+        <div id="map-container" class="w-full h-full z-0"></div>
 
-        <!-- Location Context & Changer Bar -->
-        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 rounded-2xl glass-card border border-teal-500/30 bg-slate-900/60 shadow">
-          <div class="flex items-center gap-2.5">
-            <div class="p-2 rounded-xl bg-teal-500/20 text-teal-400 shrink-0">
-              <i data-lucide="map-pin" class="w-4 h-4"></i>
-            </div>
-            <div>
-              <span class="text-[10px] uppercase tracking-wider font-extrabold text-teal-400">Current Search Location</span>
-              <h4 id="active-location-name" class="text-xs font-bold text-white">Live GPS Location Center</h4>
-            </div>
-          </div>
-
-          <div class="flex items-center gap-2 w-full sm:w-auto">
-            <select id="location-preset-select" onchange="changeMapLocationPreset(this.value)" class="glass-input rounded-xl px-3 py-1.5 text-xs text-slate-200 border-slate-700 bg-slate-900 flex-1 sm:flex-none cursor-pointer">
-              <option value="gps">📍 Live GPS Location</option>
-              <option value="downtown">🏙️ Downtown Central</option>
-              <option value="bayarea">🌊 Bay Area Market St</option>
-              <option value="medical">🏥 Medical District</option>
-              <option value="suburbs">🏘️ North Suburbs</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Universal Search Bar -->
-        <div class="relative w-full">
-          <i data-lucide="search" class="w-5 h-5 absolute left-4 top-3.5 text-slate-400"></i>
-          <input type="text" id="maps-search-input" onkeyup="renderFacilitiesList()" placeholder="Search hospitals, pharmacies, labs..." class="w-full glass-input rounded-2xl pl-12 pr-12 py-3.5 text-sm focus:outline-none shadow-lg">
-          <button onclick="filterFacilities('All')" class="absolute right-3.5 top-3 text-slate-400 hover:text-indigo-400 p-1">
-            <i data-lucide="sliders-horizontal" class="w-5 h-5"></i>
-          </button>
-        </div>
-
-        <!-- Category Filter Chips Row -->
-        <div class="flex items-center gap-2 overflow-x-auto pb-1">
-          <button onclick="filterFacilities('All')" class="fac-filter-btn px-4 py-2 rounded-2xl text-xs font-bold bg-teal-500 text-slate-950 flex items-center gap-1.5 shrink-0 shadow">
-            <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i> All
-          </button>
-          <button onclick="filterFacilities('Hospitals')" class="fac-filter-btn px-4 py-2 rounded-2xl text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-300 hover:border-indigo-500/40 flex items-center gap-1.5 shrink-0">
-            <i data-lucide="building-2" class="w-3.5 h-3.5 text-indigo-400"></i> Hospitals
-          </button>
-          <button onclick="filterFacilities('Nearby Pharmacies')" class="fac-filter-btn px-4 py-2 rounded-2xl text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-300 hover:border-teal-500/40 flex items-center gap-1.5 shrink-0">
-            <i data-lucide="plus" class="w-3.5 h-3.5 text-teal-400"></i> Pharmacies
-          </button>
-          <button onclick="filterFacilities('Labs')" class="fac-filter-btn px-4 py-2 rounded-2xl text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-300 hover:border-purple-500/40 flex items-center gap-1.5 shrink-0">
-            <i data-lucide="flask-conical" class="w-3.5 h-3.5 text-purple-400"></i> Labs
-          </button>
-          <button onclick="filterFacilities('Clinics')" class="fac-filter-btn px-4 py-2 rounded-2xl text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-300 hover:border-amber-500/40 flex items-center gap-1.5 shrink-0">
-            <i data-lucide="stethoscope" class="w-3.5 h-3.5 text-amber-400"></i> Clinics
-          </button>
-          <button onclick="filterFacilities('Blood Banks')" class="fac-filter-btn px-4 py-2 rounded-2xl text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-300 hover:border-rose-500/40 flex items-center gap-1.5 shrink-0">
-            <i data-lucide="ambulance" class="w-3.5 h-3.5 text-rose-400"></i> Emergency
-          </button>
-        </div>
-
-        <!-- Interactive Map Canvas Card -->
-        <div class="h-[420px] rounded-3xl glass-panel overflow-hidden border border-slate-800 relative shadow-2xl">
-          <div id="map-container" class="w-full h-full z-10"></div>
+        <!-- Floating Layer 1: Top Control Bar (Search, Location Selector, Geolocation) -->
+        <div class="absolute top-4 left-4 right-4 z-20 space-y-2 pointer-events-auto">
           
-          <!-- Map Floating GPS Crosshair Button -->
-          <button onclick="locateUserOnMap()" class="absolute bottom-4 right-4 z-20 bg-slate-900/90 hover:bg-slate-800 text-teal-300 border border-teal-500/40 p-3 rounded-2xl shadow-xl flex items-center gap-2 text-xs font-bold backdrop-blur-md">
-            <i data-lucide="crosshair" class="w-4 h-4 text-teal-400"></i>
-            <span>Locate Me</span>
-          </button>
-        </div>
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+            <!-- Search Input -->
+            <div class="relative flex-1">
+              <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-3 text-slate-400"></i>
+              <input type="text" id="maps-search-input" onkeyup="renderFacilitiesList()" placeholder="Search nearby hospitals, pharmacies, labs..." class="w-full bg-slate-950/85 backdrop-blur-md text-white rounded-2xl pl-10 pr-10 py-2.5 text-xs border border-teal-500/30 focus:outline-none shadow-2xl">
+              <button onclick="locateUserOnMap()" class="absolute right-3 top-2.5 text-teal-400 hover:text-teal-300 p-0.5" title="Locate Me">
+                <i data-lucide="crosshair" class="w-4 h-4"></i>
+              </button>
+            </div>
 
-        <!-- Nearby Places Section -->
-        <div class="space-y-3">
-          <div class="flex items-center justify-between">
-            <h3 class="text-sm font-extrabold text-white">Nearby Places</h3>
-            <button onclick="filterFacilities('All')" class="text-xs text-teal-400 font-bold hover:underline">See All</button>
+            <!-- Location Preset Changer Dropdown -->
+            <div class="flex items-center gap-2 shrink-0">
+              <select id="location-preset-select" onchange="changeMapLocationPreset(this.value)" class="bg-slate-950/85 backdrop-blur-md border border-slate-800 text-teal-300 font-extrabold rounded-2xl px-3 py-2.5 text-xs focus:outline-none shadow-2xl cursor-pointer">
+                <option value="gps">📍 Live GPS Location</option>
+                <option value="downtown">🏙️ Downtown Central</option>
+                <option value="bayarea">🌊 Bay Area Market St</option>
+                <option value="medical">🏥 Medical District</option>
+                <option value="suburbs">🏘️ North Suburbs</option>
+              </select>
+            </div>
           </div>
 
-          <div id="facilities-list" class="space-y-3">
-            <!-- Dynamically populated facility cards by JS -->
+          <!-- Category Filter Chips Layer (Floating over map) -->
+          <div class="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+            <button onclick="filterFacilities('All')" class="fac-filter-btn px-3.5 py-1.5 rounded-xl text-[11px] font-bold bg-teal-500 text-slate-950 flex items-center gap-1 shrink-0 shadow-lg">
+              <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i> All
+            </button>
+            <button onclick="filterFacilities('Hospitals')" class="fac-filter-btn px-3.5 py-1.5 rounded-xl text-[11px] font-semibold bg-slate-950/80 backdrop-blur-md border border-slate-800 text-slate-200 hover:border-indigo-500/40 flex items-center gap-1 shrink-0 shadow-lg">
+              <i data-lucide="building-2" class="w-3.5 h-3.5 text-indigo-400"></i> Hospitals
+            </button>
+            <button onclick="filterFacilities('Pharmacies')" class="fac-filter-btn px-3.5 py-1.5 rounded-xl text-[11px] font-semibold bg-slate-950/80 backdrop-blur-md border border-slate-800 text-slate-200 hover:border-teal-500/40 flex items-center gap-1 shrink-0 shadow-lg">
+              <i data-lucide="plus" class="w-3.5 h-3.5 text-teal-400"></i> Pharmacies
+            </button>
+            <button onclick="filterFacilities('Labs')" class="fac-filter-btn px-3.5 py-1.5 rounded-xl text-[11px] font-semibold bg-slate-950/80 backdrop-blur-md border border-slate-800 text-slate-200 hover:border-purple-500/40 flex items-center gap-1 shrink-0 shadow-lg">
+              <i data-lucide="flask-conical" class="w-3.5 h-3.5 text-purple-400"></i> Labs
+            </button>
+            <button onclick="filterFacilities('Clinics')" class="fac-filter-btn px-3.5 py-1.5 rounded-xl text-[11px] font-semibold bg-slate-950/80 backdrop-blur-md border border-slate-800 text-slate-200 hover:border-amber-500/40 flex items-center gap-1 shrink-0 shadow-lg">
+              <i data-lucide="stethoscope" class="w-3.5 h-3.5 text-amber-400"></i> Clinics
+            </button>
+            <button onclick="filterFacilities('Blood Banks')" class="fac-filter-btn px-3.5 py-1.5 rounded-xl text-[11px] font-semibold bg-slate-950/80 backdrop-blur-md border border-slate-800 text-slate-200 hover:border-rose-500/40 flex items-center gap-1 shrink-0 shadow-lg">
+              <i data-lucide="ambulance" class="w-3.5 h-3.5 text-rose-400"></i> Emergency
+            </button>
+          </div>
+        </div>
+
+        <!-- Floating Layer 2: Bottom Sliding Drawer Panel for Nearby Places -->
+        <div class="absolute bottom-3 left-3 right-3 z-20 max-h-56 overflow-y-auto rounded-2xl glass-panel bg-slate-950/85 backdrop-blur-md border border-teal-500/30 p-3 space-y-2 shadow-2xl pointer-events-auto">
+          <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
+            <h4 class="text-xs font-extrabold text-white flex items-center gap-1.5">
+              <i data-lucide="map-pin" class="w-3.5 h-3.5 text-teal-400"></i>
+              <span>Nearby Places (<span id="active-location-name">Live GPS Location Center</span>)</span>
+            </h4>
+            <span class="text-[10px] text-teal-400 font-bold bg-teal-500/20 px-2 py-0.5 rounded-full border border-teal-500/30">Auto Sorted by Distance</span>
+          </div>
+
+          <div id="facilities-list" class="space-y-2">
+            <!-- Dynamically populated facility cards floating over map -->
           </div>
         </div>
 
@@ -1074,24 +1052,65 @@
 
   <!-- PRESCRIPTION SCANNER MODAL -->
   <div id="modal-presc-scan" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-    <div class="glass-panel w-full max-w-lg rounded-3xl p-6 border border-cyan-500/40 space-y-4 relative">
+    <div class="glass-panel w-full max-w-lg rounded-3xl p-6 border border-cyan-500/40 space-y-4 relative max-h-[90vh] overflow-y-auto">
       <button onclick="closePrescriptionScanModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
         <i data-lucide="x" class="w-5 h-5"></i>
       </button>
-      <h3 class="text-base font-bold text-white">Upload Prescription for OCR Extraction</h3>
-      <div class="p-6 border-2 border-dashed border-cyan-500/40 rounded-2xl text-center space-y-2 bg-slate-900/60">
-        <i data-lucide="upload-cloud" class="w-8 h-8 text-cyan-400 mx-auto"></i>
-        <p class="text-xs text-slate-300 font-medium">Drag & drop doctor prescription slip or click to browse</p>
+
+      <div class="space-y-1">
+        <h3 class="text-base font-extrabold text-white flex items-center gap-2">
+          <i data-lucide="file-text" class="w-5 h-5 text-cyan-400"></i> Upload Prescription / Scan Document
+        </h3>
+        <p class="text-xs text-slate-400">Scan via Live WebRTC Camera or Upload Image/PDF slip for OCR text extraction</p>
       </div>
-      <button onclick="simulatePrescriptionOCR()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2.5 rounded-xl text-xs">
-        Extract Text & Save Prescription
+
+      <!-- Video Feed / File Drop Box -->
+      <div id="presc-scan-box" class="relative rounded-2xl overflow-hidden bg-slate-900 border-2 border-dashed border-cyan-500/40 text-center p-4 min-h-[190px] flex flex-col items-center justify-center">
+        <video id="presc-camera-video" autoplay playsinline class="hidden w-full h-48 rounded-xl object-cover border border-cyan-500/50 shadow-xl"></video>
+
+        <div id="presc-upload-placeholder" class="space-y-2">
+          <i data-lucide="upload-cloud" class="w-10 h-10 text-cyan-400 mx-auto"></i>
+          <p class="text-xs text-slate-200 font-bold">Drag & drop doctor prescription slip or browse file</p>
+          <p class="text-[10px] text-slate-400">Supports JPG, PNG, PDF formats</p>
+        </div>
+
+        <!-- Laser Scanner Overlay line -->
+        <div id="presc-laser-line" class="hidden absolute left-0 right-0 top-0 h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_15px_#22d3ee] animate-pulse z-20"></div>
+
+        <input type="file" id="presc-file-input" accept="image/*,application/pdf" onchange="handlePrescriptionFileSelected(event)" class="hidden">
+      </div>
+
+      <!-- Extracted Document Preview Result Box -->
+      <div id="presc-extracted-result" class="hidden p-3.5 rounded-2xl bg-slate-900 border border-teal-500/40 space-y-2 text-xs">
+        <div class="flex items-center justify-between text-teal-400 font-extrabold">
+          <span class="flex items-center gap-1"><i data-lucide="check-circle" class="w-4 h-4"></i> OCR Extraction Complete</span>
+          <span id="presc-file-name-badge" class="text-[10px] bg-slate-800 px-2 py-0.5 rounded text-slate-300">slip.pdf</span>
+        </div>
+        <div id="presc-extracted-body" class="space-y-1 text-slate-300 text-[11px]">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="grid grid-cols-2 gap-2 text-xs font-bold">
+        <button onclick="togglePrescriptionCameraStream()" id="btn-toggle-presc-cam" class="py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-teal-300 hover:text-white flex items-center justify-center gap-1.5">
+          <i data-lucide="camera" class="w-4 h-4"></i> Use Camera
+        </button>
+
+        <button onclick="document.getElementById('presc-file-input').click()" class="py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-cyan-300 hover:text-white flex items-center justify-center gap-1.5">
+          <i data-lucide="file-up" class="w-4 h-4"></i> Browse File
+        </button>
+      </div>
+
+      <button onclick="simulatePrescriptionOCR()" class="w-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-extrabold py-3 rounded-xl text-xs shadow-lg shadow-cyan-500/20">
+        Run OCR Scan & Save Document
       </button>
     </div>
   </div>
 
   <!-- ITEM SCANNER MODAL -->
   <div id="modal-item-scan" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-    <div class="glass-panel w-full max-w-xl rounded-3xl p-6 border border-teal-500/40 space-y-6 shadow-2xl relative">
+    <div class="glass-panel w-full max-w-xl rounded-3xl p-6 border border-teal-500/40 space-y-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
       <button onclick="closeItemScanModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
         <i data-lucide="x" class="w-5 h-5"></i>
       </button>
@@ -1102,31 +1121,133 @@
         </div>
         <div>
           <h3 class="text-lg font-bold text-white">Smart Medicine & Barcode Scanner</h3>
-          <p class="text-xs text-slate-400">Scan barcode or medication strip with instant insights.</p>
+          <p class="text-xs text-slate-400">Live WebRTC Camera stream & AI barcode recognition</p>
         </div>
       </div>
 
-      <div class="relative w-full h-56 bg-slate-900 rounded-2xl overflow-hidden border border-teal-500/30 flex items-center justify-center">
-        <div class="laser-line"></div>
-        <img src="https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=400" class="w-full h-full object-cover opacity-80">
+      <!-- Live Camera Stream Viewfinder -->
+      <div id="item-scan-viewfinder" class="relative h-56 rounded-2xl bg-slate-900 border border-teal-500/30 overflow-hidden flex items-center justify-center">
+        <video id="item-camera-video" autoplay playsinline class="hidden w-full h-full object-cover"></video>
+        
+        <div id="item-camera-placeholder" class="text-center space-y-2 p-4">
+          <i data-lucide="camera" class="w-10 h-10 text-teal-400 mx-auto"></i>
+          <p class="text-xs text-slate-300 font-bold">Tap 'Start WebRTC Camera' or select image file</p>
+        </div>
+
+        <!-- Laser Scanner Bar Animation -->
+        <div id="item-laser-bar" class="hidden absolute left-0 right-0 top-0 h-1 bg-teal-400 shadow-[0_0_15px_#2dd4bf] animate-pulse z-20"></div>
+
+        <input type="file" id="item-file-input" accept="image/*" onchange="handleItemScanFile(event)" class="hidden">
       </div>
 
-      <div class="p-4 rounded-2xl bg-teal-950/30 border border-teal-500/30 space-y-2 text-xs">
-        <p class="text-teal-400 font-bold">Detected Medicine: Lipitor (Atorvastatin 20mg)</p>
-        <p class="text-slate-300">Barcode: 8901234567890 • Rx Prescription Required</p>
+      <!-- Controls -->
+      <div class="grid grid-cols-2 gap-2 text-xs font-bold">
+        <button onclick="toggleItemCameraStream()" id="btn-toggle-item-cam" class="py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-teal-300 hover:text-white flex items-center justify-center gap-1.5">
+          <i data-lucide="camera" class="w-4 h-4"></i> Start Camera
+        </button>
+
+        <button onclick="document.getElementById('item-file-input').click()" class="py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-cyan-300 hover:text-white flex items-center justify-center gap-1.5">
+          <i data-lucide="image" class="w-4 h-4"></i> Choose Image
+        </button>
       </div>
 
-      <div class="grid grid-cols-3 gap-2">
-        <button onclick="showMedInfoDetails('med-1')" class="bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold py-2 rounded-xl">
-          📖 View Insights
-        </button>
-        <button onclick="addScannedToSchedule()" class="bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold py-2 rounded-xl">
-          + Add Schedule
-        </button>
-        <button onclick="askAIAboutScanned()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-2 rounded-xl">
-          🤖 Ask AI
+      <button onclick="triggerBarcodeScanProcess('8901234567890')" class="w-full bg-teal-500 hover:bg-teal-400 text-slate-950 font-extrabold py-3 rounded-xl text-xs shadow-lg shadow-teal-500/20">
+        Capture & Recognize Barcode
+      </button>
+
+      <div id="item-scan-results" class="hidden space-y-3 pt-2 border-t border-slate-800">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- NOTIFICATIONS DRAWER / WINDOW -->
+  <div id="drawer-notifications" class="hidden fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-md flex justify-end">
+    <div class="w-full max-w-md bg-slate-950 border-l border-slate-800 h-full flex flex-col p-6 space-y-5 relative shadow-2xl animate-in slide-in-from-right duration-200">
+      
+      <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="p-2 rounded-xl bg-teal-500/20 text-teal-400">
+            <i data-lucide="bell" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-extrabold text-white">Notifications & Alerts</h3>
+            <p class="text-[11px] text-slate-400">Live reminders, order updates & emergency alerts</p>
+          </div>
+        </div>
+
+        <button onclick="toggleNotifDrawer(false)" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
+
+      <!-- Notifications Feed -->
+      <div id="notifications-feed-list" class="flex-1 overflow-y-auto space-y-3 pr-1">
+        
+        <div class="p-4 rounded-2xl glass-panel border border-teal-500/30 bg-slate-900/60 space-y-2 relative">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-teal-400 font-extrabold flex items-center gap-1">
+              <i data-lucide="clock" class="w-3.5 h-3.5"></i> Pill Reminder
+            </span>
+            <span class="text-[10px] text-slate-500">8:00 AM Today</span>
+          </div>
+          <h4 class="text-xs font-bold text-white">Time for Paracetamol 650mg</h4>
+          <p class="text-[11px] text-slate-300">Take 1 tablet after breakfast for fever & pain relief.</p>
+          <div class="flex items-center justify-between pt-1">
+            <button onclick="alert('Marked Paracetamol 650mg as Taken!')" class="px-3 py-1 rounded-xl bg-teal-500 text-slate-950 font-bold text-[11px]">Mark Taken</button>
+            <button onclick="alert('Snoozed for 15 minutes.')" class="text-[11px] text-slate-400 hover:text-slate-200">Snooze 15m</button>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-2xl glass-panel border border-cyan-500/30 bg-slate-900/60 space-y-2 relative">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-cyan-400 font-extrabold flex items-center gap-1">
+              <i data-lucide="package" class="w-3.5 h-3.5"></i> Order Update
+            </span>
+            <span class="text-[10px] text-slate-500">25 mins ago</span>
+          </div>
+          <h4 class="text-xs font-bold text-white">Order ORD-982415 Out for Delivery</h4>
+          <p class="text-[11px] text-slate-300">MedPlus Express partner is 1.2 km away. ETA 15 mins.</p>
+          <div class="pt-1">
+            <button onclick="toggleCartDrawer(true)" class="px-3 py-1 rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-bold text-[11px]">Track Delivery</button>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-2xl glass-panel border border-rose-500/30 bg-slate-900/60 space-y-2 relative">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-rose-400 font-extrabold flex items-center gap-1">
+              <i data-lucide="heart-pulse" class="w-3.5 h-3.5"></i> Emergency Alert
+            </span>
+            <span class="text-[10px] text-slate-500">1 hour ago</span>
+          </div>
+          <h4 class="text-xs font-bold text-white">B+ Blood Request Nearby</h4>
+          <p class="text-[11px] text-slate-300">Apollo Hospital requested B+ blood. 0.8 km from your location.</p>
+          <div class="pt-1">
+            <button onclick="scrollToSection('sec-blood')" class="px-3 py-1 rounded-xl bg-rose-500 text-white font-bold text-[11px]">View Request</button>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-2xl glass-panel border border-amber-500/30 bg-slate-900/60 space-y-2 relative">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-amber-400 font-extrabold flex items-center gap-1">
+              <i data-lucide="repeat" class="w-3.5 h-3.5"></i> Refill Alert
+            </span>
+            <span class="text-[10px] text-slate-500">Yesterday</span>
+          </div>
+          <h4 class="text-xs font-bold text-white">Vitamin C 500mg Low Stock</h4>
+          <p class="text-[11px] text-slate-300">Only 3 chewable tablets remaining in your medical locker.</p>
+          <div class="pt-1">
+            <button onclick="switchTab('store')" class="px-3 py-1 rounded-xl bg-amber-500 text-slate-950 font-bold text-[11px]">Reorder Now</button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="border-t border-slate-800 pt-3 flex items-center justify-between text-xs">
+        <button onclick="alert('All notifications marked as read.')" class="text-slate-400 hover:text-white font-medium">Mark all as read</button>
+        <button onclick="toggleNotifDrawer(false)" class="text-teal-400 font-bold hover:underline">Close</button>
+      </div>
+
     </div>
   </div>
 

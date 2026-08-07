@@ -1163,28 +1163,271 @@ function updateGenericComparison() {
   `;
 }
 
-// ITEM SCAN ENGINE
+// ITEM & PRESCRIPTION SCANNER ENGINE WITH LIVE WEBRTC CAMERA & DOCUMENT UPLOAD
+let activeCameraStream = null;
+
+async function startWebRTCCamera(videoElementId, placeholderId, laserId) {
+  try {
+    stopAllCameraStreams();
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } }
+    });
+    activeCameraStream = stream;
+    const video = document.getElementById(videoElementId);
+    const placeholder = document.getElementById(placeholderId);
+    const laser = document.getElementById(laserId);
+
+    if (video) {
+      video.srcObject = stream;
+      video.classList.remove('hidden');
+    }
+    if (placeholder) placeholder.classList.add('hidden');
+    if (laser) laser.classList.remove('hidden');
+  } catch (err) {
+    console.warn("Camera access fallback:", err);
+    alert("🎥 Camera Access Note: Please grant camera permissions in your browser or select an image file directly.");
+  }
+}
+
+function stopAllCameraStreams() {
+  if (activeCameraStream) {
+    activeCameraStream.getTracks().forEach(track => track.stop());
+    activeCameraStream = null;
+  }
+  const prescVideo = document.getElementById('presc-camera-video');
+  const itemVideo = document.getElementById('item-camera-video');
+  if (prescVideo) { prescVideo.pause(); prescVideo.classList.add('hidden'); }
+  if (itemVideo) { itemVideo.pause(); itemVideo.classList.add('hidden'); }
+
+  document.getElementById('presc-upload-placeholder')?.classList.remove('hidden');
+  document.getElementById('item-camera-placeholder')?.classList.remove('hidden');
+  document.getElementById('presc-laser-line')?.classList.add('hidden');
+  document.getElementById('item-laser-bar')?.classList.add('hidden');
+}
+
+function togglePrescriptionCameraStream() {
+  const video = document.getElementById('presc-camera-video');
+  if (video && !video.classList.contains('hidden')) {
+    stopAllCameraStreams();
+  } else {
+    startWebRTCCamera('presc-camera-video', 'presc-upload-placeholder', 'presc-laser-line');
+  }
+}
+
+function toggleItemCameraStream() {
+  const video = document.getElementById('item-camera-video');
+  if (video && !video.classList.contains('hidden')) {
+    stopAllCameraStreams();
+  } else {
+    startWebRTCCamera('item-camera-video', 'item-camera-placeholder', 'item-laser-bar');
+  }
+}
+
+function openPrescriptionScanModal() {
+  document.getElementById('modal-presc-scan').classList.remove('hidden');
+}
+
+function closePrescriptionScanModal() {
+  stopAllCameraStreams();
+  document.getElementById('modal-presc-scan').classList.add('hidden');
+}
+
 function openItemScanModal() {
   document.getElementById('modal-item-scan').classList.remove('hidden');
 }
+
 function closeItemScanModal() {
+  stopAllCameraStreams();
   document.getElementById('modal-item-scan').classList.add('hidden');
 }
 
-function addScannedToSchedule() {
-  closeItemScanModal();
-  switchTab('home');
-  openAddReminderModal();
+// DOCUMENT UPLOADING & OCR EXTRACTION HANDLERS
+let uploadedDocumentData = null;
+
+function handlePrescriptionFileSelected(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  stopAllCameraStreams();
+
+  const previewBox = document.getElementById('presc-upload-placeholder');
+  if (previewBox) {
+    previewBox.innerHTML = `
+      <i data-lucide="file-check-2" class="w-10 h-10 text-teal-400 mx-auto animate-bounce"></i>
+      <p class="text-xs text-white font-extrabold">${file.name}</p>
+      <p class="text-[10px] text-teal-300 font-bold">${(file.size / 1024).toFixed(1)} KB • ${file.type || 'Document'}</p>
+    `;
+    lucide.createIcons();
+  }
+
+  uploadedDocumentData = {
+    fileName: file.name,
+    fileSize: (file.size / 1024).toFixed(1) + ' KB',
+    uploadTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    doctor: "Dr. K. S. Somasekhar (Apollo Hospitals)",
+    medicines: [
+      { name: "Dolo 650mg", dosage: "1-0-1 Post Meals", duration: "5 Days" },
+      { name: "Augmentin 625 Duo", dosage: "1-0-1 Post Meals", duration: "5 Days" },
+      { name: "Pantocid 40mg", dosage: "1-0-0 Before Meal", duration: "7 Days" }
+    ]
+  };
+
+  const resultBox = document.getElementById('presc-extracted-result');
+  const badge = document.getElementById('presc-file-name-badge');
+  const body = document.getElementById('presc-extracted-body');
+
+  if (resultBox && body) {
+    resultBox.classList.remove('hidden');
+    if (badge) badge.innerText = file.name;
+    body.innerHTML = `
+      <p class="font-bold text-white">👨‍⚕️ Prescribing Physician: ${uploadedDocumentData.doctor}</p>
+      <div class="space-y-1 pt-1 border-t border-slate-800">
+        <p class="text-[10px] text-cyan-400 font-extrabold uppercase">Extracted Prescribed Medicines:</p>
+        ${uploadedDocumentData.medicines.map(m => `
+          <div class="flex items-center justify-between text-slate-200">
+            <span>• <b>${m.name}</b></span>
+            <span class="text-teal-400 font-semibold">${m.dosage} (${m.duration})</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
 }
 
-function askAIAboutScanned() {
-  closeItemScanModal();
-  openAIAssistantModal();
+function handleItemScanFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  stopAllCameraStreams();
+  triggerBarcodeScanProcess('8901234567890');
 }
 
+function triggerBarcodeScanProcess(barcodeVal) {
+  const container = document.getElementById('item-scan-results');
+  if (!container) return;
 
+  container.classList.remove('hidden');
+  container.innerHTML = `
+    <div class="p-4 rounded-2xl bg-teal-950/40 border border-teal-500/40 space-y-2 text-xs">
+      <div class="flex items-center justify-between">
+        <span class="text-teal-400 font-extrabold flex items-center gap-1"><i data-lucide="barcode" class="w-4 h-4"></i> Barcode Recognized</span>
+        <span class="text-[10px] bg-teal-500/20 text-teal-300 font-bold px-2 py-0.5 rounded">EAN-13 Verified</span>
+      </div>
+      <h4 class="text-sm font-extrabold text-white">Lipitor (Atorvastatin 20mg)</h4>
+      <p class="text-slate-300">Barcode: ${barcodeVal} • Manufacturer: Pfizer Inc.</p>
+      <div class="grid grid-cols-3 gap-2 pt-2">
+        <button onclick="showMedInfoDetails('med-1')" class="bg-teal-600 hover:bg-teal-500 text-white text-[11px] font-bold py-2 rounded-xl">
+          📖 Insights
+        </button>
+        <button onclick="addScannedToSchedule()" class="bg-cyan-600 hover:bg-cyan-500 text-white text-[11px] font-bold py-2 rounded-xl">
+          + Reminder
+        </button>
+        <button onclick="askAIAboutScanned()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold py-2 rounded-xl">
+          🤖 Ask AI
+        </button>
+      </div>
+    </div>
+  `;
+  lucide.createIcons();
+}
 
-// UTILS
+function simulatePrescriptionOCR() {
+  if (!uploadedDocumentData) {
+    uploadedDocumentData = {
+      fileName: "doctor_prescription_scan.pdf",
+      fileSize: "420 KB",
+      uploadTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      doctor: "Dr. K. S. Somasekhar (Apollo Hospitals)",
+      medicines: [
+        { name: "Dolo 650mg", dosage: "1-0-1 Post Meals", duration: "5 Days" },
+        { name: "Augmentin 625 Duo", dosage: "1-0-1 Post Meals", duration: "5 Days" }
+      ]
+    };
+  }
+
+  // Save document to Health Records
+  state.records.unshift({
+    id: `rec-${Date.now()}`,
+    title: `Prescription: ${uploadedDocumentData.fileName}`,
+    date: `Today, ${uploadedDocumentData.uploadTime}`,
+    doctor: uploadedDocumentData.doctor,
+    category: "Prescriptions",
+    medicines: uploadedDocumentData.medicines.map(m => m.name).join(', '),
+    fileSize: uploadedDocumentData.fileSize
+  });
+
+  renderHealthRecords();
+  closePrescriptionScanModal();
+
+  alert(`✅ Prescription Document Saved Successfully!\nExtracted ${uploadedDocumentData.medicines.length} medicines and saved to your Health Records.`);
+}
+
+// NOTIFICATION DRAWER CONTROLLER
+function toggleNotifDrawer(forceOpen) {
+  const drawer = document.getElementById('drawer-notifications');
+  if (!drawer) return;
+
+  if (forceOpen === true) {
+    drawer.classList.remove('hidden');
+  } else if (forceOpen === false) {
+    drawer.classList.add('hidden');
+  } else {
+    drawer.classList.toggle('hidden');
+  }
+}
+
+function filterNotifications(category) {
+  const container = document.getElementById('notifications-feed-list');
+  if (!container) return;
+
+  document.querySelectorAll('.notif-tab-btn').forEach(btn => {
+    btn.classList.remove('bg-teal-500', 'text-slate-950', 'font-bold');
+    btn.classList.add('text-slate-400');
+  });
+
+  if (category === 'all') {
+    renderNotifsFeed(container, [
+      { title: "Time for Paracetamol 650mg", type: "Pill Reminder", typeClass: "teal", time: "8:00 AM Today", desc: "Take 1 tablet after breakfast for fever & pain relief.", action: "alert('Marked Paracetamol 650mg as Taken!')", actionText: "Mark Taken" },
+      { title: "Order ORD-982415 Out for Delivery", type: "Order Update", typeClass: "cyan", time: "25 mins ago", desc: "MedPlus Express partner is 1.2 km away. ETA 15 mins.", action: "toggleCartDrawer(true)", actionText: "Track Delivery" },
+      { title: "B+ Blood Request Nearby", type: "Emergency Alert", typeClass: "rose", time: "1 hour ago", desc: "Apollo Hospital requested B+ blood. 0.8 km from your location.", action: "scrollToSection('sec-blood')", actionText: "View Request" },
+      { title: "Vitamin C 500mg Low Stock", type: "Refill Alert", typeClass: "amber", time: "Yesterday", desc: "Only 3 chewable tablets remaining in your medical locker.", action: "switchTab('store')", actionText: "Reorder Now" }
+    ]);
+  } else if (category === 'reminders') {
+    renderNotifsFeed(container, [
+      { title: "Time for Paracetamol 650mg", type: "Pill Reminder", typeClass: "teal", time: "8:00 AM Today", desc: "Take 1 tablet after breakfast for fever & pain relief.", action: "alert('Marked Paracetamol 650mg as Taken!')", actionText: "Mark Taken" },
+      { title: "Evening Metoprolol 25mg Dose", type: "Pill Reminder", typeClass: "teal", time: "8:00 PM Today", desc: "Take 1 tablet with water for blood pressure management.", action: "alert('Marked Metoprolol as Taken!')", actionText: "Mark Taken" }
+    ]);
+  } else if (category === 'orders') {
+    renderNotifsFeed(container, [
+      { title: "Order ORD-982415 Out for Delivery", type: "Order Update", typeClass: "cyan", time: "25 mins ago", desc: "MedPlus Express partner is 1.2 km away. ETA 15 mins.", action: "toggleCartDrawer(true)", actionText: "Track Delivery" }
+    ]);
+  } else if (category === 'emergency') {
+    renderNotifsFeed(container, [
+      { title: "B+ Blood Request Nearby", type: "Emergency Alert", typeClass: "rose", time: "1 hour ago", desc: "Apollo Hospital requested B+ blood. 0.8 km from your location.", action: "scrollToSection('sec-blood')", actionText: "View Request" }
+    ]);
+  }
+}
+
+function renderNotifsFeed(container, list) {
+  container.innerHTML = list.map(item => `
+    <div class="p-4 rounded-2xl glass-panel border border-${item.typeClass}-500/30 bg-slate-900/60 space-y-2 relative">
+      <div class="flex items-center justify-between text-xs">
+        <span class="text-${item.typeClass}-400 font-extrabold flex items-center gap-1">
+          <i data-lucide="bell" class="w-3.5 h-3.5"></i> ${item.type}
+        </span>
+        <span class="text-[10px] text-slate-500">${item.time}</span>
+      </div>
+      <h4 class="text-xs font-bold text-white">${item.title}</h4>
+      <p class="text-[11px] text-slate-300">${item.desc}</p>
+      <div class="pt-1">
+        <button onclick="${item.action}" class="px-3 py-1 rounded-xl bg-${item.typeClass}-500 text-slate-950 font-bold text-[11px]">${item.actionText}</button>
+      </div>
+    </div>
+  `).join('');
+  lucide.createIcons();
+}
+
+// UTILS & THEMING
 function changeLanguage(langKey) {
   state.currentLang = langKey;
   const dict = I18N[langKey] || I18N['en'];
@@ -1198,6 +1441,3 @@ function toggleTheme() {
   document.body.classList.toggle('light-theme');
 }
 
-function toggleNotifDrawer() {
-  alert("🔔 Notifications:\n1. Metoprolol reminder at 08:00 PM\n2. Order ORD-9921 in transit.");
-}
