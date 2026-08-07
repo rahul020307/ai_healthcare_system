@@ -19,18 +19,49 @@ let state = {
   activeRoutePolyline: null
 };
 
+function saveStateToStorage() {
+  try {
+    localStorage.setItem('cura_schedule_v1', JSON.stringify(state.schedule));
+    localStorage.setItem('cura_records_v1', JSON.stringify(state.records));
+    localStorage.setItem('cura_cart_v1', JSON.stringify(state.cart));
+  } catch (e) {
+    console.warn("[CuraAssist] Storage save error:", e);
+  }
+}
+
+function loadStateFromStorage() {
+  try {
+    const savedSch = localStorage.getItem('cura_schedule_v1');
+    const savedRec = localStorage.getItem('cura_records_v1');
+    const savedCart = localStorage.getItem('cura_cart_v1');
+
+    if (savedSch) {
+      state.schedule = JSON.parse(savedSch);
+    } else if (typeof INITIAL_DATA !== 'undefined' && INITIAL_DATA.medicineSchedule) {
+      state.schedule = JSON.parse(JSON.stringify(INITIAL_DATA.medicineSchedule));
+    }
+
+    if (savedRec) {
+      state.records = JSON.parse(savedRec);
+    } else if (typeof INITIAL_DATA !== 'undefined' && INITIAL_DATA.healthRecords) {
+      state.records = JSON.parse(JSON.stringify(INITIAL_DATA.healthRecords));
+    }
+
+    if (savedCart) {
+      state.cart = JSON.parse(savedCart);
+    }
+  } catch (e) {
+    console.warn("[CuraAssist] Storage load error:", e);
+  }
+}
+
 // Initialize app when DOM is ready safely
 document.addEventListener('DOMContentLoaded', () => {
   const safeRun = (fn, name) => {
     try { fn(); } catch (err) { console.warn(`[CuraAssist] Init warning in ${name}:`, err); }
   };
 
-  safeRun(() => {
-    if (typeof INITIAL_DATA !== 'undefined') {
-      if (INITIAL_DATA.medicineSchedule) state.schedule = JSON.parse(JSON.stringify(INITIAL_DATA.medicineSchedule));
-      if (INITIAL_DATA.healthRecords) state.records = JSON.parse(JSON.stringify(INITIAL_DATA.healthRecords));
-    }
-  }, 'initDataState');
+  safeRun(() => loadStateFromStorage(), 'initDataState');
 
   safeRun(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); }, 'lucide');
   safeRun(() => initFamilyDropdown(), 'initFamilyDropdown');
@@ -202,6 +233,9 @@ function renderSchedule() {
         <button onclick="togglePillTaken('${item.id}')" class="px-3 py-1 rounded-xl text-xs font-bold transition-colors ${item.taken ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-teal-600 hover:bg-teal-500 text-white'}">
           ${item.taken ? 'Taken ✓' : 'Mark Taken'}
         </button>
+        <button onclick="deleteReminder('${item.id}')" title="Delete Reminder" class="px-2 py-1 rounded-xl bg-red-950/40 hover:bg-red-900/60 text-red-400 hover:text-red-300 text-xs border border-red-800/40">
+          🗑️
+        </button>
       </div>
     </div>
   `).join('');
@@ -215,6 +249,15 @@ function togglePillTaken(id) {
     if (pill.taken && window.confetti) {
       confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
     }
+    saveStateToStorage();
+    renderSchedule();
+  }
+}
+
+function deleteReminder(id) {
+  if (state.schedule[state.activeFamilyId]) {
+    state.schedule[state.activeFamilyId] = state.schedule[state.activeFamilyId].filter(p => p.id !== id);
+    saveStateToStorage();
     renderSchedule();
   }
 }
@@ -252,6 +295,7 @@ function saveNewReminder() {
     total: 30
   });
 
+  saveStateToStorage();
   closeAddReminderModal();
   renderSchedule();
 }
