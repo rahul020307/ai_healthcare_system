@@ -350,6 +350,22 @@ function filterHealthRecords(cat) {
   renderRecords();
 }
 
+function openMyPrescriptions() {
+  switchTab('home');
+  filterHealthRecords('Prescriptions');
+
+  setTimeout(() => {
+    const el = document.getElementById('sec-medical-reports');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+      el.classList.add('ring-2', 'ring-teal-400', 'shadow-2xl');
+      setTimeout(() => {
+        el.classList.remove('ring-2', 'ring-teal-400', 'shadow-2xl');
+      }, 2500);
+    }
+  }, 120);
+}
+
 function openMedicalReports() {
   switchTab('home');
   filterHealthRecords('Medical Reports');
