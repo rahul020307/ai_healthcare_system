@@ -30,5 +30,71 @@
       "Seek immediate emergency medical care for electrical, chemical, or face/joint burns."
     ],
     "emergency_number": "108"
+  },
+  {
+    "emergency_id": "EMG-003",
+    "emergency_type": "Dog Bite & Animal Attacks (Rabies Risk)",
+    "symptoms": [
+      "Puncture wounds",
+      "Lacerations",
+      "Bleeding",
+      "Dog bite or cat scratch"
+    ],
+    "first_aid_steps": [
+      "Immediately wash the wound thoroughly with mild soap and running tap water for at least 15 minutes to reduce viral load.",
+      "Apply a clean antiseptic solution (like Povidone-Iodine or Dettol/Savlon) to disinfect the wound.",
+      "Press a clean cloth over the wound to stop minor bleeding.",
+      "🚨 URGENT: Visit a hospital or clinic IMMEDIATELY (within 24 hours) for Anti-Rabies Vaccine (ARV) and Tetanus Toxoid (TT) shot.",
+      "Do not stitch open animal bite wounds or apply household powders."
+    ],
+    "emergency_number": "108"
+  },
+  {
+    "emergency_id": "EMG-004",
+    "emergency_type": "Snake Bite & Venomous Stings",
+    "symptoms": [
+      "Fang mark punctures",
+      "Severe swelling",
+      "Nausea",
+      "Blurred vision"
+    ],
+    "first_aid_steps": [
+      "Keep the victim calm and strictly immobile. Immobilize the bitten limb below heart level.",
+      "Remove tight rings, watches, or clothing around the bitten area before swelling starts.",
+      "DO NOT cut the wound, suck out venom, or apply tight tourniquets.",
+      "Transport the patient immediately to the nearest hospital with Anti-Snake Venom (ASV) availability."
+    ],
+    "emergency_number": "108"
+  },
+  {
+    "emergency_id": "EMG-005",
+    "emergency_type": "Choking & Airway Obstruction",
+    "symptoms": [
+      "Inability to speak or cough",
+      "Clutching throat",
+      "Blue lips or face"
+    ],
+    "first_aid_steps": [
+      "Stand behind the person, wrap arms around their waist, and perform 5 quick abdominal thrusts (Heimlich maneuver).",
+      "If the person loses consciousness, lower them to the ground and begin CPR.",
+      "Call emergency services (108) immediately."
+    ],
+    "emergency_number": "108"
+  },
+  {
+    "emergency_id": "EMG-006",
+    "emergency_type": "Heart Attack & Cardiac Arrest",
+    "symptoms": [
+      "Crushing chest pain radiating to left arm/jaw",
+      "Shortness of breath",
+      "Cold sweats"
+    ],
+    "first_aid_steps": [
+      "Call 108 emergency ambulance immediately.",
+      "Have the person sit down, stay calm, and loosen tight clothing.",
+      "If prescribed, help them take Aspirin 300mg (chewable) or Sorbitrate under tongue.",
+      "If un-responsive and not breathing, perform chest compressions (CPR) at 100-120 beats/min."
+    ],
+    "emergency_number": "108"
   }
 ]

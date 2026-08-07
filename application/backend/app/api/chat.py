@@ -147,28 +147,46 @@ def ai_clinical_reasoning(message: str, patient_context: str) -> str:
     query_keywords = [w for w in raw_words if len(w) > 2 and w not in STOP_WORDS]
 
     first_name = patient_context.split()[0] if patient_context else "there"
-    lines = [f"👋 **Hi {first_name}! Here is your personalized medical answer:**\n"]
+    lines = [f"👋 **Hi {first_name}! Here is your personalized medical advice:**\n"]
     has_match = False
 
-    # If no meaningful keywords remain, return friendly guidance
-    if not query_keywords:
-        lines.append(f"💬 **Observation**: *\"{message}\"*")
-        lines.append("• I am your CuraBot AI assistant connected to 20 registered healthcare datasets.")
-        lines.append("• Ask me about specific symptoms (e.g. *fever, headache, cough, acidity*), medicines (*Dolo 650, Pan 40*), or first aid!\n")
-        lines.append("🚨 *If you experience severe chest pain or breathing difficulties, please call 108 immediately.*")
+    # Check for Special High-Priority Emergencies & Bites
+    if any(k in msg for k in ["dog", "bite", "bitten", "animal", "rabies", "cat", "scratch"]):
+        lines.append("🐕 **DOG / ANIMAL BITE EMERGENCY PROTOCOL (Rabies Risk)**:")
+        lines.append("• **Step 1 (Immediate Wash)**: Wash the bite wound thoroughly with soap and running tap water for at least 15 minutes to reduce viral load.")
+        lines.append("• **Step 2 (Disinfect)**: Apply an antiseptic solution like Betadine (Povidone-Iodine) or Dettol/Savlon.")
+        lines.append("• **Step 3 (Stop Bleeding)**: Apply light pressure with a sterile bandage if bleeding.")
+        lines.append("• 🚨 **URGENT**: Visit a hospital within **24 hours** to receive the **Anti-Rabies Vaccine (ARV)** and Tetanus (TT) injection.")
+        lines.append("• ⚠️ **Warning**: Do not cover tightly, stitch open wounds, or apply household powders.\n")
+        lines.append("🚨 *If bleeding is severe or dog is suspected rabid, call 108 immediately.*")
         return "\n".join(lines)
 
-    # 1. Search FAQ DB
-    for faq in FAQ_DB:
-        q = faq.get("question", "").lower()
-        if any(kw in q for kw in query_keywords if len(kw) > 3) or msg in q:
-            lines.append(f"❓ **Question**: **{faq.get('question')}**")
-            lines.append(f"💡 **Answer**: {faq.get('answer')}")
-            lines.append(f"🏷️ **Category**: {faq.get('category', 'General Health')}\n")
-            has_match = True
-            break
+    if any(k in msg for k in ["snake", "venom", "sting", "viper", "cobra"]):
+        lines.append("🐍 **SNAKE BITE EMERGENCY FIRST AID**:")
+        lines.append("• **Step 1**: Keep the victim strictly immobile and calm. Keep bitten limb below heart level.")
+        lines.append("• **Step 2**: Remove tight rings, watch, or clothing near wound.")
+        lines.append("• **Step 3**: DO NOT cut wound, suck venom, or tie tight tourniquets.")
+        lines.append("• 🚨 **CRITICAL**: Go immediately to the nearest hospital for Anti-Snake Venom (ASV).\n")
+        lines.append("🚨 *Call 108 Emergency Dispatch immediately.*")
+        return "\n".join(lines)
 
-    # 2. Search Medicines DB (Match brand name, generic name, or composition specifically)
+    # 1. Search First Aid DB
+    aid_matches = []
+    for aid in FIRST_AID_DB:
+        e_type = aid.get("emergency_type", "").lower()
+        sympts = [s.lower() for s in aid.get("symptoms", [])]
+        if any(kw in e_type for kw in query_keywords) or any(any(kw in s for kw in query_keywords) for s in sympts):
+            aid_matches.append(aid)
+
+    if aid_matches and not has_match:
+        aid = aid_matches[0]
+        lines.append(f"🚑 **First Aid Protocol ({aid.get('emergency_type')})**:")
+        for i, step in enumerate(aid.get('first_aid_steps', []), 1):
+            lines.append(f"• **Step {i}**: {step}")
+        lines.append("")
+        has_match = True
+
+    # 2. Search Medicines DB
     med_matches = []
     for med in MEDICINES_DB:
         b_name = med.get("brand_name", "").lower()
@@ -228,27 +246,22 @@ def ai_clinical_reasoning(message: str, patient_context: str) -> str:
         lines.append(f"• **Recommended Doctor**: {dis.get('specialist')}\n")
         has_match = True
 
-    # 5. Search First Aid DB
-    aid_matches = []
-    for aid in FIRST_AID_DB:
-        e_type = aid.get("emergency_type", "").lower()
-        if any(kw in e_type for kw in query_keywords):
-            aid_matches.append(aid)
+    # 5. Search FAQ DB
+    for faq in FAQ_DB:
+        q = faq.get("question", "").lower()
+        if any(kw in q for kw in query_keywords if len(kw) > 3) or msg in q:
+            lines.append(f"❓ **Question**: **{faq.get('question')}**")
+            lines.append(f"💡 **Answer**: {faq.get('answer')}")
+            lines.append(f"🏷️ **Category**: {faq.get('category', 'General Health')}\n")
+            has_match = True
+            break
 
-    if aid_matches and not has_match:
-        aid = aid_matches[0]
-        lines.append(f"🚑 **First Aid Protocol ({aid.get('emergency_type')})**:")
-        for i, step in enumerate(aid.get('first_aid_steps', []), 1):
-            lines.append(f"• **Step {i}**: {step}")
-        lines.append("")
-        has_match = True
-
-    # 6. Fallback Query-Specific Advice if no dataset match found
+    # 6. Fallback Query-Specific Guidance
     if not has_match:
-        lines.append(f"🔍 **Search Query**: *\"{message}\"*")
-        lines.append(f"• **AI Note**: Analyzed keywords ({', '.join(query_keywords)}) across registered healthcare databases.")
-        lines.append(f"• **General Advice**: Drink 8+ glasses of water, maintain rest, and consult a certified physician for personalized medical evaluation.")
-        lines.append(f"• **Tip**: Try asking specifically about medicines (*Dolo 650*, *Pan 40*), symptoms (*fever*, *headache*, *burns*), or emergency care!\n")
+        lines.append(f"💡 **Clinical Guidance for Query**: *\"{message}\"*")
+        lines.append(f"• **Key Terms**: {', '.join(query_keywords) if query_keywords else 'General Query'}")
+        lines.append(f"• **Action Plan**: For unlisted health concerns, monitor symptoms closely and consult a certified physician.")
+        lines.append(f"• **Explore CuraAssist**: Search registered tablets (*Dolo 650*, *Pan 40*), scan prescriptions, or locate nearby hospitals on Maps.\n")
 
     lines.append("🚨 *If you experience chest pain, sudden numbness, or severe difficulty breathing, please call 108 immediately.*")
 
