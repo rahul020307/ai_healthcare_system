@@ -1,6 +1,7 @@
 import json
 import os
-import requests
+import urllib.request
+import urllib.error
 from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import Optional
@@ -50,7 +51,7 @@ def call_remote_ai(user_prompt: str, patient_context: str) -> Optional[str]:
     if gemini_key:
         try:
             url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
-            payload = {
+            payload = json.dumps({
                 "contents": [
                     {
                         "parts": [
@@ -59,30 +60,34 @@ def call_remote_ai(user_prompt: str, patient_context: str) -> Optional[str]:
                         ]
                     }
                 ]
-            }
-            res = requests.post(url, json=payload, timeout=8)
-            if res.status_code == 200:
-                data = res.json()
-                return data["candidates"][0]["content"]["parts"][0]["text"]
+            }).encode('utf-8')
+            req = urllib.request.Request(url, data=payload, headers={'Content-Type': 'application/json'})
+            with urllib.request.urlopen(req, timeout=8) as response:
+                if response.status == 200:
+                    data = json.loads(response.read().decode('utf-8'))
+                    return data["candidates"][0]["content"]["parts"][0]["text"]
         except Exception as e:
             print("Gemini API call error:", e)
 
     if openai_key:
         try:
             url = "https://api.openai.com/v1/chat/completions"
-            headers = {"Authorization": f"Bearer {openai_key}", "Content-Type": "application/json"}
-            payload = {
+            payload = json.dumps({
                 "model": "gpt-3.5-turbo",
                 "messages": [
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt}
                 ],
                 "temperature": 0.4
-            }
-            res = requests.post(url, headers=headers, json=payload, timeout=8)
-            if res.status_code == 200:
-                data = res.json()
-                return data["choices"][0]["message"]["content"]
+            }).encode('utf-8')
+            req = urllib.request.Request(url, data=payload, headers={
+                "Authorization": f"Bearer {openai_key}",
+                "Content-Type": "application/json"
+            })
+            with urllib.request.urlopen(req, timeout=8) as response:
+                if response.status == 200:
+                    data = json.loads(response.read().decode('utf-8'))
+                    return data["choices"][0]["message"]["content"]
         except Exception as e:
             print("OpenAI API call error:", e)
 
