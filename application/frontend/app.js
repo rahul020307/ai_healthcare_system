@@ -19,20 +19,24 @@ let state = {
   activeRoutePolyline: null
 };
 
-// Initialize app when DOM is ready
+// Initialize app when DOM is ready safely
 document.addEventListener('DOMContentLoaded', () => {
-  lucide.createIcons();
-  initFamilyDropdown();
-  renderActiveFamilyContext();
-  renderSchedule();
-  renderRecords();
-  renderStoreCategories();
-  renderStoreMedicines();
-  renderCart();
-  renderBloodCompatibility();
-  renderFeedbackList();
-  renderFirstAidGuide();
-  renderGenericDropdown();
+  const safeRun = (fn, name) => {
+    try { fn(); } catch (err) { console.warn(`[CuraAssist] Init warning in ${name}:`, err); }
+  };
+
+  safeRun(() => lucide.createIcons(), 'lucide');
+  safeRun(() => initFamilyDropdown(), 'initFamilyDropdown');
+  safeRun(() => renderActiveFamilyContext(), 'renderActiveFamilyContext');
+  safeRun(() => renderSchedule(), 'renderSchedule');
+  safeRun(() => renderRecords(), 'renderRecords');
+  safeRun(() => renderStoreCategories(), 'renderStoreCategories');
+  safeRun(() => renderStoreMedicines(), 'renderStoreMedicines');
+  safeRun(() => renderCart(), 'renderCart');
+  safeRun(() => renderBloodCompatibility(), 'renderBloodCompatibility');
+  safeRun(() => renderFeedbackList(), 'renderFeedbackList');
+  safeRun(() => renderFirstAidGuide(), 'renderFirstAidGuide');
+  safeRun(() => renderGenericDropdown(), 'renderGenericDropdown');
 });
 
 // TAB SWITCHING ENGINE
