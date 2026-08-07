@@ -377,69 +377,143 @@ function filterStoreCategory(cat) {
   renderStoreMedicines();
 }
 
-function renderStoreMedicines() {
+let activeStoreLocation = 'Hyderabad, Telangana';
+
+function changeStoreLocation(locationName) {
+  activeStoreLocation = locationName;
+  const select = document.getElementById('store-location-select');
+  if (select) select.value = locationName;
+  renderStoreMedicines();
+}
+
+function getCurrentLocationForStore() {
+  if (!navigator.geolocation) {
+    alert("Geolocation is not supported by your browser.");
+    return;
+  }
+
+  const infoEl = document.getElementById('store-fulfillment-info');
+  if (infoEl) infoEl.innerHTML = `<span class="text-teal-300 font-bold">📍 Detecting live GPS location...</span>`;
+
+  navigator.geolocation.getCurrentPosition((pos) => {
+    const lat = pos.coords.latitude;
+    const lng = pos.coords.longitude;
+    activeStoreLocation = `GPS Location (${lat.toFixed(3)}, ${lng.toFixed(3)})`;
+    
+    const select = document.getElementById('store-location-select');
+    if (select) {
+      const opt = document.createElement('option');
+      opt.value = activeStoreLocation;
+      opt.innerText = `📍 ${activeStoreLocation}`;
+      opt.selected = true;
+      select.appendChild(opt);
+    }
+    renderStoreMedicines();
+  }, (err) => {
+    alert("Unable to fetch GPS position. Falling back to selected location.");
+    renderStoreMedicines();
+  });
+}
+
+async function renderStoreMedicines() {
   const container = document.getElementById('store-medicines-grid');
   if (!container) return;
 
   const query = (document.getElementById('store-search-input')?.value || '').toLowerCase();
+  const infoEl = document.getElementById('store-fulfillment-info');
 
-  const filtered = INITIAL_DATA.medicines.filter(m => {
-    const matchesCat = activeStoreCat === 'All' || m.category === activeStoreCat || m.subcategory === activeStoreCat;
-    const matchesSearch = m.name.toLowerCase().includes(query) || m.genericName.toLowerCase().includes(query) || m.barcode.includes(query);
-    return matchesCat && matchesSearch;
-  });
+  try {
+    const res = await fetch(`http://localhost:8000/store/medicines?location=${encodeURIComponent(activeStoreLocation)}&search=${encodeURIComponent(query)}&category=${encodeURIComponent(activeStoreCat)}`);
+    const data = await res.json();
 
-  if (filtered.length === 0) {
-    container.innerHTML = `
-      <div class="p-8 rounded-2xl glass-card text-center text-slate-400 text-xs">
-        No medicines found matching your search.
+    if (infoEl && data.fulfillingStore) {
+      infoEl.innerText = `Hub: ${data.fulfillingStore} • ${data.deliveryEta || '15-25 min delivery'}`;
+    }
+
+    const meds = data.medicines || [];
+
+    if (meds.length === 0) {
+      container.innerHTML = `
+        <div class="p-8 rounded-2xl glass-card text-center text-slate-400 text-xs">
+          No medicines found matching your search in ${activeStoreLocation}.
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = meds.map(med => `
+      <div class="p-4 rounded-2xl glass-panel glass-panel-hover border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        
+        <!-- Left Thumbnail -->
+        <div class="relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-slate-900 shrink-0">
+          <img src="${med.image}" class="w-full h-full object-cover">
+          ${med.requiresRx ? `<span class="absolute top-1 left-1 bg-rose-500/90 text-white text-[9px] px-1.5 py-0.5 rounded font-extrabold">Rx</span>` : ''}
+        </div>
+
+        <!-- Center Product Info -->
+        <div class="flex-1 min-w-0 space-y-1">
+          <div class="flex flex-wrap items-center gap-2">
+            <h4 class="text-sm font-extrabold text-white truncate">${med.name}</h4>
+            <span class="bg-teal-500/20 text-teal-300 text-[10px] px-2 py-0.5 rounded-full font-bold border border-teal-500/30">${med.discount || 'Special Price'}</span>
+          </div>
+
+          <p class="text-[11px] text-slate-400 flex flex-wrap items-center gap-2">
+            <span class="text-amber-400 font-bold flex items-center gap-0.5"><i data-lucide="star" class="w-3 h-3 fill-current"></i> ${med.rating} (${med.reviews})</span>
+            <span>• ${med.dosage || 'Standard dosage'}</span>
+          </p>
+
+          <div class="flex flex-wrap items-center gap-2 text-[10px] text-slate-300 pt-0.5">
+            <span class="bg-slate-900 px-2 py-0.5 rounded text-cyan-300 font-semibold border border-slate-800 flex items-center gap-1">
+              <i data-lucide="store" class="w-3 h-3 text-cyan-400"></i> ${med.fulfillingStore || 'Partner Hub'}
+            </span>
+            <span class="bg-emerald-500/10 text-emerald-300 px-2 py-0.5 rounded font-bold border border-emerald-500/20">
+              ⚡ ${med.stockStatus || 'In Stock'}
+            </span>
+          </div>
+        </div>
+
+        <!-- Right Price & Add Button -->
+        <div class="text-right space-y-2 shrink-0 w-full sm:w-auto flex sm:flex-col items-center sm:items-end justify-between">
+          <div>
+            <span class="text-base sm:text-lg font-extrabold text-teal-300">${med.currency || '₹'}${med.price.toFixed(2)}</span>
+            ${med.originalPrice ? `<span class="text-xs text-slate-500 line-through ml-1">${med.currency || '₹'}${med.originalPrice.toFixed(2)}</span>` : ''}
+          </div>
+
+          <div class="flex items-center gap-1.5 justify-end">
+            <button onclick="showMedInfoDetails('${med.id}')" class="bg-slate-900 border border-slate-800 text-teal-300 hover:text-white p-2 rounded-xl text-xs" title="View Insights">
+              <i data-lucide="info" class="w-3.5 h-3.5"></i>
+            </button>
+            <button onclick="addToCart('${med.id}')" class="bg-teal-500 hover:bg-teal-400 text-slate-950 font-extrabold px-3.5 py-2 rounded-xl text-xs flex items-center gap-1 shadow-lg shadow-teal-500/20 transition-all">
+              <i data-lucide="shopping-cart" class="w-3.5 h-3.5"></i>
+              <span>+ Add to Cart</span>
+            </button>
+          </div>
+        </div>
+
       </div>
-    `;
-    return;
+    `).join('');
+
+    lucide.createIcons();
+  } catch (err) {
+    const filtered = INITIAL_DATA.medicines.filter(m => {
+      const matchesCat = activeStoreCat === 'All' || m.category === activeStoreCat;
+      const matchesSearch = m.name.toLowerCase().includes(query);
+      return matchesCat && matchesSearch;
+    });
+
+    container.innerHTML = filtered.map(med => `
+      <div class="p-4 rounded-2xl glass-panel border border-slate-800 flex items-center justify-between gap-4">
+        <div class="space-y-1">
+          <h4 class="text-sm font-extrabold text-white">${med.name}</h4>
+          <p class="text-xs text-slate-400">${med.category} • Offline Mode</p>
+        </div>
+        <button onclick="addToCart('${med.id}')" class="bg-teal-500 text-slate-950 font-bold px-3 py-1.5 rounded-xl text-xs">
+          + Add
+        </button>
+      </div>
+    `).join('');
+    lucide.createIcons();
   }
-
-  container.innerHTML = filtered.map(med => `
-    <div class="p-4 rounded-2xl glass-panel glass-panel-hover border border-slate-800 flex items-center justify-between gap-4">
-      
-      <!-- Left Thumbnail -->
-      <div class="relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-slate-900 shrink-0">
-        <img src="${med.image}" class="w-full h-full object-cover">
-      </div>
-
-      <!-- Center Product Info -->
-      <div class="flex-1 min-w-0 space-y-1">
-        <h4 class="text-sm font-extrabold text-white truncate">${med.name}</h4>
-        <p class="text-[11px] text-slate-400 truncate">${med.form} • ${med.packSize}</p>
-        <div class="flex items-center gap-1.5 text-[10px] text-slate-400">
-          <span class="bg-slate-900 px-2 py-0.5 rounded text-teal-300 font-semibold border border-slate-800">${med.category}</span>
-          <span>• ${med.subcategory}</span>
-        </div>
-      </div>
-
-      <!-- Right Price & Add Button -->
-      <div class="text-right space-y-2 shrink-0">
-        <div class="flex items-center justify-end gap-2">
-          <button onclick="toggleWishlist('${med.id}')" class="text-slate-400 hover:text-rose-400">
-            <i data-lucide="heart" class="w-4 h-4"></i>
-          </button>
-          <span class="text-sm font-extrabold text-teal-300">$${med.price.toFixed(2)}</span>
-        </div>
-
-        <div class="flex items-center gap-1.5 justify-end">
-          <button onclick="showMedInfoDetails('${med.id}')" class="bg-slate-900 border border-slate-800 text-teal-300 hover:text-white p-1.5 rounded-lg text-xs" title="View Insights">
-            <i data-lucide="info" class="w-3.5 h-3.5"></i>
-          </button>
-          <button onclick="addToCart('${med.id}')" class="bg-teal-500 hover:bg-teal-400 text-slate-950 font-extrabold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1 shadow">
-            <i data-lucide="shopping-cart" class="w-3.5 h-3.5"></i>
-            <span>+ Add to Cart</span>
-          </button>
-        </div>
-      </div>
-
-    </div>
-  `).join('');
-
-  lucide.createIcons();
 }
 
 function toggleWishlist(medId) {

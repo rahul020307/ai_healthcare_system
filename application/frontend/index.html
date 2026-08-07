@@ -570,6 +570,33 @@
           </div>
         </div>
 
+        <!-- Location Delivery Hub Bar -->
+        <div class="p-3.5 rounded-2xl glass-card border border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs bg-slate-900/60">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-full bg-teal-500/20 text-teal-400 flex items-center justify-center shrink-0">
+              <i data-lucide="map-pin" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-1.5 font-bold text-white">
+                <span>Delivering to:</span>
+                <select id="store-location-select" onchange="changeStoreLocation(this.value)" class="bg-slate-900 text-teal-300 font-extrabold text-xs px-2 py-1 rounded-lg border border-slate-800 focus:outline-none cursor-pointer">
+                  <option value="Hyderabad, Telangana" selected>📍 Hyderabad, Telangana</option>
+                  <option value="Bengaluru, Karnataka">📍 Bengaluru, Karnataka</option>
+                  <option value="Mumbai, Maharashtra">📍 Mumbai, Maharashtra</option>
+                  <option value="Delhi, NCR">📍 Delhi, NCR</option>
+                  <option value="London, United Kingdom">📍 London, United Kingdom</option>
+                  <option value="New York, USA">📍 New York, USA</option>
+                </select>
+              </div>
+              <p id="store-fulfillment-info" class="text-[11px] text-slate-400">Hub: MedPlus Express • 15-20 min Express Delivery</p>
+            </div>
+          </div>
+          
+          <button onclick="getCurrentLocationForStore()" class="px-3 py-1.5 rounded-xl bg-teal-500/20 text-teal-300 hover:bg-teal-500/30 text-[11px] font-bold flex items-center gap-1.5 transition-colors border border-teal-500/30">
+            <i data-lucide="crosshair" class="w-3.5 h-3.5"></i> Use Live GPS
+          </button>
+        </div>
+
         <!-- Universal Search Bar -->
         <div class="relative w-full">
           <i data-lucide="search" class="w-5 h-5 absolute left-4 top-3.5 text-slate-400"></i>
