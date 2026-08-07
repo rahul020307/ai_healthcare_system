@@ -649,11 +649,35 @@
           </button>
         </div>
 
+        <!-- Prototype Showcase Special Banner -->
+        <div class="p-4 rounded-2xl bg-gradient-to-r from-amber-500/20 via-teal-500/20 to-cyan-500/20 border border-amber-500/40 flex items-center justify-between shadow-xl">
+          <div class="flex items-center gap-3">
+            <div class="p-2.5 rounded-xl bg-amber-500/20 text-amber-300">
+              <i data-lucide="sparkles" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h4 class="text-xs font-extrabold text-white">Prototype Showcase Catalog</h4>
+                <span class="text-[9px] bg-amber-500 text-slate-950 px-2 py-0.5 rounded-full font-black">HACKATHON DEMO</span>
+              </div>
+              <p class="text-[11px] text-slate-300">Featuring NeuroBoost Focus, CuraCardio, ImmuneShield Max & Smart Pill Demos</p>
+            </div>
+          </div>
+          <button onclick="filterStoreCategory('Prototype Specials')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold px-3.5 py-1.5 rounded-xl text-xs shadow-lg">
+            View Prototypes
+          </button>
+        </div>
+
         <!-- Popular Medicines List -->
         <div class="space-y-3">
           <div class="flex items-center justify-between">
-            <h3 class="text-sm font-extrabold text-white">Popular Medicines</h3>
-            <button onclick="filterStoreCategory('All')" class="text-xs text-teal-400 font-bold hover:underline">View All</button>
+            <h3 class="text-sm font-extrabold text-white">Medicines Catalog</h3>
+            <div class="flex items-center gap-1.5 overflow-x-auto text-[11px] no-scrollbar">
+              <button onclick="filterStoreCategory('All')" class="px-3 py-1 rounded-xl font-bold bg-teal-500 text-slate-950">All</button>
+              <button onclick="filterStoreCategory('Prototype Specials')" class="px-3 py-1 rounded-xl font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">✨ Prototypes</button>
+              <button onclick="filterStoreCategory('Pain Relief')" class="px-3 py-1 rounded-xl font-semibold bg-slate-900 border border-slate-800 text-slate-300">Pain Relief</button>
+              <button onclick="filterStoreCategory('Antibiotics')" class="px-3 py-1 rounded-xl font-semibold bg-slate-900 border border-slate-800 text-slate-300">Antibiotics</button>
+            </div>
           </div>
 
           <div id="store-medicines-grid" class="space-y-3">
