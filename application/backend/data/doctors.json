@@ -1,0 +1,26 @@
+[
+  {
+    "doctor_id": "DOC-001",
+    "doctor_name": "Dr. K. S. Somasekhar",
+    "specialization": "Cardiologist",
+    "hospital": "Apollo Hospitals Jubilee Hills",
+    "experience": 22,
+    "phone": "+91 98490 12345"
+  },
+  {
+    "doctor_id": "DOC-002",
+    "doctor_name": "Dr. Sunita Reddy",
+    "specialization": "Dermatologist & Cosmetologist",
+    "hospital": "Yashoda Hospitals Somajiguda",
+    "experience": 15,
+    "phone": "+91 98490 67890"
+  },
+  {
+    "doctor_id": "DOC-003",
+    "doctor_name": "Dr. Rajesh Varma",
+    "specialization": "General Physician & Internal Medicine",
+    "hospital": "Manipal Hospital Bengaluru",
+    "experience": 18,
+    "phone": "+91 98800 11223"
+  }
+]

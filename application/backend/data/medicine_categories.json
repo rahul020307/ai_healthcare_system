@@ -1,0 +1,32 @@
+[
+  {
+    "category_id": "CAT-001",
+    "category_name": "Pain Relief & Antipyretics",
+    "icon": "pill",
+    "description": "Medicines for treating headaches, body pain, joint pain, and fever reduction."
+  },
+  {
+    "category_id": "CAT-002",
+    "category_name": "Vitamins & Supplements",
+    "icon": "apple",
+    "description": "Nutritional supplements, immunity boosters, minerals, and daily multivitamin care."
+  },
+  {
+    "category_id": "CAT-003",
+    "category_name": "Antibiotics",
+    "icon": "shield",
+    "description": "Prescription antibiotics for bacterial infections across respiratory, urinary, and dermatological care."
+  },
+  {
+    "category_id": "CAT-004",
+    "category_name": "Cardiovascular Care",
+    "icon": "heart",
+    "description": "Blood pressure management, statins, blood thinners, and cardiac health medicines."
+  },
+  {
+    "category_id": "CAT-005",
+    "category_name": "Gastrointestinal Care",
+    "icon": "activity",
+    "description": "Antacids, proton pump inhibitors, laxatives, and digestion support."
+  }
+]

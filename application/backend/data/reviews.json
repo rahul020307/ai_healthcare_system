@@ -1,0 +1,18 @@
+[
+  {
+    "review_id": "REV-001",
+    "medicine_id": "MED-001",
+    "user_name": "Rahul Sharma",
+    "rating": 5.0,
+    "review": "Very effective for fever reduction. Delivered within 20 mins from MedPlus Express!",
+    "review_date": "2026-08-01"
+  },
+  {
+    "review_id": "REV-002",
+    "medicine_id": "MED-002",
+    "user_name": "Priya Patel",
+    "rating": 4.8,
+    "review": "Great chewable Vitamin C taste. Helps keep immunity strong during seasonal changes.",
+    "review_date": "2026-08-03"
+  }
+]

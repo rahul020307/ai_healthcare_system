@@ -1,0 +1,35 @@
+[
+  {
+    "bloodbank_id": "BB-001",
+    "bloodbank_name": "NTR Memorial Trust Blood Bank",
+    "address": "Road No. 2, Banjara Hills",
+    "latitude": 17.4215,
+    "longitude": 78.435,
+    "contact_number": "+91 40 3079 9999",
+    "available_blood_groups": [
+      "O+",
+      "O-",
+      "A+",
+      "A-",
+      "B+",
+      "B-",
+      "AB+",
+      "AB-"
+    ]
+  },
+  {
+    "bloodbank_id": "BB-002",
+    "bloodbank_name": "Chiranjeevi Charitable Blood Bank",
+    "address": "Jubilee Hills Road No. 1",
+    "latitude": 17.4285,
+    "longitude": 78.415,
+    "contact_number": "+91 40 2355 5555",
+    "available_blood_groups": [
+      "O+",
+      "A+",
+      "B+",
+      "AB+",
+      "O-"
+    ]
+  }
+]

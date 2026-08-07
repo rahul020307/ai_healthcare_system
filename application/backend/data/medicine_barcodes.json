@@ -1,0 +1,17 @@
+[
+  {
+    "barcode": "8901234567890",
+    "medicine_id": "MED-001",
+    "brand_name": "Dolo 650"
+  },
+  {
+    "barcode": "8902345678901",
+    "medicine_id": "MED-002",
+    "brand_name": "Limcee 500"
+  },
+  {
+    "barcode": "8903456789012",
+    "medicine_id": "MED-003",
+    "brand_name": "Augmentin 625 Duo"
+  }
+]

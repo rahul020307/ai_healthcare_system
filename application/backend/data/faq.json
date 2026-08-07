@@ -1,0 +1,12 @@
+[
+  {
+    "faq_id": "FAQ-001",
+    "question": "How does the AI Medicine & Prescription Scanner work?",
+    "answer": "Our scanner utilizes OCR text extraction and computer vision algorithms to instantly analyze medicine names, dosage forms, side effects, and active compositions from any uploaded picture or scan."
+  },
+  {
+    "faq_id": "FAQ-002",
+    "question": "Are emergency blood requests sent to nearby donors automatically?",
+    "answer": "Yes! Tapping 'Submit Blood Request' matches your requested blood group with registered local donors and emergency blood bank inventories within a 10 km radius."
+  }
+]

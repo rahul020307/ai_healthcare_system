@@ -1,0 +1,54 @@
+[
+  {
+    "hospital_id": "HOSP-001",
+    "hospital_name": "Apollo Hospitals Jubilee Hills",
+    "address": "Road No. 72, Opposite Bharatiya Vidya Bhavan, Film Nagar",
+    "city": "Hyderabad",
+    "latitude": 17.4184,
+    "longitude": 78.4116,
+    "departments": [
+      "Cardiology",
+      "Neurology",
+      "Orthopedics",
+      "Emergency Trauma",
+      "Oncology"
+    ],
+    "emergency_available": true,
+    "phone": "+91 40 2360 7777",
+    "rating": 4.9
+  },
+  {
+    "hospital_id": "HOSP-002",
+    "hospital_name": "Yashoda Hospitals Somajiguda",
+    "address": "Raj Bhavan Road, Somajiguda",
+    "city": "Hyderabad",
+    "latitude": 17.4262,
+    "longitude": 78.4578,
+    "departments": [
+      "Pulmonology",
+      "Gastroenterology",
+      "Pediatrics",
+      "Critical Care"
+    ],
+    "emergency_available": true,
+    "phone": "+91 40 4567 4567",
+    "rating": 4.8
+  },
+  {
+    "hospital_id": "HOSP-003",
+    "hospital_name": "Manipal Hospital HAL Airport Road",
+    "address": "98 HAL Old Airport Rd, Kodihalli",
+    "city": "Bengaluru",
+    "latitude": 12.9585,
+    "longitude": 77.6486,
+    "departments": [
+      "Cardiothoracic Surgery",
+      "Nephrology",
+      "Organ Transplant",
+      "Emergency"
+    ],
+    "emergency_available": true,
+    "phone": "+91 80 2502 4444",
+    "rating": 4.8
+  }
+]

@@ -1,0 +1,171 @@
+[
+  {
+    "medicine_id": "MED-001",
+    "brand_name": "Dolo 650",
+    "generic_name": "Paracetamol",
+    "composition": "Paracetamol (650 mg)",
+    "category": "Analgesics & Antipyretics",
+    "dosage_form": "Tablet",
+    "strength": "650 mg",
+    "manufacturer": "Micro Labs Ltd",
+    "uses": [
+      "Fever reduction",
+      "Mild to moderate pain",
+      "Headache relief"
+    ],
+    "dosage": "1 tablet every 4 to 6 hours as needed post meal. Max 4 tablets/day.",
+    "age_restriction": "Above 12 years",
+    "side_effects": [
+      "Nausea",
+      "Allergic skin rash",
+      "Gastric irritation (rare)"
+    ],
+    "warnings": [
+      "Do not consume alcohol while taking paracetamol",
+      "Avoid liver failure risk by avoiding overdose"
+    ],
+    "contraindications": [
+      "Severe hepatic impairment",
+      "Known hypersensitivity to paracetamol"
+    ],
+    "storage": "Store below 30°C in a dry place away from direct sunlight.",
+    "prescription_required": false,
+    "barcode": "8901234567890",
+    "image_url": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=400",
+    "price": 30.5
+  },
+  {
+    "medicine_id": "MED-002",
+    "brand_name": "Limcee 500",
+    "generic_name": "Ascorbic Acid",
+    "composition": "Vitamin C (500 mg) + Sodium Ascorbate",
+    "category": "Vitamins & Minerals",
+    "dosage_form": "Chewable Tablet",
+    "strength": "500 mg",
+    "manufacturer": "Abbott Healthcare",
+    "uses": [
+      "Immunity booster",
+      "Scurvy prevention",
+      "Antioxidant support"
+    ],
+    "dosage": "1 chewable tablet daily after breakfast.",
+    "age_restriction": "Above 6 years",
+    "side_effects": [
+      "Mild stomach ache",
+      "Diarrhea (if overconsumed)"
+    ],
+    "warnings": [
+      "High dosage may cause kidney stone risks in predisposed individuals"
+    ],
+    "contraindications": [
+      "Hyperoxaluria",
+      "Severe kidney impairment"
+    ],
+    "storage": "Store in a cool dry place. Keep container tightly closed.",
+    "prescription_required": false,
+    "barcode": "8902345678901",
+    "image_url": "https://images.unsplash.com/photo-1577401239170-897942555fb3?auto=format&fit=crop&q=80&w=400",
+    "price": 24.0
+  },
+  {
+    "medicine_id": "MED-003",
+    "brand_name": "Augmentin 625 Duo",
+    "generic_name": "Amoxicillin and Clavulanate Potassium",
+    "composition": "Amoxicillin (500 mg) + Clavulanic Acid (125 mg)",
+    "category": "Antibiotics",
+    "dosage_form": "Tablet",
+    "strength": "625 mg",
+    "manufacturer": "GlaxoSmithKline",
+    "uses": [
+      "Bacterial sinus infection",
+      "Pneumonia",
+      "Urinary tract infections",
+      "Skin infections"
+    ],
+    "dosage": "1 tablet twice daily for 5-7 days strictly as prescribed.",
+    "age_restriction": "Above 12 years",
+    "side_effects": [
+      "Diarrhea",
+      "Vomiting",
+      "Oral thrush"
+    ],
+    "warnings": [
+      "Complete full antibiotic course even if feeling better"
+    ],
+    "contraindications": [
+      "Penicillin allergy",
+      "History of amoxicillin-associated jaundice"
+    ],
+    "storage": "Store in original foil package away from moisture below 25°C.",
+    "prescription_required": true,
+    "barcode": "8903456789012",
+    "image_url": "https://images.unsplash.com/photo-1471864190281-a93a3070b6de?auto=format&fit=crop&q=80&w=400",
+    "price": 201.75
+  },
+  {
+    "medicine_id": "MED-004",
+    "brand_name": "Lipivas 10",
+    "generic_name": "Atorvastatin",
+    "composition": "Atorvastatin Calcium (10 mg)",
+    "category": "Cardiovascular / Lipid Lowering",
+    "dosage_form": "Tablet",
+    "strength": "10 mg",
+    "manufacturer": "Cipla Ltd",
+    "uses": [
+      "High cholesterol treatment",
+      "Prevention of heart attack and stroke"
+    ],
+    "dosage": "1 tablet daily at bedtime.",
+    "age_restriction": "Above 18 years",
+    "side_effects": [
+      "Muscle soreness",
+      "Elevated liver enzymes",
+      "Headache"
+    ],
+    "warnings": [
+      "Report unusual muscle pain or weakness immediately"
+    ],
+    "contraindications": [
+      "Active liver disease",
+      "Pregnancy & breastfeeding"
+    ],
+    "storage": "Store at room temperature below 30°C.",
+    "prescription_required": true,
+    "barcode": "8904567890123",
+    "image_url": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=400",
+    "price": 72.8
+  },
+  {
+    "medicine_id": "MED-005",
+    "brand_name": "Pantocid 40",
+    "generic_name": "Pantoprazole",
+    "composition": "Pantoprazole Sodium (40 mg)",
+    "category": "Gastrointestinal",
+    "dosage_form": "Enteric-Coated Tablet",
+    "strength": "40 mg",
+    "manufacturer": "Sun Pharma",
+    "uses": [
+      "Acid reflux / GERD",
+      "Peptic ulcer disease",
+      "Zollinger-Ellison syndrome"
+    ],
+    "dosage": "1 tablet daily 30 minutes before morning breakfast.",
+    "age_restriction": "Above 12 years",
+    "side_effects": [
+      "Flatulence",
+      "Headache",
+      "Abdominal pain"
+    ],
+    "warnings": [
+      "Long term use may decrease Vitamin B12 and magnesium absorption"
+    ],
+    "contraindications": [
+      "Hypersensitivity to substituted benzimidazoles"
+    ],
+    "storage": "Protect from moisture and light.",
+    "prescription_required": true,
+    "barcode": "8905678901234",
+    "image_url": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=400",
+    "price": 145.0
+  }
+]

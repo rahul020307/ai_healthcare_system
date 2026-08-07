@@ -1,0 +1,41 @@
+[
+  {
+    "pharmacy_id": "PHARM-001",
+    "pharmacy_name": "MedPlus 24x7 Express Pharmacy",
+    "address": "Plot 14, Hitech City Main Road, Opposite Cyber Towers",
+    "city": "Hyderabad",
+    "state": "Telangana",
+    "latitude": 17.4504,
+    "longitude": 78.3808,
+    "phone": "+91 40 4455 6677",
+    "opening_hours": "Open 24 Hours",
+    "home_delivery": true,
+    "rating": 4.8
+  },
+  {
+    "pharmacy_id": "PHARM-002",
+    "pharmacy_name": "Apollo Pharmacy Jubilee Hills",
+    "address": "Road No. 36, Near Metro Station, Jubilee Hills",
+    "city": "Hyderabad",
+    "state": "Telangana",
+    "latitude": 17.4325,
+    "longitude": 78.4071,
+    "phone": "+91 40 2360 7777",
+    "opening_hours": "07:00 AM - 11:00 PM",
+    "home_delivery": true,
+    "rating": 4.9
+  },
+  {
+    "pharmacy_id": "PHARM-003",
+    "pharmacy_name": "Wellness Forever Chemist",
+    "address": "100 Feet Road, Indiranagar",
+    "city": "Bengaluru",
+    "state": "Karnataka",
+    "latitude": 12.9784,
+    "longitude": 77.6408,
+    "phone": "+91 80 2525 8899",
+    "opening_hours": "Open 24 Hours",
+    "home_delivery": true,
+    "rating": 4.7
+  }
+]

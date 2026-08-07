@@ -1,0 +1,14 @@
+[
+  {
+    "tip_id": "TIP-001",
+    "category": "Hydration",
+    "title": "Daily Hydration Goals",
+    "description": "Drink at least 2.5 to 3 liters of water daily to support kidney function, skin health, and cognitive concentration."
+  },
+  {
+    "tip_id": "TIP-002",
+    "category": "Sleep Hygiene",
+    "title": "Optimize Circadian Sleep",
+    "description": "Maintain a consistent sleep schedule and turn off blue-light screens 45 minutes before bedtime for restorative REM sleep."
+  }
+]

@@ -1,0 +1,44 @@
+[
+  {
+    "disease_id": "DIS-001",
+    "disease_name": "Dengue Fever",
+    "symptoms": [
+      "High fever",
+      "Severe headache",
+      "Retro-orbital pain",
+      "Joint & muscle pain",
+      "Low platelet count"
+    ],
+    "causes": [
+      "Bite of infected Aedes aegypti mosquito carrying Dengue virus"
+    ],
+    "prevention": [
+      "Prevent mosquito breeding in stagnant water",
+      "Use mosquito repellent creams & nets",
+      "Wear long-sleeved clothing"
+    ],
+    "specialist": "Internal Medicine / Infectious Disease Specialist"
+  },
+  {
+    "disease_id": "DIS-002",
+    "disease_name": "Type 2 Diabetes Mellitus",
+    "symptoms": [
+      "Increased thirst (polydipsia)",
+      "Frequent urination (polyuria)",
+      "Unexplained weight loss",
+      "Fatigue",
+      "Blurred vision"
+    ],
+    "causes": [
+      "Insulin resistance",
+      "Genetics",
+      "Sedentary lifestyle and obesity"
+    ],
+    "prevention": [
+      "Maintain healthy BMI",
+      "Low carbohydrate & sugar-controlled diet",
+      "30 minutes daily aerobic exercise"
+    ],
+    "specialist": "Endocrinologist / Diabetologist"
+  }
+]

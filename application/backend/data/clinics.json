@@ -1,0 +1,20 @@
+[
+  {
+    "clinic_id": "CLN-001",
+    "clinic_name": "CuraCare Family Health Clinic",
+    "address": "Kondapur Main Road, Near Botanical Garden",
+    "latitude": 17.4622,
+    "longitude": 78.3655,
+    "doctor_name": "Dr. Ananya Rao",
+    "phone": "+91 40 6677 8899"
+  },
+  {
+    "clinic_id": "CLN-002",
+    "clinic_name": "Skin & Child Wellness Clinic",
+    "address": "Gachibowli DLF Road, Opposite Cyber Life",
+    "latitude": 17.4435,
+    "longitude": 78.3582,
+    "doctor_name": "Dr. Vikram Joshi",
+    "phone": "+91 40 5544 3322"
+  }
+]

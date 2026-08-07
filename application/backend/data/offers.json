@@ -1,0 +1,27 @@
+[
+  {
+    "offer_id": "OFFER-001",
+    "title": "Flat 20% OFF Everything",
+    "description": "Get flat 20% discount on all prescription medicines and healthcare products across partner pharmacies.",
+    "discount": 20.0,
+    "valid_until": "2026-08-31",
+    "applicable_products": [
+      "MED-001",
+      "MED-002",
+      "MED-003",
+      "MED-004",
+      "MED-005"
+    ]
+  },
+  {
+    "offer_id": "OFFER-002",
+    "title": "First-Order 25% Savings",
+    "description": "Use promo code CURA25 on your first medicine order above ₹200.",
+    "discount": 25.0,
+    "valid_until": "2026-09-15",
+    "applicable_products": [
+      "MED-001",
+      "MED-002"
+    ]
+  }
+]

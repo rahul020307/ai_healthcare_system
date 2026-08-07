@@ -1,0 +1,24 @@
+[
+  {
+    "medicine_id": "MED-001",
+    "brand_name": "Dolo 650",
+    "generic_name": "Paracetamol 650mg",
+    "alternative_brands": [
+      "Calpol 650",
+      "Crocin 650",
+      "Pacimol 650",
+      "Febrinil 650"
+    ]
+  },
+  {
+    "medicine_id": "MED-003",
+    "brand_name": "Augmentin 625 Duo",
+    "generic_name": "Amoxicillin 500mg + Clavulanic Acid 125mg",
+    "alternative_brands": [
+      "Moxikind-CV 625",
+      "Clavam 625",
+      "Megaclav 625",
+      "Advent 625"
+    ]
+  }
+]

@@ -1,0 +1,16 @@
+[
+  {
+    "interaction_id": "INT-001",
+    "medicine_1": "Warfarin",
+    "medicine_2": "Aspirin",
+    "severity": "High / Severe",
+    "description": "Concurrent use significantly increases risk of severe internal bleeding and hemorrhaging due to additive antiplatelet & anticoagulant effects."
+  },
+  {
+    "interaction_id": "INT-002",
+    "medicine_1": "Amoxicillin",
+    "medicine_2": "Methotrexate",
+    "severity": "Moderate",
+    "description": "Amoxicillin decreases renal clearance of methotrexate, potentially increasing methotrexate blood levels and systemic toxicity."
+  }
+]

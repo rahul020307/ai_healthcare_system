@@ -1,0 +1,18 @@
+[
+  {
+    "ambulance_id": "AMB-001",
+    "service_name": "108 National Emergency Ambulance Response",
+    "phone": "108",
+    "address": "Government Emergency Dispatch Center",
+    "latitude": 17.43,
+    "longitude": 78.4
+  },
+  {
+    "ambulance_id": "AMB-002",
+    "service_name": "Apollo 1066 Critical Care ALS Ambulance",
+    "phone": "1066",
+    "address": "Apollo Hospitals Jubilee Hills Dispatch Unit",
+    "latitude": 17.4184,
+    "longitude": 78.4116
+  }
+]

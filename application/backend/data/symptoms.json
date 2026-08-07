@@ -1,0 +1,38 @@
+[
+  {
+    "symptom_id": "SYM-001",
+    "symptom_name": "High Fever & Chills",
+    "possible_causes": [
+      "Viral infection",
+      "Malaria",
+      "Dengue",
+      "Urinary tract infection",
+      "Pneumonia"
+    ],
+    "severity": "Moderate to Severe",
+    "suggested_specialist": "General Physician / Infectious Disease Specialist",
+    "home_care": [
+      "Drink plenty of warm ORS & fluids",
+      "Tepid sponge bath to lower temp",
+      "Rest adequately",
+      "Monitor temp every 4 hours"
+    ]
+  },
+  {
+    "symptom_id": "SYM-002",
+    "symptom_name": "Persistent Dry Cough",
+    "possible_causes": [
+      "Upper respiratory viral infection",
+      "Allergic bronchitis",
+      "Asthma",
+      "GERD Acid reflux"
+    ],
+    "severity": "Mild to Moderate",
+    "suggested_specialist": "Pulmonologist / ENT Specialist",
+    "home_care": [
+      "Warm saline water gargling",
+      "Steam inhalation with eucalyptus oil",
+      "Honey and warm ginger tea"
+    ]
+  }
+]

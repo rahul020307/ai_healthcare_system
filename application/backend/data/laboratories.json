@@ -1,0 +1,33 @@
+[
+  {
+    "lab_id": "LAB-001",
+    "lab_name": "Vijaya Diagnostic Centre",
+    "address": "Hitech City Metro Pillar 24, Madhapur",
+    "latitude": 17.4475,
+    "longitude": 78.3912,
+    "available_tests": [
+      "Complete Blood Count (CBC)",
+      "Lipid Profile",
+      "HbA1c Glucose Test",
+      "Thyroid Profile (T3 T4 TSH)",
+      "RT-PCR Test"
+    ],
+    "phone": "+91 40 2345 6789",
+    "rating": 4.8
+  },
+  {
+    "lab_id": "LAB-002",
+    "lab_name": "Dr Lal PathLabs",
+    "address": "Banjara Hills Road No 1, Near GVK One Mall",
+    "latitude": 17.419,
+    "longitude": 78.4485,
+    "available_tests": [
+      "Liver Function Test (LFT)",
+      "Kidney Function Test (KFT)",
+      "Vitamin D3 & B12 Panel",
+      "D-Dimer Test"
+    ],
+    "phone": "+91 40 3988 8888",
+    "rating": 4.7
+  }
+]

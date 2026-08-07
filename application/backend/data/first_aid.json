@@ -1,0 +1,34 @@
+[
+  {
+    "emergency_id": "EMG-001",
+    "emergency_type": "Severe Bleeding & Cuts",
+    "symptoms": [
+      "Continuous dark or bright red blood flow",
+      "Dizziness",
+      "Pale skin"
+    ],
+    "first_aid_steps": [
+      "Apply direct, constant pressure over the wound using a clean cloth or sterile bandage.",
+      "Elevate the injured limb above heart level if no bone fracture is suspected.",
+      "Do not remove embedded sharp objects; apply padding around them.",
+      "Call emergency services (108) if bleeding persists after 10 minutes of direct pressure."
+    ],
+    "emergency_number": "108"
+  },
+  {
+    "emergency_id": "EMG-002",
+    "emergency_type": "Thermal Burns & Scalds",
+    "symptoms": [
+      "Red skin",
+      "Blisters",
+      "Severe localized pain"
+    ],
+    "first_aid_steps": [
+      "Hold the burned area under cool running tap water for at least 15-20 minutes.",
+      "Do not apply ice, butter, toothpastes, or oil ointment on fresh burns.",
+      "Cover loosely with a clean, non-stick sterile gauze bandage.",
+      "Seek immediate emergency medical care for electrical, chemical, or face/joint burns."
+    ],
+    "emergency_number": "108"
+  }
+]
