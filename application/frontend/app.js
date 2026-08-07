@@ -395,6 +395,86 @@ function openMedicalReports() {
   }, 120);
 }
 
+function openRecordDetailModal(recId) {
+  const rec = state.records.find(r => r.id === recId);
+  if (!rec) return;
+
+  const modal = document.getElementById('modal-record-detail');
+  const container = document.getElementById('record-detail-content');
+  if (!modal || !container) return;
+
+  container.innerHTML = `
+    <div class="space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div>
+          <span class="text-[10px] font-extrabold text-cyan-400 uppercase tracking-wider bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20">${rec.category}</span>
+          <h3 class="text-base font-extrabold text-white mt-1 flex items-center gap-2">
+            <i data-lucide="${rec.category === 'Medical Reports' || rec.category === 'Scans' ? 'file-text' : rec.category === 'Lab Reports' ? 'test-tube' : 'file-check-2'}" class="w-5 h-5 text-teal-400"></i>
+            ${rec.title}
+          </h3>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 text-xs">
+        <div class="p-3 rounded-2xl bg-slate-900 border border-slate-800">
+          <span class="text-[10px] text-slate-400 font-bold block uppercase">Physician / Clinic</span>
+          <p class="font-extrabold text-slate-200 mt-0.5">${rec.doctor}</p>
+          <p class="text-[11px] text-teal-400 font-semibold">${rec.facility}</p>
+        </div>
+        <div class="p-3 rounded-2xl bg-slate-900 border border-slate-800">
+          <span class="text-[10px] text-slate-400 font-bold block uppercase">Date & Reference</span>
+          <p class="font-extrabold text-slate-200 mt-0.5">${rec.date}</p>
+          <p class="text-[11px] text-slate-400 font-medium">ID: ${rec.id}</p>
+        </div>
+      </div>
+
+      <div class="space-y-1.5">
+        <h4 class="text-xs font-bold text-teal-300 flex items-center gap-1.5">
+          <i data-lucide="file-search" class="w-4 h-4 text-teal-400"></i> Extracted OCR Findings & Summary:
+        </h4>
+        <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 text-xs text-slate-200 leading-relaxed font-medium">
+          ${rec.summary}
+        </div>
+      </div>
+
+      ${rec.tags ? `
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <span class="text-[10px] text-slate-400 font-bold">Tags:</span>
+          ${rec.tags.map(t => `<span class="text-[10px] bg-slate-800 text-teal-300 px-2.5 py-0.5 rounded-full font-bold">#${t}</span>`).join('')}
+        </div>
+      ` : ''}
+
+      <div class="pt-3 border-t border-slate-800 flex items-center justify-between gap-3">
+        <button onclick="deleteHealthRecord('${rec.id}')" class="px-3.5 py-2 rounded-xl bg-red-950/40 hover:bg-red-900/60 text-red-300 text-xs border border-red-800/40 font-bold flex items-center gap-1.5">
+          <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Delete Document
+        </button>
+
+        <div class="flex items-center gap-2">
+          <button onclick="alert('Downloading digital PDF copy of ${rec.title}...')" class="px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-extrabold text-xs flex items-center gap-1.5 shadow-lg">
+            <i data-lucide="download" class="w-4 h-4"></i> Download Copy
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  modal.classList.remove('hidden');
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function closeRecordDetailModal() {
+  document.getElementById('modal-record-detail')?.classList.add('hidden');
+}
+
+function deleteHealthRecord(recId) {
+  if (confirm("Are you sure you want to delete this document from your health records?")) {
+    state.records = state.records.filter(r => r.id !== recId);
+    saveStateToStorage();
+    closeRecordDetailModal();
+    renderRecords();
+  }
+}
+
 function renderRecords() {
   const container = document.getElementById('records-container');
   if (!container) return;
@@ -415,11 +495,11 @@ function renderRecords() {
   }
 
   container.innerHTML = filtered.map(rec => `
-    <div class="p-4 rounded-2xl glass-card space-y-3 border border-slate-800 hover:border-cyan-500/40 transition-all shadow-md">
+    <div onclick="openRecordDetailModal('${rec.id}')" class="p-4 rounded-2xl glass-card space-y-3 border border-slate-800 hover:border-cyan-500/50 transition-all shadow-md cursor-pointer group hover:scale-[1.01]">
       <div class="flex items-start justify-between">
         <div>
           <span class="text-[10px] font-extrabold text-cyan-400 uppercase tracking-wider bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20">${rec.category}</span>
-          <h4 class="text-sm font-bold text-white mt-1.5 flex items-center gap-1.5">
+          <h4 class="text-sm font-bold text-white mt-1.5 flex items-center gap-1.5 group-hover:text-cyan-300 transition-colors">
             <i data-lucide="${rec.category === 'Medical Reports' || rec.category === 'Scans' ? 'file-text' : rec.category === 'Lab Reports' ? 'test-tube' : 'file-check-2'}" class="w-4 h-4 text-teal-400 shrink-0"></i>
             ${rec.title}
           </h4>
@@ -428,7 +508,13 @@ function renderRecords() {
         <span class="text-xs text-slate-400 font-medium">${rec.date}</span>
       </div>
       <p class="text-xs text-slate-300 bg-slate-900/90 p-3 rounded-xl border border-slate-800/60 leading-relaxed">${rec.summary}</p>
-      ${rec.tags ? `<div class="flex items-center gap-1.5 pt-1">${rec.tags.map(t => `<span class="text-[9px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full font-medium">#${t}</span>`).join('')}</div>` : ''}
+      
+      <div class="flex items-center justify-between pt-1">
+        ${rec.tags ? `<div class="flex items-center gap-1.5 flex-wrap">${rec.tags.map(t => `<span class="text-[9px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full font-medium">#${t}</span>`).join('')}</div>` : '<div></div>'}
+        <span class="text-[11px] font-bold text-cyan-400 group-hover:underline flex items-center gap-1">
+          👁️ Open Document <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+        </span>
+      </div>
     </div>
   `).join('');
 

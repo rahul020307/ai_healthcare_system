@@ -1285,6 +1285,19 @@
     </div>
   </div>
 
+  <!-- HEALTH RECORD & PRESCRIPTION DOCUMENT VIEWER MODAL -->
+  <div id="modal-record-detail" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="glass-panel w-full max-w-lg rounded-3xl p-6 border border-cyan-500/40 space-y-5 relative max-h-[90vh] overflow-y-auto shadow-2xl">
+      <button onclick="closeRecordDetailModal()" class="absolute top-4 right-4 p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div id="record-detail-content" class="space-y-4">
+        <!-- Injected via openRecordDetailModal() -->
+      </div>
+    </div>
+  </div>
+
   <!-- AI ASSISTANT CHAT BACKDROP & MODAL -->
   <div id="modal-ai-backdrop" onclick="closeAIAssistantModal()" class="hidden fixed inset-0 z-40 bg-slate-950/70 backdrop-blur-sm transition-all"></div>
   <div id="modal-ai-assistant" class="hidden fixed inset-y-0 right-0 z-50 w-full sm:w-[460px] glass-panel border-l border-teal-500/40 p-5 flex flex-col justify-between shadow-2xl transition-all">
@@ -1439,7 +1452,7 @@
   </div>
 
   <!-- APPLICATION JAVASCRIPT ENGINE -->
-  <script src="data.js?v=7.0.0"></script>
-  <script src="app.js?v=7.0.0"></script>
+  <script src="data.js?v=8.0.0"></script>
+  <script src="app.js?v=8.0.0"></script>
 </body>
 </html>
