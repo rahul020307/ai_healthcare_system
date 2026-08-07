@@ -31,3 +31,12 @@ def get_health_tips():
         {"id": 2, "title": "Regular BP Checks", "desc": "Monitor blood pressure weekly for proactive cardiac health."},
         {"id": 3, "title": "Post-Meal Walks", "desc": "A 10-minute walk post-dinner stabilizes blood sugar levels."}
     ]
+
+
+@router.get("/db-status")
+def get_database_status():
+    from app.database.mongodb import check_mongodb_connection
+    return {
+        "status": "success",
+        "database": check_mongodb_connection()
+    }
