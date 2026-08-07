@@ -1,0 +1,39 @@
+name: CuraAssist CI Build & Verification
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  verify:
+    name: Build & Test Health System
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Verify Backend REST API & Datasets
+        run: |
+          cd application/backend
+          python generate_datasets.py
+          python -c "import app.main; print('FastAPI Engine loaded successfully!')"
+
+      - name: Verify Frontend Application Files
+        run: |
+          test -f application/frontend/index.html
+          test -f application/frontend/app.js
+          test -f application/frontend/styles.css
+          echo "Frontend files verified successfully!"
