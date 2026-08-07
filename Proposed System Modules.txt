@@ -1,0 +1,168 @@
+# Proposed System Modules
+
+### 1. User Authentication
+
+* Login
+* Registration
+* OTP Verification
+* Forgot Password
+
+### 2. Home Module
+
+* AI Health Assistant
+* Smart Medicine Scanner
+* Prescription Scanner
+* Medicine Insights
+* Health Dashboard
+* Medicine Reminders
+* Emergency Access
+* Recent Activities
+* Health Tips
+
+### 3. Store Module
+
+* Medicine Search
+* Categories
+* Product Details
+* Generic Alternatives
+* Price Comparison
+* Customer Reviews
+* Cart
+* Checkout
+* Order Tracking
+* Order History
+
+### 4. Maps Module
+
+* Nearby Pharmacies
+* Hospitals
+* Clinics
+* Diagnostic Labs
+* Blood Banks
+* Ambulance Services
+* Navigation
+* Healthcare Filters
+
+### 5. Profile Module
+
+* Personal Information
+* Medical History
+* Health Records
+* Saved Prescriptions
+* Saved Addresses
+* Emergency Contacts
+* Notification Settings
+* Privacy & Security
+* Language Settings
+* Help & Support
+
+### 6. AI Healthcare Module
+
+* AI Chatbot
+* Symptom Guidance
+* Medicine Explanation
+* Prescription Explanation
+* Drug Interaction Information
+* Health Recommendations
+* Medicine Comparison
+
+### 7. Medicine Information Module
+
+* Barcode Scanner
+* QR Scanner
+* Image Recognition
+* Dosage Information
+* Side Effects
+* Age Restrictions
+* Usage Instructions
+* Storage Information
+* Safety Warnings
+
+### 8. Prescription Management
+
+* Upload Prescription
+* OCR Extraction
+* Save Prescription
+* Prescription History
+* Medicine Detection
+
+### 9. Medicine Reminder Module
+
+* Daily Reminders
+* Missed Dose Tracking
+* Reminder History
+
+### 10. Emergency Module
+
+* SOS
+* Emergency Contacts
+* Ambulance Call
+* First Aid Guide
+* Nearby Emergency Hospitals
+* Medical Information Card
+
+### 11. Blood Donation Module
+
+* Emergency Blood Request
+* Blood Bank Locator
+* Donor Registration
+* Blood Compatibility Guide
+* Blood Request History
+
+### 12. Health Records Module
+
+* Medical Reports
+* Lab Reports
+* Vaccination Records
+* Allergies
+* Health Timeline
+
+### 13. Notification Module
+
+* Medicine Reminders
+* Order Updates
+* Emergency Alerts
+* Health Tips
+* Promotional Notifications
+
+### 14. Feedback & Rating Module
+
+* Store Reviews
+* Medicine Reviews
+* User Ratings
+* Report Issues
+
+### 15. Pharmacy Management Module
+
+* Inventory Management
+* Medicine Stock
+* Order Management
+* Customer Orders
+* Sales Reports
+
+### 16. Admin Module
+
+* User Management
+* Pharmacy Management
+* Medicine Management
+* Order Monitoring
+* Feedback Management
+* Analytics Dashboard
+
+### 17. Reports & Analytics
+
+* Purchase History
+* Medicine Usage History
+* Health Activity Summary
+* AI Insights
+* Monthly Reports
+
+### 18. Future Scope
+
+* Wearable Device Integration
+* Video Consultation
+* Health Insurance Integration
+* Live Medicine Availability
+* Live Ambulance Tracking
+* Smart Pill Box Integration
+* AI Disease Risk Prediction
