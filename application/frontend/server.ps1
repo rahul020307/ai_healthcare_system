@@ -17,6 +17,9 @@ while ($listener.IsListening) {
         $filePath = Join-Path $baseDir $path
         if (Test-Path $filePath -PathType Leaf) {
             $bytes = [System.IO.File]::ReadAllBytes($filePath)
+            $response.Headers.Add("Cache-Control", "no-cache, no-store, must-revalidate")
+            $response.Headers.Add("Pragma", "no-cache")
+            $response.Headers.Add("Expires", "0")
             if ($path.EndsWith(".html")) { $response.ContentType = "text/html; charset=utf-8" }
             elseif ($path.EndsWith(".css")) { $response.ContentType = "text/css; charset=utf-8" }
             elseif ($path.EndsWith(".js")) { $response.ContentType = "text/javascript; charset=utf-8" }
