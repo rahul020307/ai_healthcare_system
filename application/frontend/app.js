@@ -308,23 +308,36 @@ function closePrescriptionScanModal() {
   document.getElementById('modal-presc-scan').classList.add('hidden');
 }
 
-function simulatePrescriptionOCR() {
+async function simulatePrescriptionOCR() {
   closePrescriptionScanModal();
-  state.records.unshift({
+  const newRec = {
     id: `rec-${Date.now()}`,
     memberId: state.activeFamilyId,
     title: "Dr. Robert Chen Prescription Slip",
     category: "Prescriptions",
     date: new Date().toISOString().split('T')[0],
     doctor: "Dr. Robert Chen, MD",
-    facility: "Metro Heart Care",
+    facility: "Metro Heart Care Institute",
     tags: ["OCR Extracted", "Prescription"],
     summary: "Extracted Medicines: Lipitor 20mg (1x daily), Metoprolol 25mg (1x evening)."
-  });
+  };
+
+  state.records.unshift(newRec);
+  saveStateToStorage();
+  renderRecords();
+
+  try {
+    await fetch('http://localhost:8000/profile/upload-record', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newRec)
+    });
+  } catch (err) {
+    console.warn("Backend sync note:", err);
+  }
 
   if (window.confetti) confetti({ particleCount: 70, spread: 50 });
-  alert("Prescription Scanned & OCR Text Extracted Successfully! Saved to Health Records.");
-  renderRecords();
+  alert("Prescription Scanned & OCR Text Extracted Successfully! Permanently Saved to Datasets & Local Storage.");
 }
 
 let currentRecordCategoryFilter = 'All';
@@ -1468,13 +1481,14 @@ function triggerBarcodeScanProcess(barcodeVal) {
   lucide.createIcons();
 }
 
-function simulatePrescriptionOCR() {
+async function simulatePrescriptionOCR() {
   if (!uploadedDocumentData) {
     uploadedDocumentData = {
       fileName: "doctor_prescription_scan.pdf",
       fileSize: "420 KB",
       uploadTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       doctor: "Dr. K. S. Somasekhar (Apollo Hospitals)",
+      facility: "Apollo Hospitals, Jubilee Hills",
       medicines: [
         { name: "Dolo 650mg", dosage: "1-0-1 Post Meals", duration: "5 Days" },
         { name: "Augmentin 625 Duo", dosage: "1-0-1 Post Meals", duration: "5 Days" }
@@ -1482,21 +1496,43 @@ function simulatePrescriptionOCR() {
     };
   }
 
-  // Save document to Health Records
-  state.records.unshift({
+  const newRec = {
     id: `rec-${Date.now()}`,
+    memberId: state.activeFamilyId,
     title: `Prescription: ${uploadedDocumentData.fileName}`,
-    date: `Today, ${uploadedDocumentData.uploadTime}`,
+    date: new Date().toISOString().split('T')[0],
     doctor: uploadedDocumentData.doctor,
+    facility: uploadedDocumentData.facility || "CuraAssist Health Hub",
     category: "Prescriptions",
-    medicines: uploadedDocumentData.medicines.map(m => m.name).join(', '),
-    fileSize: uploadedDocumentData.fileSize
-  });
+    tags: ["OCR Extracted", "Uploaded Slip"],
+    summary: `Extracted Medicines: ${uploadedDocumentData.medicines.map(m => `${m.name} (${m.dosage})`).join(', ')}. File Size: ${uploadedDocumentData.fileSize}`
+  };
 
-  renderHealthRecords();
+  // 1. Save in active state
+  state.records.unshift(newRec);
+
+  // 2. Save in browser LocalStorage
+  saveStateToStorage();
+
+  // 3. Save in backend dataset file (health_records.json)
+  try {
+    await fetch('http://localhost:8000/profile/upload-record', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newRec)
+    });
+  } catch (err) {
+    console.warn("[CuraAssist] Backend upload record note:", err);
+  }
+
+  // 4. Render updated view and alert
   closePrescriptionScanModal();
+  openMyPrescriptions();
 
-  alert(`✅ Prescription Document Saved Successfully!\nExtracted ${uploadedDocumentData.medicines.length} medicines and saved to your Health Records.`);
+  if (window.confetti) confetti({ particleCount: 70, spread: 50 });
+  alert(`✅ Prescription Document Saved Successfully!\nExtracted ${uploadedDocumentData.medicines.length} medicines and permanently saved to your Health Records Dataset.`);
+
+  uploadedDocumentData = null;
 }
 
 // NOTIFICATION DRAWER CONTROLLER

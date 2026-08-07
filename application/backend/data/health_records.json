@@ -1,0 +1,63 @@
+[
+  {
+    "id": "rec-1",
+    "memberId": "mem-1",
+    "title": "Annual Cardiovascular Evaluation",
+    "category": "Prescriptions",
+    "date": "2026-07-15",
+    "doctor": "Dr. Robert Chen, MD",
+    "facility": "Metro Heart Care Institute",
+    "tags": ["Cardiology", "Hypertension"],
+    "fileType": "PDF",
+    "fileUrl": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+    "summary": "Patient shows stable BP response to Metoprolol. Cholesterol levels within normal range."
+  },
+  {
+    "id": "rec-2",
+    "memberId": "mem-1",
+    "title": "Comprehensive Metabolic & Lipid Panel",
+    "category": "Lab Reports",
+    "date": "2026-06-28",
+    "doctor": "Dr. Sarah Jenkins",
+    "facility": "Quest Diagnostics Lab",
+    "tags": ["Blood Test", "Cholesterol", "HbA1c"],
+    "fileType": "PDF",
+    "summary": "Fasting Blood Sugar: 95 mg/dL. Total Cholesterol: 175 mg/dL. HbA1c: 5.4% (Normal)."
+  },
+  {
+    "id": "rec-3",
+    "memberId": "mem-1",
+    "title": "COVID-19 Booster & Flu Vaccine Cert",
+    "category": "Vaccination",
+    "date": "2025-11-10",
+    "doctor": "City Health Clinic",
+    "facility": "Central Immunization Hub",
+    "tags": ["Vaccine", "Immunization"],
+    "fileType": "PDF",
+    "summary": "Updated Quadrivalent Influenza and Pfizer updated Spikevax vaccine administered."
+  },
+  {
+    "id": "rec-5",
+    "memberId": "mem-1",
+    "title": "Chest X-Ray (PA View) Radiology Report",
+    "category": "Medical Reports",
+    "date": "2026-08-01",
+    "doctor": "Dr. Vikram Sethi, DMRD",
+    "facility": "Apollo Diagnostics Center",
+    "tags": ["Radiology", "X-Ray", "Lungs"],
+    "fileType": "PDF",
+    "summary": "PA View Chest X-Ray: Clear lung fields bilaterally. Normal cardiac size and contour. No pleural effusion or consolidation."
+  },
+  {
+    "id": "rec-6",
+    "memberId": "mem-1",
+    "title": "Full Body Diagnostic MRI & Spine Evaluation",
+    "category": "Medical Reports",
+    "date": "2026-07-02",
+    "doctor": "Dr. Meera Nambiar, MD",
+    "facility": "Max Imaging & MRI Scans",
+    "tags": ["MRI Scan", "Spine", "Diagnostic"],
+    "fileType": "PDF",
+    "summary": "Lumbar Spine MRI: L4-L5 disc space preserved. No nerve root compression or spinal stenosis."
+  }
+]
