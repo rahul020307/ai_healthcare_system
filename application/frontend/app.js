@@ -1007,10 +1007,12 @@ function routeToFacility(facId, name, address) {
 
 // AI ASSISTANT CHAT ENGINE
 function openAIAssistantModal() {
-  document.getElementById('modal-ai-assistant').classList.remove('hidden');
+  document.getElementById('modal-ai-assistant')?.classList.remove('hidden');
+  document.getElementById('modal-ai-backdrop')?.classList.remove('hidden');
 }
 function closeAIAssistantModal() {
-  document.getElementById('modal-ai-assistant').classList.add('hidden');
+  document.getElementById('modal-ai-assistant')?.classList.add('hidden');
+  document.getElementById('modal-ai-backdrop')?.classList.add('hidden');
 }
 
 function sendQuickAIPrompt(text) {
