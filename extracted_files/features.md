@@ -1,0 +1,50 @@
+### 🏠 Home
+
+* item scan
+* AI Assistant
+* Health Dashboard
+* Medicine Schedule
+* Health Records
+* Emergency
+* Progress
+
+
+
+### 🏪 Store
+
+* Search Medicine
+* Categories
+* Cart
+* Orders
+* Offers
+* Generic Alternatives
+* Customer Reviews
+
+
+
+### 🗺️ Maps
+
+* Nearby Pharmacies
+* Hospitals
+* Clinics
+* Labs
+* Blood Banks
+* Ambulance
+* Navigation
+* Live Availability
+
+
+
+### 👤 Profile
+
+* Personal Information
+* Medical History
+* Family Members
+* Settings
+* Language
+* Notifications
+* Saved Addresses
+* Emergency Contacts
+* Privacy
+* Help \& Support
+
