@@ -162,16 +162,28 @@ const INITIAL_DATA = {
       summary: "Updated Quadrivalent Influenza and Pfizer updated Spikevax vaccine administered."
     },
     {
-      id: "rec-4",
-      memberId: "mem-2",
-      title: "Diabetic Retinopathy Eye Screening",
-      category: "Scans",
-      date: "2026-05-12",
-      doctor: "Dr. Aris Thorne",
-      facility: "Vision Health Center",
-      tags: ["Ophthalmology", "Diabetes"],
+      id: "rec-5",
+      memberId: "mem-1",
+      title: "Chest X-Ray (PA View) Radiology Report",
+      category: "Medical Reports",
+      date: "2026-08-01",
+      doctor: "Dr. Vikram Sethi, DMRD",
+      facility: "Apollo Diagnostics Center",
+      tags: ["Radiology", "X-Ray", "Lungs"],
       fileType: "PDF",
-      summary: "Fundus examination shows no vascular lesions or retinopathy signs."
+      summary: "PA View Chest X-Ray: Clear lung fields bilaterally. Normal cardiac size and contour. No pleural effusion or consolidation."
+    },
+    {
+      id: "rec-6",
+      memberId: "mem-1",
+      title: "Full Body Diagnostic MRI & Spine Evaluation",
+      category: "Medical Reports",
+      date: "2026-07-02",
+      doctor: "Dr. Meera Nambiar, MD",
+      facility: "Max Imaging & MRI Scans",
+      tags: ["MRI Scan", "Spine", "Diagnostic"],
+      fileType: "PDF",
+      summary: "Lumbar Spine MRI: L4-L5 disc space preserved. No nerve root compression or spinal stenosis."
     }
   ],
 

@@ -327,30 +327,83 @@ function simulatePrescriptionOCR() {
   renderRecords();
 }
 
+let currentRecordCategoryFilter = 'All';
+
+function filterHealthRecords(cat) {
+  currentRecordCategoryFilter = cat;
+
+  // Update button active states
+  ['All', 'Reports', 'Labs', 'Prescriptions'].forEach(btn => {
+    const el = document.getElementById(`btn-rec-filter-${btn}`);
+    if (el) {
+      if ((cat === 'All' && btn === 'All') ||
+          (cat === 'Medical Reports' && btn === 'Reports') ||
+          (cat === 'Lab Reports' && btn === 'Labs') ||
+          (cat === 'Prescriptions' && btn === 'Prescriptions')) {
+        el.className = "px-3 py-1 rounded-xl font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-[11px]";
+      } else {
+        el.className = "px-3 py-1 rounded-xl font-bold bg-slate-900 text-slate-400 border border-slate-800 hover:text-white text-[11px]";
+      }
+    }
+  });
+
+  renderRecords();
+}
+
+function openMedicalReports() {
+  switchTab('home');
+  filterHealthRecords('Medical Reports');
+
+  setTimeout(() => {
+    const el = document.getElementById('sec-medical-reports');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+      el.classList.add('ring-2', 'ring-cyan-400', 'shadow-2xl');
+      setTimeout(() => {
+        el.classList.remove('ring-2', 'ring-cyan-400', 'shadow-2xl');
+      }, 2500);
+    }
+  }, 120);
+}
+
 function renderRecords() {
   const container = document.getElementById('records-container');
   if (!container) return;
 
-  const filtered = state.records.filter(r => r.memberId === state.activeFamilyId);
+  let filtered = state.records.filter(r => r.memberId === state.activeFamilyId);
+
+  if (currentRecordCategoryFilter !== 'All') {
+    if (currentRecordCategoryFilter === 'Medical Reports') {
+      filtered = filtered.filter(r => r.category === 'Medical Reports' || r.category === 'Lab Reports' || r.category === 'Scans');
+    } else {
+      filtered = filtered.filter(r => r.category === currentRecordCategoryFilter);
+    }
+  }
 
   if (filtered.length === 0) {
-    container.innerHTML = `<div class="col-span-2 p-6 text-center text-xs text-slate-400">No medical prescriptions or records found for this patient.</div>`;
+    container.innerHTML = `<div class="col-span-2 p-6 text-center text-xs text-slate-400 bg-slate-900/40 rounded-2xl border border-slate-800">No ${currentRecordCategoryFilter} found for this family member. Click "+ Upload Report" to add one.</div>`;
     return;
   }
 
   container.innerHTML = filtered.map(rec => `
-    <div class="p-4 rounded-2xl glass-card space-y-3 border border-slate-800 hover:border-cyan-500/40 transition-all">
+    <div class="p-4 rounded-2xl glass-card space-y-3 border border-slate-800 hover:border-cyan-500/40 transition-all shadow-md">
       <div class="flex items-start justify-between">
         <div>
-          <span class="text-[10px] font-extrabold text-cyan-400 uppercase tracking-wider bg-cyan-500/10 px-2 py-0.5 rounded">${rec.category}</span>
-          <h4 class="text-sm font-bold text-white mt-1">${rec.title}</h4>
-          <p class="text-xs text-slate-400">${rec.doctor} • ${rec.facility}</p>
+          <span class="text-[10px] font-extrabold text-cyan-400 uppercase tracking-wider bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20">${rec.category}</span>
+          <h4 class="text-sm font-bold text-white mt-1.5 flex items-center gap-1.5">
+            <i data-lucide="${rec.category === 'Medical Reports' || rec.category === 'Scans' ? 'file-text' : rec.category === 'Lab Reports' ? 'test-tube' : 'file-check-2'}" class="w-4 h-4 text-teal-400 shrink-0"></i>
+            ${rec.title}
+          </h4>
+          <p class="text-xs text-slate-400 mt-0.5">${rec.doctor} • ${rec.facility}</p>
         </div>
         <span class="text-xs text-slate-400 font-medium">${rec.date}</span>
       </div>
-      <p class="text-xs text-slate-300 bg-slate-900/80 p-2.5 rounded-xl">${rec.summary}</p>
+      <p class="text-xs text-slate-300 bg-slate-900/90 p-3 rounded-xl border border-slate-800/60 leading-relaxed">${rec.summary}</p>
+      ${rec.tags ? `<div class="flex items-center gap-1.5 pt-1">${rec.tags.map(t => `<span class="text-[9px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full font-medium">#${t}</span>`).join('')}</div>` : ''}
     </div>
   `).join('');
+
+  if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 // MODULE 7: MEDICINE INFORMATION & INSIGHTS ENGINE
