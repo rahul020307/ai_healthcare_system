@@ -429,10 +429,10 @@ function openRecordDetailModal(recId) {
       </div>
 
       <div class="space-y-1.5">
-        <h4 class="text-xs font-bold text-teal-300 flex items-center gap-1.5">
-          <i data-lucide="file-search" class="w-4 h-4 text-teal-400"></i> Extracted OCR Findings & Summary:
+        <h4 class="text-xs font-extrabold text-cyan-400 flex items-center gap-1.5 uppercase tracking-wider">
+          <i data-lucide="file-search" class="w-4 h-4 text-teal-400"></i> Extracted OCR Medicines & Clinical Findings:
         </h4>
-        <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 text-xs text-slate-200 leading-relaxed font-medium">
+        <div class="p-4 rounded-2xl bg-slate-950 border border-teal-500/40 text-xs text-teal-200 font-mono leading-relaxed whitespace-pre-wrap shadow-inner">
           ${rec.summary}
         </div>
       </div>
