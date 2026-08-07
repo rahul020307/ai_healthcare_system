@@ -1018,6 +1018,17 @@ function sendQuickAIPrompt(text) {
   sendAIMessage();
 }
 
+function formatMarkdownToHTML(text) {
+  if (!text) return '';
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '<strong class="text-teal-300 font-bold">$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em class="text-slate-400">$1</em>')
+    .replace(/^### (.*$)/gim, '<h4 class="text-xs font-extrabold text-teal-300 mt-2 mb-1">$1</h4>')
+    .replace(/^## (.*$)/gim, '<h3 class="text-sm font-extrabold text-white mt-2 mb-1">$1</h3>')
+    .replace(/^[•\-\*] (.*$)/gim, '<div class="flex items-start gap-1.5 my-0.5"><span class="text-teal-400 font-bold shrink-0">•</span><span>$1</span></div>')
+    .replace(/\n/g, '<br>');
+}
+
 async function sendAIMessage() {
   const input = document.getElementById('ai-chat-input');
   const container = document.getElementById('ai-chat-messages');
@@ -1042,7 +1053,7 @@ async function sendAIMessage() {
     <div id="${typingId}" class="flex justify-start">
       <div class="bg-slate-900 border border-slate-800 text-slate-400 p-3 rounded-2xl max-w-[85%] text-xs flex items-center gap-2">
         <i data-lucide="loader" class="w-4 h-4 animate-spin text-teal-400"></i>
-        <span>Connecting to FastAPI Backend (http://localhost:8000)...</span>
+        <span>Connecting to CuraBot AI...</span>
       </div>
     </div>
   `;
@@ -1058,16 +1069,16 @@ async function sendAIMessage() {
     const data = await res.json();
     document.getElementById(typingId)?.remove();
 
-    const formattedReply = (data.reply || '').replace(/\n/g, '<br>');
+    const formattedReply = formatMarkdownToHTML(data.reply || '');
 
     container.innerHTML += `
       <div class="flex justify-start">
-        <div class="bg-slate-900 border border-teal-500/30 text-slate-200 p-3.5 rounded-2xl max-w-[85%] space-y-1 text-xs shadow-xl">
-          <div class="flex items-center justify-between text-[10px] text-teal-400 font-bold border-b border-slate-800 pb-1 mb-1">
+        <div class="bg-slate-900 border border-teal-500/30 text-slate-200 p-4 rounded-2xl max-w-[88%] space-y-1.5 text-xs shadow-xl">
+          <div class="flex items-center justify-between text-[10px] text-teal-400 font-bold border-b border-slate-800 pb-1.5 mb-1.5">
             <span class="flex items-center gap-1"><i data-lucide="bot" class="w-3.5 h-3.5"></i> ${data.sender || 'CuraBot AI'}</span>
-            <span class="text-slate-400 font-normal">FastAPI Live API</span>
+            <span class="text-slate-400 font-normal">Medical Assistant</span>
           </div>
-          <div class="leading-relaxed text-slate-300 font-medium">
+          <div class="leading-relaxed text-slate-300">
             ${formattedReply}
           </div>
         </div>
@@ -1078,8 +1089,15 @@ async function sendAIMessage() {
     container.innerHTML += `
       <div class="flex justify-start">
         <div class="bg-slate-900 border border-slate-800 text-slate-200 p-3.5 rounded-2xl max-w-[85%] space-y-1 text-xs">
-          <p class="font-semibold text-teal-300">🤖 CuraBot Offline Fallback:</p>
-          <p>Analysis for "${userText}": Drink fluids and monitor symptoms. If symptoms persist beyond 24h, consult your physician.</p>
+          <p class="font-semibold text-teal-300">🤖 CuraBot Care Advice:</p>
+          <p>For "${userText}": Stay hydrated, rest, and consult your doctor if symptoms persist.</p>
+        </div>
+      </div>
+    `;
+  }
+  container.scrollTop = container.scrollHeight;
+  lucide.createIcons();
+}
         </div>
       </div>
     `;

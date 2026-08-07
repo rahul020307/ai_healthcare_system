@@ -67,10 +67,9 @@ def call_remote_ai(user_prompt: str, patient_context: str) -> Optional[str]:
     openai_key = get_env_variable("OPENAI_API_KEY")
 
     system_prompt = (
-        f"You are CuraBot AI, a helpful, empathetic, and scientifically accurate medical AI health assistant. "
-        f"The patient context is: {patient_context}. "
-        f"Provide clear, structured, clinical guidance with bullet points. Include OTC suggestions when relevant, "
-        f"and always mention safety precautions or when to consult a doctor."
+        f"You are CuraBot AI, a warm, clear, and friendly medical AI assistant. "
+        f"The patient is: {patient_context}. "
+        f"Give simple, easy-to-understand advice in bullet points. Use bold text for key medicine names and simple English."
     )
 
     # 1. Try Google Gemini API first
@@ -131,93 +130,59 @@ def call_remote_ai(user_prompt: str, patient_context: str) -> Optional[str]:
 def ai_clinical_reasoning(message: str, patient_context: str) -> str:
     msg = message.lower()
 
-    # Match dataset records
     matched_symptoms = [s for s in SYMPTOMS_DB if any(kw in msg for kw in [s.get("symptom_name", "").lower()] + [c.lower() for c in s.get("possible_causes", [])])]
     matched_diseases = [d for d in DISEASES_DB if any(kw in msg for kw in [d.get("disease_name", "").lower()] + [s.lower() for s in d.get("symptoms", [])])]
     matched_meds = [m for m in MEDICINES_DB if m.get("brand_name", "").lower() in msg or m.get("generic_name", "").lower() in msg or any(u.lower() in msg for u in m.get("uses", []))]
-    matched_aid = [a for a in FIRST_AID_DB if a.get("emergency_type", "").lower() in msg or any(s.lower() in msg for s in a.get("symptoms", []))]
 
-    response_blocks = []
+    lines = []
+    patient_first_name = patient_context.split()[0] if patient_context else "there"
+    lines.append(f"👋 **Hi {patient_first_name}! Here is your quick medical guide:**\n")
 
-    # 1. Header
-    response_blocks.append(f"🩺 **CuraBot AI Clinical Assessment**\n*Patient Profile: {patient_context}*\n")
-
-    # 2. Symptom & Condition Correlation
-    if matched_symptoms:
-        sym = matched_symptoms[0]
-        response_blocks.append(
-            f"📋 **Symptom Analysis & Severity**:\n"
-            f"• **Identified Symptom**: {sym.get('symptom_name')} ({sym.get('severity', 'Moderate')} Severity)\n"
-            f"• **Potential Causes**: {', '.join(sym.get('possible_causes', []))}\n"
-            f"• **Specialist Referral**: {sym.get('suggested_specialist', 'General Physician')}\n"
-        )
-
-    if matched_diseases:
-        dis = matched_diseases[0]
-        response_blocks.append(
-            f"🔍 **Medical Condition Correlation**:\n"
-            f"• **Condition**: {dis.get('disease_name')}\n"
-            f"• **Prevention & Care**: {dis.get('prevention')}\n"
-            f"• **Recommended Doctor**: {dis.get('specialist')}\n"
-        )
-
-    # 3. Medication & OTC Guidance
     if matched_meds:
         med = matched_meds[0]
-        response_blocks.append(
-            f"💊 **Medication Profile ({med.get('brand_name')})**:\n"
-            f"• **Active Ingredient**: {med.get('composition', med.get('generic_name'))}\n"
-            f"• **Dosage Form**: {med.get('dosage_form')} ({med.get('strength')})\n"
-            f"• **Recommended Usage**: {med.get('dosage')}\n"
-            f"• **Primary Indications**: {', '.join(med.get('uses', []))}\n"
-            f"• **Prescription Status**: {'🔒 Rx Prescription Required' if med.get('prescription_required') else '✅ Over The Counter (OTC)'}\n"
-        )
+        lines.append(f"💊 **Medicine Info: {med.get('brand_name')}** ({med.get('strength')})")
+        lines.append(f"• **Active Salt**: {med.get('composition', med.get('generic_name'))}")
+        lines.append(f"• **How to take**: {med.get('dosage')}")
+        lines.append(f"• **Used for**: {', '.join(med.get('uses', []))}")
+        if med.get('warnings'):
+            lines.append(f"• ⚠️ **Precaution**: {med.get('warnings')[0]}")
+        lines.append("")
+
     elif "fever" in msg or "headache" in msg or "pain" in msg:
-        response_blocks.append(
-            "💊 **Clinical OTC Recommendations**:\n"
-            "• **Dolo 650 / Paracetamol 650mg**: 1 tablet every 6 hours post meals for fever & headache relief.\n"
-            "• **Combiflam Tablet**: For joint pain, dental pain, or severe body ache (take with meals).\n"
-        )
+        lines.append("🤒 **What to do for Fever & Pain:**")
+        lines.append("• **Medicine**: Take **Dolo 650mg** (Paracetamol) after food.")
+        lines.append("• **Rest & Fluid**: Sleep well and drink warm water or ORS.")
+        lines.append("• **Doctor Alert**: Consult a doctor if fever stays > 2 days.")
+        lines.append("")
+
     elif "stomach" in msg or "acid" in msg or "ulcer" in msg or "gas" in msg or "heartburn" in msg:
-        response_blocks.append(
-            "💊 **Gastrointestinal Care Plan**:\n"
-            "• **Pan 40 (Pantoprazole 40mg)**: 1 tablet 30 minutes before morning breakfast.\n"
-            "• **ProGastro Suspension**: 10ml after meals for rapid neutralization of heartburn & acidity.\n"
-        )
-    elif "cold" in msg or "cough" in msg or "throat" in msg or "allergy" in msg:
-        response_blocks.append(
-            "💊 **Cold & Respiratory Care Plan**:\n"
-            "• **Cetzine 10 (Cetirizine 10mg)**: 1 tablet at bedtime for allergy & sneezing relief.\n"
-            "• **Limcee 500 (Vitamin C)**: 1 chewable tablet daily for immunity boost.\n"
-        )
+        lines.append("🫃 **What to do for Acid & Stomach care:**")
+        lines.append("• **Medicine**: Take **Pan 40** (Pantoprazole 40mg) 30 mins before breakfast.")
+        lines.append("• **Diet**: Avoid spicy foods, coffee, and carbonated drinks.")
+        lines.append("")
+
+    elif "cold" in msg or "cough" in msg or "throat" in msg:
+        lines.append("🤧 **What to do for Cold & Cough:**")
+        lines.append("• **Medicine**: Take **Cetzine 10** for sneezing or **Limcee 500mg** (Vitamin C).")
+        lines.append("• **Home Care**: Gargle with warm salt water 2 times daily.")
+        lines.append("")
+
+    elif matched_symptoms:
+        sym = matched_symptoms[0]
+        lines.append(f"📋 **Symptom Guide: {sym.get('symptom_name')}**")
+        lines.append(f"• **Home Care**: {sym.get('home_care')}")
+        lines.append(f"• **Specialist**: Consult a **{sym.get('suggested_specialist')}** if needed.")
+        lines.append("")
+
     else:
-        response_blocks.append(
-            f"💬 **AI Insights on \"{message}\"**:\n"
-            "• Your query has been cross-analyzed against registered medical datasets.\n"
-            "• You can search any specific medicine, scan prescription slips, or check nearby hospital ER wait times directly in CuraAssist.\n"
-        )
+        lines.append("💡 **General Health Care Advice:**")
+        lines.append("• Drink 8+ glasses of water daily and rest well.")
+        lines.append("• You can search any tablet or scan your prescription slip in CuraAssist.")
+        lines.append("")
 
-    # 4. Lifestyle & Home Care
-    if matched_aid:
-        aid = matched_aid[0]
-        response_blocks.append(
-            f"🚑 **First Aid & Immediate Care ({aid.get('emergency_type')})**:\n" +
-            "\n".join([f"• Step {i+1}: {step}" for i, step in enumerate(aid.get('first_aid_steps', []))]) + "\n"
-        )
-    else:
-        response_blocks.append(
-            "🌿 **Lifestyle & Recovery Protocol**:\n"
-            "• **Hydration**: Maintain 2.5 to 3.0 Liters of water daily.\n"
-            "• **Rest**: Ensure 7-8 hours of uninterrupted sleep for physiological healing.\n"
-        )
+    lines.append("🚨 *If you experience chest pain or severe difficulty breathing, please call 108 immediately.*")
 
-    # 5. Red-Flag Warning & Disclaimer
-    response_blocks.append(
-        "🚨 **Red-Flag Warning**: Seek emergency medical attention (Call 108) if experiencing shortness of breath, severe chest pain, sudden numbness, or persistent fever > 103°F.\n\n"
-        "*Disclaimer: CuraBot AI provides clinical decision support. Always consult a licensed medical practitioner before starting or changing medications.*"
-    )
-
-    return "\n".join(response_blocks)
+    return "\n".join(lines)
 
 
 @router.post("/ask")
