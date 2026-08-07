@@ -1,8 +1,21 @@
+import json
+import os
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
 
 router = APIRouter(prefix="/store", tags=["Store"])
+
+DATA_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "data", "medicines.json")
+
+def load_json_medicines():
+    if os.path.exists(DATA_FILE):
+        try:
+            with open(DATA_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            print("Error loading medicines.json:", e)
+    return []
 
 
 class OrderItem(BaseModel):
@@ -62,113 +75,50 @@ def get_medicines(
         hub = f"MedPlus Express • {location or 'Local City Center'}"
         eta = "15-30 mins"
 
-    base_medicines = [
-        {
-            "id": "m1",
-            "name": "Paracetamol 650mg Tablet",
-            "category": "Pain Relief",
-            "price": round(32.50 * rate, 2),
-            "originalPrice": round(45.00 * rate, 2),
-            "currency": currency,
-            "discount": "28% OFF",
-            "rating": 4.8,
-            "reviews": 342,
-            "dosage": "1 tablet every 6 hours post meals",
-            "image": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=300",
-            "genericAlt": f"Acetaminophen 650mg ({currency}{round(18.00 * rate, 2)})",
-            "requiresRx": False,
-            "fulfillingStore": hub,
-            "deliveryEta": eta,
-            "stockStatus": "In Stock (High Availability)"
-        },
-        {
-            "id": "m2",
-            "name": "Vitamin C 500mg (Zinc + D3)",
-            "category": "Supplements",
-            "price": round(140.00 * rate, 2),
-            "originalPrice": round(175.00 * rate, 2),
+    json_records = load_json_medicines()
+
+    base_medicines = []
+    for item in json_records:
+        raw_price = item.get("price", 50.0)
+        orig_price = round(raw_price * 1.25, 2)
+        base_medicines.append({
+            "id": item.get("medicine_id", "med-1"),
+            "name": item.get("brand_name", item.get("generic_name", "Medicine")),
+            "genericName": item.get("generic_name", ""),
+            "composition": item.get("composition", ""),
+            "category": item.get("category", "General"),
+            "price": round(raw_price * rate, 2),
+            "originalPrice": round(orig_price * rate, 2),
             "currency": currency,
             "discount": "20% OFF",
-            "rating": 4.9,
-            "reviews": 512,
-            "dosage": "1 chewable tablet daily",
-            "image": "https://images.unsplash.com/photo-1577401239170-897942555fb3?auto=format&fit=crop&q=80&w=300",
-            "genericAlt": f"Ascorbic Acid 500mg ({currency}{round(75.00 * rate, 2)})",
-            "requiresRx": False,
-            "fulfillingStore": hub,
-            "deliveryEta": eta,
-            "stockStatus": "In Stock (18 units nearby)"
-        },
-        {
-            "id": "m3",
-            "name": "Dolo 650mg Fever & Pain Relief",
-            "category": "Pain Relief",
-            "price": round(30.00 * rate, 2),
-            "originalPrice": round(38.00 * rate, 2),
-            "currency": currency,
-            "discount": "21% OFF",
-            "rating": 4.7,
-            "reviews": 890,
-            "dosage": "1 tablet as prescribed by physician",
-            "image": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=300",
-            "genericAlt": f"Paracetamol 650mg Generic ({currency}{round(15.00 * rate, 2)})",
-            "requiresRx": False,
-            "fulfillingStore": hub,
-            "deliveryEta": eta,
-            "stockStatus": "Fast 15-min Express Delivery"
-        },
-        {
-            "id": "m4",
-            "name": "Amoxicillin 500mg Antibiotic Capsule",
-            "category": "Antibiotics",
-            "price": round(88.00 * rate, 2),
-            "originalPrice": round(110.00 * rate, 2),
-            "currency": currency,
-            "discount": "20% OFF",
-            "rating": 4.6,
-            "reviews": 128,
-            "dosage": "1 capsule twice daily for 5 days",
-            "image": "https://images.unsplash.com/photo-1471864190281-a93a3070b6de?auto=format&fit=crop&q=80&w=300",
-            "genericAlt": f"Amox 500 Generic ({currency}{round(42.00 * rate, 2)})",
-            "requiresRx": True,
-            "fulfillingStore": hub,
-            "deliveryEta": eta,
-            "stockStatus": "Prescription Verification Required"
-        },
-        {
-            "id": "m5",
-            "name": "Lipitor (Atorvastatin 10mg)",
-            "category": "Cholesterol",
-            "price": round(210.00 * rate, 2),
-            "originalPrice": round(250.00 * rate, 2),
-            "currency": currency,
-            "discount": "16% OFF",
             "rating": 4.8,
-            "reviews": 210,
-            "dosage": "1 tablet daily at bedtime",
-            "image": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=300",
-            "genericAlt": f"Atorvastatin 10mg ({currency}{round(95.00 * rate, 2)})",
-            "requiresRx": True,
+            "reviews": 120,
+            "dosage": item.get("dosage", "1 tablet post meal"),
+            "image": item.get("image_url", "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=300"),
+            "genericAlt": f"{item.get('generic_name', 'Generic')} ({currency}{round(raw_price * 0.4 * rate, 2)})",
+            "requiresRx": item.get("prescription_required", False),
             "fulfillingStore": hub,
             "deliveryEta": eta,
-            "stockStatus": "In Stock (Verified Pharmacy Hub)"
-        }
-    ]
+            "stockStatus": "In Stock (Available Nearby)"
+        })
 
-    if category and category != "all":
-        base_medicines = [m for m in base_medicines if m["category"].lower() == category.lower()]
+    cat_lower = (category or "all").lower()
+    search_lower = (search or "").lower()
 
-    if search:
-        s = search.lower()
-        base_medicines = [m for m in base_medicines if s in m["name"].lower() or s in m["category"].lower()]
+    results = []
+    for m in base_medicines:
+        cat_match = cat_lower == "all" or cat_lower in m["category"].lower() or m["category"].lower() in cat_lower
+        name_match = not search_lower or search_lower in m["name"].lower() or search_lower in m["genericName"].lower() or search_lower in m["category"].lower()
+        if cat_match and name_match:
+            results.append(m)
 
     return {
         "status": "success",
         "activeLocation": location,
         "fulfillingStore": hub,
         "deliveryEta": eta,
-        "count": len(base_medicines),
-        "medicines": base_medicines
+        "count": len(results),
+        "medicines": results
     }
 
 
