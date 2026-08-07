@@ -36,7 +36,10 @@ def get_health_tips():
 @router.get("/db-status")
 def get_database_status():
     from app.database.mongodb import check_mongodb_connection
+    from app.database.postgresql import check_postgresql_connection
     return {
         "status": "success",
-        "database": check_mongodb_connection()
+        "mongodb": check_mongodb_connection(),
+        "postgresql": check_postgresql_connection(),
+        "fallbackDatasetEngine": "Active (Local Disk JSON Sync)"
     }
