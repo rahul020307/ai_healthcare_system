@@ -8,8 +8,8 @@ let state = {
     { id: "med-1", qty: 1 },
     { id: "med-4", qty: 1 }
   ],
-  schedule: JSON.parse(JSON.stringify(INITIAL_DATA.medicineSchedule)),
-  records: JSON.parse(JSON.stringify(INITIAL_DATA.healthRecords)),
+  schedule: [],
+  records: [],
   activeRecordFilter: 'All',
   activeMapFilter: 'All',
   appliedPromo: null,
@@ -25,7 +25,14 @@ document.addEventListener('DOMContentLoaded', () => {
     try { fn(); } catch (err) { console.warn(`[CuraAssist] Init warning in ${name}:`, err); }
   };
 
-  safeRun(() => lucide.createIcons(), 'lucide');
+  safeRun(() => {
+    if (typeof INITIAL_DATA !== 'undefined') {
+      if (INITIAL_DATA.medicineSchedule) state.schedule = JSON.parse(JSON.stringify(INITIAL_DATA.medicineSchedule));
+      if (INITIAL_DATA.healthRecords) state.records = JSON.parse(JSON.stringify(INITIAL_DATA.healthRecords));
+    }
+  }, 'initDataState');
+
+  safeRun(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); }, 'lucide');
   safeRun(() => initFamilyDropdown(), 'initFamilyDropdown');
   safeRun(() => renderActiveFamilyContext(), 'renderActiveFamilyContext');
   safeRun(() => renderSchedule(), 'renderSchedule');
