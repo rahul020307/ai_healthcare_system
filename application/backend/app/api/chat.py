@@ -151,17 +151,26 @@ def ai_clinical_reasoning(message: str, patient_context: str) -> str:
     has_match = False
 
     # Check for Special High-Priority Emergencies & Bites
-    if any(k in msg for k in ["dog", "bite", "bitten", "animal", "rabies", "cat", "scratch"]):
+    if any(k in msg for k in ["spider", "insect", "bee", "wasp", "scorpion", "bug", "ant"]):
+        lines.append("🕷️ **SPIDER & INSECT BITE / STING FIRST AID PROTOCOL**:")
+        lines.append("• **Step 1 (Cleanse)**: Wash the sting/bite site with mild soap and clean water immediately.")
+        lines.append("• **Step 2 (Cold Compress)**: Apply an ice pack wrapped in a cloth for 10-15 minutes to reduce localized swelling & pain.")
+        lines.append("• **Step 3 (Itch Relief)**: Apply Calamine lotion or take an OTC antihistamine tablet (**Cetzine 10 / Cetirizine**) for itching.")
+        lines.append("• 🚨 **ANAPHYLAXIS EMERGENCY ALERT**: Seek immediate ER medical care (Call 108) if experiencing shortness of breath, throat/facial swelling, dizziness, or hives.\n")
+        lines.append("🚨 *If symptoms worsen rapidly, call 108 or visit an emergency room.*")
+        return "\n".join(lines)
+
+    if any(k in msg for k in ["dog", "puppy", "cat", "rabies", "monkey", "stray", "mammal"]):
         lines.append("🐕 **DOG / ANIMAL BITE EMERGENCY PROTOCOL (Rabies Risk)**:")
         lines.append("• **Step 1 (Immediate Wash)**: Wash the bite wound thoroughly with soap and running tap water for at least 15 minutes to reduce viral load.")
         lines.append("• **Step 2 (Disinfect)**: Apply an antiseptic solution like Betadine (Povidone-Iodine) or Dettol/Savlon.")
         lines.append("• **Step 3 (Stop Bleeding)**: Apply light pressure with a sterile bandage if bleeding.")
         lines.append("• 🚨 **URGENT**: Visit a hospital within **24 hours** to receive the **Anti-Rabies Vaccine (ARV)** and Tetanus (TT) injection.")
         lines.append("• ⚠️ **Warning**: Do not cover tightly, stitch open wounds, or apply household powders.\n")
-        lines.append("🚨 *If bleeding is severe or dog is suspected rabid, call 108 immediately.*")
+        lines.append("🚨 *If bleeding is severe or animal is suspected rabid, call 108 immediately.*")
         return "\n".join(lines)
 
-    if any(k in msg for k in ["snake", "venom", "sting", "viper", "cobra"]):
+    if any(k in msg for k in ["snake", "venom", "viper", "cobra", "reptile"]):
         lines.append("🐍 **SNAKE BITE EMERGENCY FIRST AID**:")
         lines.append("• **Step 1**: Keep the victim strictly immobile and calm. Keep bitten limb below heart level.")
         lines.append("• **Step 2**: Remove tight rings, watch, or clothing near wound.")

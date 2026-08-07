@@ -33,7 +33,7 @@
   },
   {
     "emergency_id": "EMG-003",
-    "emergency_type": "Dog Bite & Animal Attacks (Rabies Risk)",
+    "emergency_type": "Dog & Mammal Bites (Rabies Risk)",
     "symptoms": [
       "Puncture wounds",
       "Lacerations",
@@ -51,6 +51,23 @@
   },
   {
     "emergency_id": "EMG-004",
+    "emergency_type": "Spider & Insect Stings (Local Reaction vs Anaphylaxis)",
+    "symptoms": [
+      "Redness & localized swelling",
+      "Itching & burning pain",
+      "Small bump or blister"
+    ],
+    "first_aid_steps": [
+      "Wash the sting area with mild soap and water.",
+      "Apply a cold compress or ice pack wrapped in a clean cloth for 10-15 minutes to reduce localized pain and swelling.",
+      "Apply Calamine lotion or hydrocortisone cream to relieve itching.",
+      "Take an OTC antihistamine (e.g., Cetirizine 10mg) for severe itching.",
+      "🚨 EMERGENCY ALERT: Seek immediate ER care (Call 108) if experiencing difficulty breathing, facial swelling, dizziness, or hives (signs of allergic Anaphylaxis)."
+    ],
+    "emergency_number": "108"
+  },
+  {
+    "emergency_id": "EMG-005",
     "emergency_type": "Snake Bite & Venomous Stings",
     "symptoms": [
       "Fang mark punctures",
@@ -63,37 +80,6 @@
       "Remove tight rings, watches, or clothing around the bitten area before swelling starts.",
       "DO NOT cut the wound, suck out venom, or apply tight tourniquets.",
       "Transport the patient immediately to the nearest hospital with Anti-Snake Venom (ASV) availability."
-    ],
-    "emergency_number": "108"
-  },
-  {
-    "emergency_id": "EMG-005",
-    "emergency_type": "Choking & Airway Obstruction",
-    "symptoms": [
-      "Inability to speak or cough",
-      "Clutching throat",
-      "Blue lips or face"
-    ],
-    "first_aid_steps": [
-      "Stand behind the person, wrap arms around their waist, and perform 5 quick abdominal thrusts (Heimlich maneuver).",
-      "If the person loses consciousness, lower them to the ground and begin CPR.",
-      "Call emergency services (108) immediately."
-    ],
-    "emergency_number": "108"
-  },
-  {
-    "emergency_id": "EMG-006",
-    "emergency_type": "Heart Attack & Cardiac Arrest",
-    "symptoms": [
-      "Crushing chest pain radiating to left arm/jaw",
-      "Shortness of breath",
-      "Cold sweats"
-    ],
-    "first_aid_steps": [
-      "Call 108 emergency ambulance immediately.",
-      "Have the person sit down, stay calm, and loosen tight clothing.",
-      "If prescribed, help them take Aspirin 300mg (chewable) or Sorbitrate under tongue.",
-      "If un-responsive and not breathing, perform chest compressions (CPR) at 100-120 beats/min."
     ],
     "emergency_number": "108"
   }
