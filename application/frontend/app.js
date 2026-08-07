@@ -1493,40 +1493,50 @@ function handlePrescriptionFileSelected(event) {
       <p class="text-xs text-white font-extrabold">${file.name}</p>
       <p class="text-[10px] text-teal-300 font-bold">${(file.size / 1024).toFixed(1)} KB • ${file.type || 'Document'}</p>
     `;
-    lucide.createIcons();
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  }
+
+  const nameLower = file.name.toLowerCase();
+  let defaultCategory = "Prescriptions";
+  let defaultTitle = `Prescription: ${file.name.replace(/\.[^/.]+$/, "")}`;
+  let defaultDoctor = "Dr. K. S. Somasekhar (Apollo Hospitals)";
+  let defaultSummary = "Extracted Prescribed Medicines: Dolo 650mg (1-0-1 Post Meals), Augmentin 625 Duo (1-0-1 Post Meals), Pantocid 40mg (1-0-0 Before Meal).";
+
+  if (nameLower.includes("blood") || nameLower.includes("lab") || nameLower.includes("test")) {
+    defaultCategory = "Lab Reports";
+    defaultTitle = `Lab Report: ${file.name.replace(/\.[^/.]+$/, "")}`;
+    defaultDoctor = "Dr. Sarah Jenkins (Quest Diagnostics)";
+    defaultSummary = "Extracted Lab Findings: Fasting Blood Sugar 95 mg/dL (Normal), HbA1c 5.4%, Total Cholesterol 175 mg/dL, Complete Blood Count (CBC) within normal limits.";
+  } else if (nameLower.includes("xray") || nameLower.includes("scan") || nameLower.includes("mri") || nameLower.includes("radiology")) {
+    defaultCategory = "Scans";
+    defaultTitle = `Radiology Scan: ${file.name.replace(/\.[^/.]+$/, "")}`;
+    defaultDoctor = "Dr. Vikram Sethi, DMRD (Apollo Radiology)";
+    defaultSummary = "Extracted Radiology Impression: Clear bilateral fields, normal cardiac size and contour. No pleural effusion or osteolytic lesions.";
   }
 
   uploadedDocumentData = {
     fileName: file.name,
     fileSize: (file.size / 1024).toFixed(1) + ' KB',
-    uploadTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    doctor: "Dr. K. S. Somasekhar (Apollo Hospitals)",
-    medicines: [
-      { name: "Dolo 650mg", dosage: "1-0-1 Post Meals", duration: "5 Days" },
-      { name: "Augmentin 625 Duo", dosage: "1-0-1 Post Meals", duration: "5 Days" },
-      { name: "Pantocid 40mg", dosage: "1-0-0 Before Meal", duration: "7 Days" }
-    ]
+    title: defaultTitle,
+    category: defaultCategory,
+    doctor: defaultDoctor,
+    summary: defaultSummary
   };
 
   const resultBox = document.getElementById('presc-extracted-result');
   const badge = document.getElementById('presc-file-name-badge');
-  const body = document.getElementById('presc-extracted-body');
+  const titleInput = document.getElementById('ocr-edit-title');
+  const categorySelect = document.getElementById('ocr-edit-category');
+  const doctorInput = document.getElementById('ocr-edit-doctor');
+  const summaryInput = document.getElementById('ocr-edit-summary');
 
-  if (resultBox && body) {
+  if (resultBox) {
     resultBox.classList.remove('hidden');
     if (badge) badge.innerText = file.name;
-    body.innerHTML = `
-      <p class="font-bold text-white">👨‍⚕️ Prescribing Physician: ${uploadedDocumentData.doctor}</p>
-      <div class="space-y-1 pt-1 border-t border-slate-800">
-        <p class="text-[10px] text-cyan-400 font-extrabold uppercase">Extracted Prescribed Medicines:</p>
-        ${uploadedDocumentData.medicines.map(m => `
-          <div class="flex items-center justify-between text-slate-200">
-            <span>• <b>${m.name}</b></span>
-            <span class="text-teal-400 font-semibold">${m.dosage} (${m.duration})</span>
-          </div>
-        `).join('')}
-      </div>
-    `;
+    if (titleInput) titleInput.value = defaultTitle;
+    if (categorySelect) categorySelect.value = defaultCategory;
+    if (doctorInput) doctorInput.value = defaultDoctor;
+    if (summaryInput) summaryInput.value = defaultSummary;
   }
 }
 
@@ -1564,34 +1574,30 @@ function triggerBarcodeScanProcess(barcodeVal) {
       </div>
     </div>
   `;
-  lucide.createIcons();
+  if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 async function simulatePrescriptionOCR() {
-  if (!uploadedDocumentData) {
-    uploadedDocumentData = {
-      fileName: "doctor_prescription_scan.pdf",
-      fileSize: "420 KB",
-      uploadTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      doctor: "Dr. K. S. Somasekhar (Apollo Hospitals)",
-      facility: "Apollo Hospitals, Jubilee Hills",
-      medicines: [
-        { name: "Dolo 650mg", dosage: "1-0-1 Post Meals", duration: "5 Days" },
-        { name: "Augmentin 625 Duo", dosage: "1-0-1 Post Meals", duration: "5 Days" }
-      ]
-    };
-  }
+  const titleInput = document.getElementById('ocr-edit-title');
+  const categorySelect = document.getElementById('ocr-edit-category');
+  const doctorInput = document.getElementById('ocr-edit-doctor');
+  const summaryInput = document.getElementById('ocr-edit-summary');
+
+  const title = (titleInput && titleInput.value) ? titleInput.value : (uploadedDocumentData?.title || "Uploaded Health Record");
+  const category = (categorySelect && categorySelect.value) ? categorySelect.value : (uploadedDocumentData?.category || "Prescriptions");
+  const doctor = (doctorInput && doctorInput.value) ? doctorInput.value : (uploadedDocumentData?.doctor || "Dr. K. S. Somasekhar, MD");
+  const summary = (summaryInput && summaryInput.value) ? summaryInput.value : (uploadedDocumentData?.summary || "OCR text extracted successfully.");
 
   const newRec = {
     id: `rec-${Date.now()}`,
     memberId: state.activeFamilyId,
-    title: `Prescription: ${uploadedDocumentData.fileName}`,
+    title,
     date: new Date().toISOString().split('T')[0],
-    doctor: uploadedDocumentData.doctor,
-    facility: uploadedDocumentData.facility || "CuraAssist Health Hub",
-    category: "Prescriptions",
-    tags: ["OCR Extracted", "Uploaded Slip"],
-    summary: `Extracted Medicines: ${uploadedDocumentData.medicines.map(m => `${m.name} (${m.dosage})`).join(', ')}. File Size: ${uploadedDocumentData.fileSize}`
+    doctor,
+    facility: "CuraAssist Health Network",
+    category,
+    tags: ["OCR Verified", "Digital Record"],
+    summary
   };
 
   // 1. Save in active state
@@ -1616,7 +1622,7 @@ async function simulatePrescriptionOCR() {
   openMyPrescriptions();
 
   if (window.confetti) confetti({ particleCount: 70, spread: 50 });
-  alert(`✅ Prescription Document Saved Successfully!\nExtracted ${uploadedDocumentData.medicines.length} medicines and permanently saved to your Health Records Dataset.`);
+  alert(`✅ Document "${title}" Saved Successfully!\nExtracted details permanently saved to your Datasets.`);
 
   uploadedDocumentData = null;
 }

@@ -1114,14 +1114,40 @@
         <input type="file" id="presc-file-input" accept="image/*,application/pdf" onchange="handlePrescriptionFileSelected(event)" class="hidden">
       </div>
 
-      <!-- Extracted Document Preview Result Box -->
-      <div id="presc-extracted-result" class="hidden p-3.5 rounded-2xl bg-slate-900 border border-teal-500/40 space-y-2 text-xs">
-        <div class="flex items-center justify-between text-teal-400 font-extrabold">
-          <span class="flex items-center gap-1"><i data-lucide="check-circle" class="w-4 h-4"></i> OCR Extraction Complete</span>
-          <span id="presc-file-name-badge" class="text-[10px] bg-slate-800 px-2 py-0.5 rounded text-slate-300">slip.pdf</span>
+      <!-- Extracted Document Preview Result Box & Verification Form -->
+      <div id="presc-extracted-result" class="hidden p-4 rounded-2xl bg-slate-900 border border-teal-500/40 space-y-3 text-xs">
+        <div class="flex items-center justify-between text-teal-400 font-extrabold border-b border-slate-800 pb-2">
+          <span class="flex items-center gap-1.5"><i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i> OCR Text Extracted (Review & Edit Below)</span>
+          <span id="presc-file-name-badge" class="text-[10px] bg-slate-800 px-2 py-0.5 rounded text-teal-300 font-mono">document.pdf</span>
         </div>
-        <div id="presc-extracted-body" class="space-y-1 text-slate-300 text-[11px]">
-          <!-- Populated by JS -->
+
+        <div class="space-y-2">
+          <div>
+            <label class="text-[10px] font-bold text-slate-400 block uppercase">Document Title</label>
+            <input type="text" id="ocr-edit-title" value="Prescription Slip" class="w-full glass-input rounded-xl px-3 py-2 text-xs text-white focus:ring-1 focus:ring-teal-400 mt-0.5">
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[10px] font-bold text-slate-400 block uppercase">Category</label>
+              <select id="ocr-edit-category" class="w-full glass-input rounded-xl px-3 py-2 text-xs text-white bg-slate-900 focus:ring-1 focus:ring-teal-400 mt-0.5">
+                <option value="Prescriptions">Prescriptions</option>
+                <option value="Medical Reports">Medical Reports</option>
+                <option value="Lab Reports">Lab & Blood Tests</option>
+                <option value="Scans">Scans & Radiology</option>
+                <option value="Vaccination">Vaccination</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-slate-400 block uppercase">Prescribing Physician</label>
+              <input type="text" id="ocr-edit-doctor" value="Dr. K. S. Somasekhar, MD" class="w-full glass-input rounded-xl px-3 py-2 text-xs text-white focus:ring-1 focus:ring-teal-400 mt-0.5">
+            </div>
+          </div>
+
+          <div>
+            <label class="text-[10px] font-bold text-slate-400 block uppercase">Extracted Summary / Medicines</label>
+            <textarea id="ocr-edit-summary" rows="3" class="w-full glass-input rounded-xl p-3 text-xs text-slate-200 focus:ring-1 focus:ring-teal-400 mt-0.5 leading-relaxed"></textarea>
+          </div>
         </div>
       </div>
 
@@ -1136,8 +1162,8 @@
         </button>
       </div>
 
-      <button onclick="simulatePrescriptionOCR()" class="w-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-extrabold py-3 rounded-xl text-xs shadow-lg shadow-cyan-500/20">
-        Run OCR Scan & Save Document
+      <button onclick="simulatePrescriptionOCR()" class="w-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-extrabold py-3 rounded-xl text-xs shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-2">
+        <i data-lucide="save" class="w-4 h-4"></i> Save Extracted Document To Dataset
       </button>
     </div>
   </div>
@@ -1452,7 +1478,7 @@
   </div>
 
   <!-- APPLICATION JAVASCRIPT ENGINE -->
-  <script src="data.js?v=8.0.0"></script>
-  <script src="app.js?v=8.0.0"></script>
+  <script src="data.js?v=9.0.0"></script>
+  <script src="app.js?v=9.0.0"></script>
 </body>
 </html>
