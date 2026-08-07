@@ -132,46 +132,67 @@ GENERICS_DB = load_data("generic_alternatives.json")
 DOCTORS_DB = load_data("doctors.json")
 
 
+STOP_WORDS = {
+    "what", "how", "when", "where", "who", "why", "can", "give", "tell", "about",
+    "take", "use", "does", "should", "with", "for", "the", "and", "this", "that",
+    "have", "need", "help", "please", "is", "are", "was", "were", "been", "be",
+    "do", "did", "done", "some", "any", "much", "many", "all", "get", "got", "my",
+    "your", "me", "you", "him", "her", "them", "us", "i", "a", "an", "in", "on", "at"
+}
+
+
 def ai_clinical_reasoning(message: str, patient_context: str) -> str:
     msg = message.lower().strip()
-    words = [w for w in msg.replace("?", "").replace(".", "").replace(",", "").split() if len(w) > 2]
+    raw_words = msg.replace("?", "").replace(".", "").replace(",", "").replace("!", "").split()
+    query_keywords = [w for w in raw_words if len(w) > 2 and w not in STOP_WORDS]
 
     first_name = patient_context.split()[0] if patient_context else "there"
     lines = [f"👋 **Hi {first_name}! Here is your personalized medical answer:**\n"]
     has_match = False
 
+    # If no meaningful keywords remain, return friendly guidance
+    if not query_keywords:
+        lines.append(f"💬 **Observation**: *\"{message}\"*")
+        lines.append("• I am your CuraBot AI assistant connected to 20 registered healthcare datasets.")
+        lines.append("• Ask me about specific symptoms (e.g. *fever, headache, cough, acidity*), medicines (*Dolo 650, Pan 40*), or first aid!\n")
+        lines.append("🚨 *If you experience severe chest pain or breathing difficulties, please call 108 immediately.*")
+        return "\n".join(lines)
+
     # 1. Search FAQ DB
     for faq in FAQ_DB:
         q = faq.get("question", "").lower()
-        if any(w in q for w in words if len(w) > 3) or msg in q or q in msg:
+        if any(kw in q for kw in query_keywords if len(kw) > 3) or msg in q:
             lines.append(f"❓ **Question**: **{faq.get('question')}**")
             lines.append(f"💡 **Answer**: {faq.get('answer')}")
             lines.append(f"🏷️ **Category**: {faq.get('category', 'General Health')}\n")
             has_match = True
             break
 
-    # 2. Search Medicines DB
+    # 2. Search Medicines DB (Match brand name, generic name, or composition specifically)
     med_matches = []
     for med in MEDICINES_DB:
         b_name = med.get("brand_name", "").lower()
         g_name = med.get("generic_name", "").lower()
-        uses = [u.lower() for u in med.get("uses", [])]
         comp = med.get("composition", "").lower()
-        if any(w in b_name or w in g_name or w in comp for w in words) or any(any(w in u for w in words) for u in uses):
+        uses = [u.lower() for u in med.get("uses", [])]
+
+        if any(kw in b_name or kw in g_name or kw in comp for kw in query_keywords):
+            med_matches.append(med)
+        elif any(any(kw == u or kw in u for kw in query_keywords) for u in uses):
             med_matches.append(med)
 
-    if med_matches:
+    if med_matches and not has_match:
         med = med_matches[0]
         lines.append(f"💊 **Medicine Insight: {med.get('brand_name')}** ({med.get('strength', 'Standard')})")
         lines.append(f"• **Active Salt**: {med.get('composition', med.get('generic_name'))}")
         lines.append(f"• **Primary Uses**: {', '.join(med.get('uses', []))}")
         lines.append(f"• **Dosage**: {med.get('dosage')}")
-        lines.append(f"• **Form & Storage**: {med.get('dosage_form')} — {med.get('storage', 'Keep below 30°C')}")
+        lines.append(f"• **Storage**: {med.get('storage', 'Keep below 30°C')}")
         if med.get('side_effects'):
-            lines.append(f"• **Possible Side Effects**: {', '.join(med.get('side_effects'))}")
+            lines.append(f"• **Side Effects**: {', '.join(med.get('side_effects'))}")
         if med.get('warnings'):
-            lines.append(f"• ⚠️ **Warning**: {med.get('warnings')[0]}")
-        lines.append(f"• **Prescription Status**: {'🔒 Rx Prescription Required' if med.get('prescription_required') else '✅ Over The Counter (OTC)'}\n")
+            lines.append(f"• ⚠️ **Precaution**: {med.get('warnings')[0]}")
+        lines.append(f"• **Prescription Status**: {'🔒 Rx Required' if med.get('prescription_required') else '✅ Over The Counter (OTC)'}\n")
         has_match = True
 
     # 3. Search Symptoms DB
@@ -179,10 +200,10 @@ def ai_clinical_reasoning(message: str, patient_context: str) -> str:
     for sym in SYMPTOMS_DB:
         s_name = sym.get("symptom_name", "").lower()
         causes = [c.lower() for c in sym.get("possible_causes", [])]
-        if any(w in s_name for w in words) or any(any(w in c for w in words) for c in causes):
+        if any(kw in s_name or any(kw in c for c in causes) for kw in query_keywords):
             symptom_matches.append(sym)
 
-    if symptom_matches:
+    if symptom_matches and not has_match:
         sym = symptom_matches[0]
         lines.append(f"📋 **Symptom Guide: {sym.get('symptom_name')}**")
         lines.append(f"• **Severity Level**: {sym.get('severity', 'Moderate')}")
@@ -196,10 +217,10 @@ def ai_clinical_reasoning(message: str, patient_context: str) -> str:
     for dis in DISEASES_DB:
         d_name = dis.get("disease_name", "").lower()
         sympt_list = [s.lower() for s in dis.get("symptoms", [])]
-        if any(w in d_name for w in words) or any(any(w in s for w in words) for s in sympt_list):
+        if any(kw in d_name or any(kw in s for s in sympt_list) for kw in query_keywords):
             disease_matches.append(dis)
 
-    if disease_matches:
+    if disease_matches and not has_match:
         dis = disease_matches[0]
         lines.append(f"🔍 **Condition Profile: {dis.get('disease_name')}**")
         lines.append(f"• **Key Symptoms**: {', '.join(dis.get('symptoms', []))}")
@@ -211,10 +232,10 @@ def ai_clinical_reasoning(message: str, patient_context: str) -> str:
     aid_matches = []
     for aid in FIRST_AID_DB:
         e_type = aid.get("emergency_type", "").lower()
-        if any(w in e_type for w in words):
+        if any(kw in e_type for kw in query_keywords):
             aid_matches.append(aid)
 
-    if aid_matches:
+    if aid_matches and not has_match:
         aid = aid_matches[0]
         lines.append(f"🚑 **First Aid Protocol ({aid.get('emergency_type')})**:")
         for i, step in enumerate(aid.get('first_aid_steps', []), 1):
@@ -222,12 +243,12 @@ def ai_clinical_reasoning(message: str, patient_context: str) -> str:
         lines.append("")
         has_match = True
 
-    # 6. Fallback Query-Specific Intelligent Advice if no exact database match
+    # 6. Fallback Query-Specific Advice if no dataset match found
     if not has_match:
-        lines.append(f"🔍 **Search Query Analysis**: *\"{message}\"*")
-        lines.append(f"• We analyzed your query across registered medicines, symptoms, and healthcare guides.")
-        lines.append(f"• **General Care**: Stay well-hydrated (2.5L+ fluids), rest, and avoid self-medicating without guidance.")
-        lines.append(f"• **Quick Action**: You can search specific tablet names (e.g. *Dolo 650*, *Augmentin 625*, *Pan 40*) or scan prescription slips in CuraAssist.\n")
+        lines.append(f"🔍 **Search Query**: *\"{message}\"*")
+        lines.append(f"• **AI Note**: Analyzed keywords ({', '.join(query_keywords)}) across registered healthcare databases.")
+        lines.append(f"• **General Advice**: Drink 8+ glasses of water, maintain rest, and consult a certified physician for personalized medical evaluation.")
+        lines.append(f"• **Tip**: Try asking specifically about medicines (*Dolo 650*, *Pan 40*), symptoms (*fever*, *headache*, *burns*), or emergency care!\n")
 
     lines.append("🚨 *If you experience chest pain, sudden numbness, or severe difficulty breathing, please call 108 immediately.*")
 
