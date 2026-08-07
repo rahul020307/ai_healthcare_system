@@ -127,60 +127,109 @@ def call_remote_ai(user_prompt: str, patient_context: str) -> Optional[str]:
     return None
 
 
+FAQ_DB = load_data("faq.json")
+GENERICS_DB = load_data("generic_alternatives.json")
+DOCTORS_DB = load_data("doctors.json")
+
+
 def ai_clinical_reasoning(message: str, patient_context: str) -> str:
-    msg = message.lower()
+    msg = message.lower().strip()
+    words = [w for w in msg.replace("?", "").replace(".", "").replace(",", "").split() if len(w) > 2]
 
-    matched_symptoms = [s for s in SYMPTOMS_DB if any(kw in msg for kw in [s.get("symptom_name", "").lower()] + [c.lower() for c in s.get("possible_causes", [])])]
-    matched_diseases = [d for d in DISEASES_DB if any(kw in msg for kw in [d.get("disease_name", "").lower()] + [s.lower() for s in d.get("symptoms", [])])]
-    matched_meds = [m for m in MEDICINES_DB if m.get("brand_name", "").lower() in msg or m.get("generic_name", "").lower() in msg or any(u.lower() in msg for u in m.get("uses", []))]
+    first_name = patient_context.split()[0] if patient_context else "there"
+    lines = [f"👋 **Hi {first_name}! Here is your personalized medical answer:**\n"]
+    has_match = False
 
-    lines = []
-    patient_first_name = patient_context.split()[0] if patient_context else "there"
-    lines.append(f"👋 **Hi {patient_first_name}! Here is your quick medical guide:**\n")
+    # 1. Search FAQ DB
+    for faq in FAQ_DB:
+        q = faq.get("question", "").lower()
+        if any(w in q for w in words if len(w) > 3) or msg in q or q in msg:
+            lines.append(f"❓ **Question**: **{faq.get('question')}**")
+            lines.append(f"💡 **Answer**: {faq.get('answer')}")
+            lines.append(f"🏷️ **Category**: {faq.get('category', 'General Health')}\n")
+            has_match = True
+            break
 
-    if matched_meds:
-        med = matched_meds[0]
-        lines.append(f"💊 **Medicine Info: {med.get('brand_name')}** ({med.get('strength')})")
+    # 2. Search Medicines DB
+    med_matches = []
+    for med in MEDICINES_DB:
+        b_name = med.get("brand_name", "").lower()
+        g_name = med.get("generic_name", "").lower()
+        uses = [u.lower() for u in med.get("uses", [])]
+        comp = med.get("composition", "").lower()
+        if any(w in b_name or w in g_name or w in comp for w in words) or any(any(w in u for w in words) for u in uses):
+            med_matches.append(med)
+
+    if med_matches:
+        med = med_matches[0]
+        lines.append(f"💊 **Medicine Insight: {med.get('brand_name')}** ({med.get('strength', 'Standard')})")
         lines.append(f"• **Active Salt**: {med.get('composition', med.get('generic_name'))}")
-        lines.append(f"• **How to take**: {med.get('dosage')}")
-        lines.append(f"• **Used for**: {', '.join(med.get('uses', []))}")
+        lines.append(f"• **Primary Uses**: {', '.join(med.get('uses', []))}")
+        lines.append(f"• **Dosage**: {med.get('dosage')}")
+        lines.append(f"• **Form & Storage**: {med.get('dosage_form')} — {med.get('storage', 'Keep below 30°C')}")
+        if med.get('side_effects'):
+            lines.append(f"• **Possible Side Effects**: {', '.join(med.get('side_effects'))}")
         if med.get('warnings'):
-            lines.append(f"• ⚠️ **Precaution**: {med.get('warnings')[0]}")
-        lines.append("")
+            lines.append(f"• ⚠️ **Warning**: {med.get('warnings')[0]}")
+        lines.append(f"• **Prescription Status**: {'🔒 Rx Prescription Required' if med.get('prescription_required') else '✅ Over The Counter (OTC)'}\n")
+        has_match = True
 
-    elif "fever" in msg or "headache" in msg or "pain" in msg:
-        lines.append("🤒 **What to do for Fever & Pain:**")
-        lines.append("• **Medicine**: Take **Dolo 650mg** (Paracetamol) after food.")
-        lines.append("• **Rest & Fluid**: Sleep well and drink warm water or ORS.")
-        lines.append("• **Doctor Alert**: Consult a doctor if fever stays > 2 days.")
-        lines.append("")
+    # 3. Search Symptoms DB
+    symptom_matches = []
+    for sym in SYMPTOMS_DB:
+        s_name = sym.get("symptom_name", "").lower()
+        causes = [c.lower() for c in sym.get("possible_causes", [])]
+        if any(w in s_name for w in words) or any(any(w in c for w in words) for c in causes):
+            symptom_matches.append(sym)
 
-    elif "stomach" in msg or "acid" in msg or "ulcer" in msg or "gas" in msg or "heartburn" in msg:
-        lines.append("🫃 **What to do for Acid & Stomach care:**")
-        lines.append("• **Medicine**: Take **Pan 40** (Pantoprazole 40mg) 30 mins before breakfast.")
-        lines.append("• **Diet**: Avoid spicy foods, coffee, and carbonated drinks.")
-        lines.append("")
-
-    elif "cold" in msg or "cough" in msg or "throat" in msg:
-        lines.append("🤧 **What to do for Cold & Cough:**")
-        lines.append("• **Medicine**: Take **Cetzine 10** for sneezing or **Limcee 500mg** (Vitamin C).")
-        lines.append("• **Home Care**: Gargle with warm salt water 2 times daily.")
-        lines.append("")
-
-    elif matched_symptoms:
-        sym = matched_symptoms[0]
+    if symptom_matches:
+        sym = symptom_matches[0]
         lines.append(f"📋 **Symptom Guide: {sym.get('symptom_name')}**")
+        lines.append(f"• **Severity Level**: {sym.get('severity', 'Moderate')}")
+        lines.append(f"• **Possible Causes**: {', '.join(sym.get('possible_causes', []))}")
         lines.append(f"• **Home Care**: {sym.get('home_care')}")
-        lines.append(f"• **Specialist**: Consult a **{sym.get('suggested_specialist')}** if needed.")
-        lines.append("")
+        lines.append(f"• **Doctor Specialist**: {sym.get('suggested_specialist')}\n")
+        has_match = True
 
-    else:
-        lines.append("💡 **General Health Care Advice:**")
-        lines.append("• Drink 8+ glasses of water daily and rest well.")
-        lines.append("• You can search any tablet or scan your prescription slip in CuraAssist.")
-        lines.append("")
+    # 4. Search Diseases DB
+    disease_matches = []
+    for dis in DISEASES_DB:
+        d_name = dis.get("disease_name", "").lower()
+        sympt_list = [s.lower() for s in dis.get("symptoms", [])]
+        if any(w in d_name for w in words) or any(any(w in s for w in words) for s in sympt_list):
+            disease_matches.append(dis)
 
-    lines.append("🚨 *If you experience chest pain or severe difficulty breathing, please call 108 immediately.*")
+    if disease_matches:
+        dis = disease_matches[0]
+        lines.append(f"🔍 **Condition Profile: {dis.get('disease_name')}**")
+        lines.append(f"• **Key Symptoms**: {', '.join(dis.get('symptoms', []))}")
+        lines.append(f"• **Prevention & Care**: {dis.get('prevention')}")
+        lines.append(f"• **Recommended Doctor**: {dis.get('specialist')}\n")
+        has_match = True
+
+    # 5. Search First Aid DB
+    aid_matches = []
+    for aid in FIRST_AID_DB:
+        e_type = aid.get("emergency_type", "").lower()
+        if any(w in e_type for w in words):
+            aid_matches.append(aid)
+
+    if aid_matches:
+        aid = aid_matches[0]
+        lines.append(f"🚑 **First Aid Protocol ({aid.get('emergency_type')})**:")
+        for i, step in enumerate(aid.get('first_aid_steps', []), 1):
+            lines.append(f"• **Step {i}**: {step}")
+        lines.append("")
+        has_match = True
+
+    # 6. Fallback Query-Specific Intelligent Advice if no exact database match
+    if not has_match:
+        lines.append(f"🔍 **Search Query Analysis**: *\"{message}\"*")
+        lines.append(f"• We analyzed your query across registered medicines, symptoms, and healthcare guides.")
+        lines.append(f"• **General Care**: Stay well-hydrated (2.5L+ fluids), rest, and avoid self-medicating without guidance.")
+        lines.append(f"• **Quick Action**: You can search specific tablet names (e.g. *Dolo 650*, *Augmentin 625*, *Pan 40*) or scan prescription slips in CuraAssist.\n")
+
+    lines.append("🚨 *If you experience chest pain, sudden numbness, or severe difficulty breathing, please call 108 immediately.*")
 
     return "\n".join(lines)
 
