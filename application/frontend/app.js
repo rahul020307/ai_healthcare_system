@@ -1111,13 +1111,6 @@ async function sendAIMessage() {
   container.scrollTop = container.scrollHeight;
   lucide.createIcons();
 }
-        </div>
-      </div>
-    `;
-  }
-  container.scrollTop = container.scrollHeight;
-  lucide.createIcons();
-}
 
 // EMERGENCY ENGINE
 let sosInterval = null;
