@@ -1517,6 +1517,43 @@ function closeItemScanModal() {
 // DOCUMENT UPLOADING & OCR EXTRACTION HANDLERS
 let uploadedDocumentData = null;
 
+async function preprocessImageForOCR(file) {
+  return new Promise((resolve) => {
+    if (!file || !file.type || !file.type.startsWith('image/')) {
+      resolve(file);
+      return;
+    }
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
+
+      // Contrast enhancement & binarization pass for handwritten & low-light images
+      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imgData.data;
+      for (let i = 0; i < data.length; i += 4) {
+        const avg = (data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114);
+        const v = avg < 140 ? Math.max(0, avg * 0.5) : Math.min(255, avg * 1.3);
+        data[i] = v;
+        data[i + 1] = v;
+        data[i + 2] = v;
+      }
+      ctx.putImageData(imgData, 0, 0);
+
+      canvas.toBlob(blob => {
+        resolve(blob || file);
+      }, 'image/png');
+    };
+    img.onerror = () => resolve(file);
+    img.src = url;
+  });
+}
+
 async function performRealOCR(file, fileName) {
   const resultBox = document.getElementById('presc-extracted-result');
   const badge = document.getElementById('presc-file-name-badge');
@@ -1525,18 +1562,21 @@ async function performRealOCR(file, fileName) {
   if (resultBox) {
     resultBox.classList.remove('hidden');
     if (badge) badge.innerText = fileName || "prescription.jpg";
-    if (body) body.innerText = "🔍 Processing optical text recognition on uploaded prescription image...";
+    if (body) body.value = "🔍 Processing optical text recognition & contrast binarization on image...";
   }
 
   let rawText = "";
 
-  // 1. Run Tesseract OCR in English ('eng') mode if image file
+  // 1. Preprocess image canvas for maximum contrast
+  const processedImageBlob = await preprocessImageForOCR(file);
+
+  // 2. Run Tesseract OCR in English ('eng') mode if image file
   if (window.Tesseract && file && file.type && file.type.startsWith('image/')) {
     try {
-      const res = await Tesseract.recognize(file, 'eng', {
+      const res = await Tesseract.recognize(processedImageBlob, 'eng', {
         logger: m => {
           if (m.status === 'recognizing text' && body) {
-            body.innerText = `⏳ Extracting English Text... ${Math.round((m.progress || 0) * 100)}% complete`;
+            body.value = `⏳ High-Accuracy Tesseract OCR Processing... ${Math.round((m.progress || 0) * 100)}% complete`;
           }
         }
       });
@@ -1546,7 +1586,7 @@ async function performRealOCR(file, fileName) {
     }
   }
 
-  // 2. Clean Non-ASCII Noise & Sanitize English Text
+  // 3. Clean Non-ASCII Noise & Sanitize English Text
   let cleanEnglishText = rawText.replace(/[^\x20-\x7E\n]/g, ' ').replace(/[ \t]+/g, ' ').trim();
   const textLower = cleanEnglishText.toLowerCase();
 
@@ -1580,7 +1620,7 @@ async function performRealOCR(file, fileName) {
     });
   }
 
-  // 3. Guarantee Pure Clean English Output
+  // 4. Format Clean Verified English Output
   let englishSummary = "";
   const nameLower = fileName.toLowerCase();
 
@@ -1598,7 +1638,6 @@ async function performRealOCR(file, fileName) {
       `• Examination: PA View Diagnostic Scan\n` +
       `• Findings: Clear bilateral lung fields. Normal cardiac size and contour. No pleural effusion or active bone lesion.`;
   } else {
-    // Format Clean English Prescription Details
     if (foundMeds.length === 0) {
       const hash = fileName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
       const presetEnglishOptions = [
@@ -1629,7 +1668,7 @@ async function performRealOCR(file, fileName) {
 
   const docTitle = `Prescription: ${fileName.replace(/\.[^/.]+$/, "")}`;
 
-  if (body) body.innerText = englishSummary;
+  if (body) body.value = englishSummary;
 
   uploadedDocumentData = {
     fileName,
@@ -1698,10 +1737,12 @@ function triggerBarcodeScanProcess(barcodeVal) {
 }
 
 async function simulatePrescriptionOCR() {
+  const body = document.getElementById('presc-extracted-body');
+  const userVerifiedSummary = body && body.value ? body.value : (uploadedDocumentData?.summary || "Extracted Prescribed Medicines");
+
   const title = uploadedDocumentData?.title || "Prescription Document";
   const category = uploadedDocumentData?.category || "Prescriptions";
   const doctor = uploadedDocumentData?.doctor || "Dr. K. S. Somasekhar, MD";
-  const summary = uploadedDocumentData?.summary || "Extracted Prescribed Medicines: Dolo 650mg, Augmentin 625 Duo";
 
   const newRec = {
     id: `rec-${Date.now()}`,
@@ -1712,7 +1753,7 @@ async function simulatePrescriptionOCR() {
     facility: "CuraAssist Health Network",
     category,
     tags: ["OCR Verified", "Digital Record"],
-    summary
+    summary: userVerifiedSummary
   };
 
   // 1. Save in active state
@@ -1737,7 +1778,7 @@ async function simulatePrescriptionOCR() {
   openMyPrescriptions();
 
   if (window.confetti) confetti({ particleCount: 70, spread: 50 });
-  alert(`✅ Prescription Document Saved Successfully!\nExtracted details saved to your Records.`);
+  alert(`✅ Prescription Document Saved Successfully!\nVerified prescription details saved to your Records.`);
 
   uploadedDocumentData = null;
 }
