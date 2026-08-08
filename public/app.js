@@ -324,7 +324,15 @@ function selectPresetAvatar(url) {
 
 function updateAuthUIState(userData) {
   const user = (typeof userData === 'object' && userData !== null) ? userData : { userName: userData };
-  const userName = user.userName || user.name || "User";
+  let rawName = user.userName || user.name || "Guest User";
+  
+  if (rawName.includes('@')) {
+    rawName = rawName.split('@')[0];
+  }
+  let cleanName = rawName.replace(/([a-zA-Z]+)(\d+)$/, '$1');
+  cleanName = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
+
+  const userName = cleanName;
   const userEmail = user.email || `${userName.toLowerCase().replace(/\s+/g, '')}@curahealth.in`;
   const userPhone = user.phone || "+91 98765 43210";
   const userBlood = user.blood || user.bloodGroup || "O+";
