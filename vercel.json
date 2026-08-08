@@ -20,18 +20,6 @@
     {
       "source": "/medicine/:path*",
       "destination": "/api/index.py"
-    },
-    {
-      "source": "/api/:path*",
-      "destination": "/api/index.py"
-    },
-    {
-      "source": "/application/frontend/(.*)",
-      "destination": "/$1"
-    },
-    {
-      "source": "/application/frontend",
-      "destination": "/index.html"
     }
   ]
 }

@@ -36,12 +36,15 @@ from fastapi.responses import FileResponse
 from pathlib import Path
 
 root_dir = Path(__file__).resolve().parent.parent.parent
+public_dir = root_dir / "public"
 frontend_dir = Path(__file__).resolve().parent.parent / "frontend"
 
 @app.get("/")
 @app.get("/index.html")
 def serve_index():
-    index_file = root_dir / "index.html"
+    index_file = public_dir / "index.html"
+    if not index_file.exists():
+        index_file = root_dir / "index.html"
     if not index_file.exists():
         index_file = frontend_dir / "index.html"
     if index_file.exists():
@@ -54,7 +57,9 @@ def serve_index():
 
 @app.get("/app.js")
 def serve_app_js():
-    f = root_dir / "app.js"
+    f = public_dir / "app.js"
+    if not f.exists():
+        f = root_dir / "app.js"
     if not f.exists():
         f = frontend_dir / "app.js"
     if f.exists():
@@ -63,7 +68,9 @@ def serve_app_js():
 
 @app.get("/data.js")
 def serve_data_js():
-    f = root_dir / "data.js"
+    f = public_dir / "data.js"
+    if not f.exists():
+        f = root_dir / "data.js"
     if not f.exists():
         f = frontend_dir / "data.js"
     if f.exists():
@@ -72,7 +79,9 @@ def serve_data_js():
 
 @app.get("/styles.css")
 def serve_styles_css():
-    f = root_dir / "styles.css"
+    f = public_dir / "styles.css"
+    if not f.exists():
+        f = root_dir / "styles.css"
     if not f.exists():
         f = frontend_dir / "styles.css"
     if f.exists():
