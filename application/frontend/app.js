@@ -1377,9 +1377,25 @@ function removeFromCart(medId) {
 
 function toggleCartDrawer(forceOpen) {
   const drawer = document.getElementById('cart-drawer');
+  const backdrop = document.getElementById('cart-backdrop');
   if (!drawer) return;
-  if (forceOpen) drawer.classList.remove('hidden');
-  else drawer.classList.toggle('hidden');
+
+  if (forceOpen === true) {
+    drawer.classList.remove('hidden');
+    if (backdrop) backdrop.classList.remove('hidden');
+  } else if (forceOpen === false) {
+    drawer.classList.add('hidden');
+    if (backdrop) backdrop.classList.add('hidden');
+  } else {
+    const isHidden = drawer.classList.contains('hidden');
+    if (isHidden) {
+      drawer.classList.remove('hidden');
+      if (backdrop) backdrop.classList.remove('hidden');
+    } else {
+      drawer.classList.add('hidden');
+      if (backdrop) backdrop.classList.add('hidden');
+    }
+  }
 }
 
 async function processCheckout() {
