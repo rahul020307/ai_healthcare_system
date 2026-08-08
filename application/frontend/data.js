@@ -3,12 +3,12 @@
 const INITIAL_DATA = {
   // Auth State Mock
   userAuth: {
-    isLoggedIn: true,
+    isLoggedIn: false,
     user: {
-      name: "Rahul Sharma",
-      email: "rahul.sharma@curaassist.health",
-      phone: "+91 98765 43210",
-      token: "jwt-token-xyz-88219"
+      name: "Guest User",
+      email: "",
+      phone: "",
+      token: ""
     }
   },
 

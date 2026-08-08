@@ -344,6 +344,9 @@ function updateAuthUIState(userData) {
   const activeFamilyName = document.getElementById('active-family-name');
   if (activeFamilyName) activeFamilyName.innerText = userName;
 
+  const welcomeName = document.getElementById('home-welcome-name');
+  if (welcomeName) welcomeName.innerText = userName;
+
   const profileHeaderName = document.getElementById('prof-name');
   if (profileHeaderName) profileHeaderName.innerText = userName;
 
