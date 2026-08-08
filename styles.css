@@ -1,0 +1,237 @@
+/* Custom styles and enhancements for CuraAssist CareHub */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --primary: #0d9488;
+  --primary-hover: #0f766e;
+  --secondary: #06b6d4;
+  --accent: #6366f1;
+  --danger: #f43f5e;
+  --success: #10b981;
+  --warning: #f59e0b;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background-color: #0f172a;
+  color: #f8fafc;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Outfit', sans-serif;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.6);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.25);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.4);
+}
+
+/* Glassmorphism utility classes */
+.glass-panel {
+  background: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.glass-panel-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.glass-panel-hover:hover {
+  transform: translateY(-2px);
+  border-color: rgba(13, 148, 136, 0.4);
+  box-shadow: 0 12px 40px 0 rgba(13, 148, 136, 0.15);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.glass-input {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #f8fafc;
+}
+.glass-input:focus {
+  border-color: #0d9488;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.25);
+}
+
+/* Glowing text and borders */
+.glow-teal {
+  box-shadow: 0 0 20px rgba(13, 148, 136, 0.4);
+}
+.glow-red {
+  box-shadow: 0 0 25px rgba(244, 63, 94, 0.6);
+}
+.glow-text-teal {
+  text-shadow: 0 0 12px rgba(20, 184, 166, 0.5);
+}
+
+/* Pulse animation for SOS & Live indicators */
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.7);
+  }
+  70% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 15px rgba(244, 63, 94, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(244, 63, 94, 0);
+  }
+}
+
+.sos-btn-pulse {
+  animation: pulse-ring 2s infinite;
+}
+
+@keyframes scan-laser {
+  0% {
+    top: 0%;
+    opacity: 0.8;
+  }
+  50% {
+    top: 95%;
+    opacity: 1;
+  }
+  100% {
+    top: 0%;
+    opacity: 0.8;
+  }
+}
+
+.laser-line {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, rgba(6,182,212,0) 0%, rgba(13,148,136,1) 50%, rgba(6,182,212,0) 100%);
+  box-shadow: 0 0 15px #0d9488, 0 0 25px #06b6d4;
+  animation: scan-laser 2.5s infinite ease-in-out;
+}
+
+/* Map marker popups custom styling */
+.leaflet-popup-content-wrapper {
+  background: rgba(15, 23, 42, 0.95) !important;
+  color: #f8fafc !important;
+  border: 1px solid rgba(13, 148, 136, 0.4) !important;
+  border-radius: 12px !important;
+  backdrop-filter: blur(10px) !important;
+}
+.leaflet-popup-tip {
+  background: rgba(15, 23, 42, 0.95) !important;
+}
+
+/* Navigation active tab highlight */
+.nav-link {
+  transition: all 0.2s ease;
+}
+.nav-link.active {
+  background: linear-gradient(135deg, rgba(13, 148, 136, 0.25) 0%, rgba(6, 182, 212, 0.15) 100%);
+  border-left: 3px solid #0d9488;
+  color: #2dd4bf;
+}
+
+/* Light mode overrides when toggled */
+body.light-theme {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+body.light-theme .glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(226, 232, 240, 0.8);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+}
+body.light-theme .glass-card {
+  background: rgba(241, 245, 249, 0.7);
+  border-color: rgba(203, 213, 225, 0.6);
+}
+body.light-theme .glass-input {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+body.light-theme .text-slate-400 {
+  color: #64748b !important;
+}
+body.light-theme .text-slate-300 {
+  color: #475569 !important;
+}
+body.light-theme .text-white {
+  color: #0f172a !important;
+}
+body.light-theme .bg-slate-900\/80,
+body.light-theme .bg-slate-900,
+body.light-theme .bg-slate-800 {
+  background-color: #ffffff !important;
+}
+
+/* Printable report stylesheet styling */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #printable-report, #printable-report * {
+    visibility: visible;
+  }
+  #printable-report {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    color: #000;
+    background: #fff;
+  }
+}
+
+/* Explicit Mobile Bottom Navigation Bar Rules */
+@media (max-width: 1023px) {
+  #mobile-bottom-nav {
+    display: flex !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 50 !important;
+    background: rgba(15, 23, 42, 0.96) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border-top: 1px solid rgba(13, 148, 136, 0.3) !important;
+    box-shadow: 0 -4px 25px rgba(0, 0, 0, 0.6) !important;
+  }
+  #app-sidebar {
+    display: none !important;
+  }
+  #mobile-menu-btn {
+    display: none !important;
+  }
+  #floating-ai-chat-btn {
+    bottom: 5.5rem !important;
+    right: 1rem !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  #mobile-bottom-nav {
+    display: none !important;
+  }
+}

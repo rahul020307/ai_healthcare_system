@@ -1,5 +1,4 @@
 {
-  "framework": null,
   "cleanUrls": true,
   "rewrites": [
     {
@@ -23,8 +22,12 @@
       "destination": "/api/index.py"
     },
     {
-      "source": "/(.*)",
-      "destination": "/application/frontend/$1"
+      "source": "/application/frontend/(.*)",
+      "destination": "/$1"
+    },
+    {
+      "source": "/application/frontend",
+      "destination": "/index.html"
     }
   ]
 }
