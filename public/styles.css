@@ -211,8 +211,15 @@ body.light-theme .bg-slate-800 {
   }
 }
 
-/* Explicit Mobile Bottom Navigation Bar Rules */
+/* Explicit Mobile App Shell Rules (Native iOS/Android Full-Screen UX) */
 @media (max-width: 1023px) {
+  #app-header {
+    height: 56px !important;
+    border-radius: 0 !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-top: none !important;
+  }
   #mobile-bottom-nav {
     display: flex !important;
     position: fixed !important;
@@ -220,13 +227,14 @@ body.light-theme .bg-slate-800 {
     left: 0 !important;
     right: 0 !important;
     width: 100vw !important;
-    height: 64px !important;
+    height: 60px !important;
     z-index: 99999 !important;
-    background: rgba(15, 23, 42, 0.98) !important;
+    background: rgba(15, 23, 42, 0.95) !important;
     backdrop-filter: blur(20px) !important;
     -webkit-backdrop-filter: blur(20px) !important;
-    border-top: 1px solid rgba(20, 184, 166, 0.4) !important;
-    box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.9) !important;
+    border-top: 1px solid rgba(51, 65, 85, 0.8) !important;
+    border-radius: 0 !important;
+    box-shadow: 0 -4px 25px rgba(0, 0, 0, 0.6) !important;
     transform: translateZ(0) !important;
   }
   #app-sidebar {
@@ -236,7 +244,7 @@ body.light-theme .bg-slate-800 {
     display: none !important;
   }
   #floating-ai-chat-btn {
-    bottom: 84px !important;
+    bottom: 76px !important;
     right: 16px !important;
     z-index: 45 !important;
   }
