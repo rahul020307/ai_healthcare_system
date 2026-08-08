@@ -139,6 +139,8 @@ function switchTab(tabName) {
     }, 200);
   }
 
+  const mainContent = document.querySelector('main');
+  if (mainContent) mainContent.scrollTop = 0;
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 

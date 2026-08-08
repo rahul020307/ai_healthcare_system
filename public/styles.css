@@ -211,12 +211,15 @@ body.light-theme .bg-slate-800 {
     bottom: 0 !important;
     left: 0 !important;
     right: 0 !important;
-    z-index: 50 !important;
-    background: rgba(15, 23, 42, 0.96) !important;
-    backdrop-filter: blur(16px) !important;
-    -webkit-backdrop-filter: blur(16px) !important;
-    border-top: 1px solid rgba(13, 148, 136, 0.3) !important;
-    box-shadow: 0 -4px 25px rgba(0, 0, 0, 0.6) !important;
+    width: 100vw !important;
+    height: 64px !important;
+    z-index: 99999 !important;
+    background: rgba(15, 23, 42, 0.98) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border-top: 1px solid rgba(20, 184, 166, 0.4) !important;
+    box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.9) !important;
+    transform: translateZ(0) !important;
   }
   #app-sidebar {
     display: none !important;
@@ -225,8 +228,9 @@ body.light-theme .bg-slate-800 {
     display: none !important;
   }
   #floating-ai-chat-btn {
-    bottom: 5.5rem !important;
-    right: 1rem !important;
+    bottom: 84px !important;
+    right: 16px !important;
+    z-index: 45 !important;
   }
 }
 
