@@ -20,7 +20,7 @@ An AI-powered healthcare application for medicine discovery, nearby healthcare s
 - **Maps**: nearby hospitals, medical stores, clinics, labs, blood banks
 - **Profile**: personal details, medical history, settings, contacts
 
-## Suggested Architecture
+## Architecture
 
 - **Frontend**: Flutter mobile app
 - **Backend**: FastAPI / Python
