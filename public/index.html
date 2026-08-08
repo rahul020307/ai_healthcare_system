@@ -509,6 +509,9 @@
           </div>
         </div>
 
+        <!-- Dedicated Bottom Navigation Clearance Spacer -->
+        <div class="h-40 w-full shrink-0"></div>
+
       </section>
 
       <!-- ================= 2. STORE MODULE VIEW ================= -->
@@ -664,6 +667,9 @@
           </div>
         </div>
 
+        <!-- Dedicated Bottom Navigation Clearance Spacer -->
+        <div class="h-40 w-full shrink-0"></div>
+
       </section>
 
       <!-- ================= 3. MAPS MODULE VIEW ================= -->
@@ -720,8 +726,8 @@
           </div>
         </div>
 
-        <!-- Floating Layer 2: Bottom Sliding Drawer Panel for Nearby Places (Adjustable Layout) -->
-        <div id="nearby-places-drawer" class="absolute bottom-3 left-3 right-3 z-20 max-h-56 overflow-y-auto rounded-2xl glass-panel bg-slate-950/85 backdrop-blur-md border border-teal-500/30 p-3 space-y-2 shadow-2xl pointer-events-auto transition-all duration-300">
+        <!-- Floating Layer 2: Bottom Sliding Drawer Panel for Nearby Places (Positioned cleanly above mobile bottom nav) -->
+        <div id="nearby-places-drawer" class="absolute bottom-20 sm:bottom-3 left-3 right-3 z-20 max-h-56 overflow-y-auto rounded-2xl glass-panel bg-slate-950/85 backdrop-blur-md border border-teal-500/30 p-3 space-y-2 shadow-2xl pointer-events-auto transition-all duration-300">
           <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
             <h4 class="text-xs font-extrabold text-white flex items-center gap-1.5">
               <i data-lucide="map-pin" class="w-3.5 h-3.5 text-teal-400"></i>
@@ -967,30 +973,39 @@
 
         <!-- App Info & Logout -->
         <div class="space-y-3">
-          <h3 class="text-sm font-extrabold text-white">App Info</h3>
+          <h3 class="text-sm font-extrabold text-white">App Info & Account</h3>
 
-          <div class="glass-panel rounded-3xl border border-slate-800 divide-y divide-slate-800/80 overflow-hidden">
+          <div class="glass-panel rounded-3xl border border-slate-800 divide-y divide-slate-800/80 overflow-hidden shadow-xl">
             <button onclick="alert('CuraAssist CareHub v2.4.0 • HIPAA Compliant AI Healthcare Platform')" class="w-full p-4 flex items-center justify-between hover:bg-slate-900/50 transition-colors text-left group">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-teal-500/20 text-teal-400 flex items-center justify-center">
                   <i data-lucide="info" class="w-5 h-5"></i>
                 </div>
-                <h4 class="text-xs font-bold text-white group-hover:text-teal-300 transition-colors">About CuraAssist CareHub</h4>
+                <div>
+                  <h4 class="text-xs font-bold text-white group-hover:text-teal-300 transition-colors">About CuraAssist CareHub</h4>
+                  <p class="text-[11px] text-slate-400">Version 2.4.0 • HIPAA Security Verified</p>
+                </div>
               </div>
               <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
             </button>
 
-            <button onclick="openAuthModal()" class="w-full p-4 flex items-center justify-between hover:bg-rose-950/30 transition-colors text-left group">
+            <button onclick="logoutUser()" class="w-full p-4 flex items-center justify-between bg-gradient-to-r from-rose-950/70 via-rose-900/50 to-red-950/70 hover:from-rose-900 hover:to-red-900 transition-colors text-left group border-t border-rose-500/40">
               <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center">
+                <div class="w-10 h-10 rounded-xl bg-rose-500/30 text-rose-300 flex items-center justify-center ring-2 ring-rose-500/50 shadow-lg">
                   <i data-lucide="log-out" class="w-5 h-5"></i>
                 </div>
-                <h4 class="text-xs font-bold text-rose-400 group-hover:text-rose-300 transition-colors">Logout</h4>
+                <div>
+                  <h4 class="text-xs font-extrabold text-rose-200 group-hover:text-white transition-colors">Sign Out / Log Off</h4>
+                  <p class="text-[11px] text-rose-300/80">Log out of your account session</p>
+                </div>
               </div>
-              <i data-lucide="chevron-right" class="w-4 h-4 text-rose-400"></i>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-rose-300"></i>
             </button>
           </div>
         </div>
+
+        <!-- Dedicated Bottom Navigation Clearance Spacer (Ensures 100% visibility above mobile bottom bar) -->
+        <div class="h-40 w-full shrink-0"></div>
 
       </section>
 
