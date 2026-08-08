@@ -83,10 +83,31 @@ document.addEventListener('DOMContentLoaded', () => {
 function switchTab(tabName) {
   state.currentTab = tabName;
   
-  // Update sidebar active highlights
+  // Update sidebar & mobile bottom nav active highlights
   document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.mobile-nav-btn').forEach(el => {
+    el.classList.remove('text-teal-400', 'font-black', 'scale-105');
+    el.classList.add('text-slate-400');
+  });
+
   const activeNav = document.getElementById(`nav-${tabName}`);
   if (activeNav) activeNav.classList.add('active');
+
+  const activeMobileNav = document.getElementById(`mobile-nav-${tabName}`);
+  if (activeMobileNav) {
+    activeMobileNav.classList.remove('text-slate-400');
+    activeMobileNav.classList.add('text-teal-400', 'font-black', 'scale-105');
+  }
+
+  // Toggle Header visibility (Remove top header in Maps tab for full screen map view)
+  const appHeader = document.getElementById('app-header');
+  if (appHeader) {
+    if (tabName === 'maps') {
+      appHeader.classList.add('hidden');
+    } else {
+      appHeader.classList.remove('hidden');
+    }
+  }
 
   // Hide all sections
   ['home', 'store', 'maps', 'profile'].forEach(tab => {
@@ -100,10 +121,36 @@ function switchTab(tabName) {
 
   // If switching to Maps tab, initialize map if needed
   if (tabName === 'maps') {
-    setTimeout(initMap, 200);
+    setTimeout(() => {
+      initMap();
+      if (state.map) state.map.invalidateSize();
+    }, 200);
   }
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function toggleNearbyPlacesLayout() {
+  const drawer = document.getElementById('nearby-places-drawer');
+  if (!drawer) return;
+
+  if (drawer.classList.contains('max-h-56')) {
+    // State 2: Expanded view (75% screen height) for full list scrolling
+    drawer.classList.remove('max-h-56');
+    drawer.classList.add('max-h-[75vh]');
+  } else if (drawer.classList.contains('max-h-[75vh]')) {
+    // State 3: Compact Bar view (h-12 overflow-hidden) for full map visibility
+    drawer.classList.remove('max-h-[75vh]');
+    drawer.classList.add('max-h-12', 'overflow-hidden');
+  } else {
+    // State 1: Reset back to standard height
+    drawer.classList.remove('max-h-12', 'overflow-hidden');
+    drawer.classList.add('max-h-56');
+  }
+
+  if (state.map) {
+    setTimeout(() => state.map.invalidateSize(), 300);
+  }
 }
 
 function scrollToSection(secId) {
@@ -1209,12 +1256,13 @@ function addToCart(medId) {
 }
 
 function renderCart() {
-  const listContainer = document.getElementById('cart-items-list');
   const countBadge = document.getElementById('cart-badge-side');
+  const mobileCountBadge = document.getElementById('cart-badge-mobile');
   const btnCount = document.getElementById('cart-btn-count');
 
   const totalItems = state.cart.reduce((sum, i) => sum + i.qty, 0);
   if (countBadge) countBadge.innerText = totalItems;
+  if (mobileCountBadge) mobileCountBadge.innerText = totalItems;
   if (btnCount) btnCount.innerText = totalItems;
 
   if (!listContainer) return;
@@ -1455,8 +1503,8 @@ function generateNearbyFacilitiesForUserLocation(userLat, userLng) {
   INITIAL_DATA.mapFacilities = [
     {
       id: "fac-1",
-      name: "MedPlus Pharmacy",
-      type: "Nearby Pharmacies",
+      name: "MedPlus Pharmacy & Medical Store",
+      type: "Pharmacies",
       lat: userLat + 0.0032,
       lng: userLng + 0.0028,
       address: "Main Avenue Market Road",
@@ -1472,7 +1520,7 @@ function generateNearbyFacilitiesForUserLocation(userLat, userLng) {
     },
     {
       id: "fac-2",
-      name: "City Care Hospital & ER",
+      name: "City Care Hospital & ER Center",
       type: "Hospitals",
       lat: userLat - 0.0058,
       lng: userLng + 0.0045,
@@ -1492,7 +1540,7 @@ function generateNearbyFacilitiesForUserLocation(userLat, userLng) {
     },
     {
       id: "fac-3",
-      name: "Health First Diagnostics & Labs",
+      name: "Health First Diagnostics & Pathology Labs",
       type: "Labs",
       lat: userLat + 0.0085,
       lng: userLng - 0.0068,
@@ -1509,7 +1557,7 @@ function generateNearbyFacilitiesForUserLocation(userLat, userLng) {
     },
     {
       id: "fac-4",
-      name: "LifeLine Family Clinic",
+      name: "LifeLine Family Practice & Polyclinic",
       type: "Clinics",
       lat: userLat - 0.0094,
       lng: userLng - 0.0042,
@@ -1526,24 +1574,24 @@ function generateNearbyFacilitiesForUserLocation(userLat, userLng) {
     },
     {
       id: "fac-5",
-      name: "Emergency Care & Trauma Center",
-      type: "Hospitals",
-      lat: userLat + 0.0140,
-      lng: userLng + 0.0120,
-      address: "Expressway Emergency Gate 1",
-      phone: "+1 108",
-      distanceKm: 2.1,
-      etaMins: 9,
+      name: "Apollo Pharmacy & 24/7 Medical Store",
+      type: "Pharmacies",
+      lat: userLat + 0.0060,
+      lng: userLng - 0.0035,
+      address: "Apollo Health Gate 2",
+      phone: "+1 800-555-0999",
+      distanceKm: 0.9,
+      etaMins: 4,
       rating: 4.9,
       is24x7: true,
       openHours: "Open 24 hours",
-      icon: "ambulance",
-      colorClass: "rose",
-      image: "https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&q=80&w=400"
+      icon: "plus",
+      colorClass: "teal",
+      image: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=400"
     },
     {
       id: "fac-6",
-      name: "Regional Emergency Blood Bank",
+      name: "Regional Emergency Blood Bank Depot",
       type: "Blood Banks",
       lat: userLat - 0.0048,
       lng: userLng + 0.0082,
