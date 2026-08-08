@@ -219,23 +219,24 @@ body.light-theme .bg-slate-800 {
     border-left: none !important;
     border-right: none !important;
     border-top: none !important;
+    background: #090d16 !important;
   }
   #mobile-bottom-nav {
-    display: flex !important;
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
     position: fixed !important;
     bottom: 0 !important;
     left: 0 !important;
     right: 0 !important;
     width: 100vw !important;
-    height: 60px !important;
+    height: 64px !important;
     z-index: 99999 !important;
-    background: rgba(15, 23, 42, 0.95) !important;
-    backdrop-filter: blur(20px) !important;
-    -webkit-backdrop-filter: blur(20px) !important;
-    border-top: 1px solid rgba(51, 65, 85, 0.8) !important;
+    background: #090d16 !important;
+    border-top: 1px solid #1e293b !important;
     border-radius: 0 !important;
-    box-shadow: 0 -4px 25px rgba(0, 0, 0, 0.6) !important;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.8) !important;
     transform: translateZ(0) !important;
+    padding: 0 !important;
   }
   #app-sidebar {
     display: none !important;
@@ -244,7 +245,7 @@ body.light-theme .bg-slate-800 {
     display: none !important;
   }
   #floating-ai-chat-btn {
-    bottom: 76px !important;
+    bottom: 80px !important;
     right: 16px !important;
     z-index: 45 !important;
   }
