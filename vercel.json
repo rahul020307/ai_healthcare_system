@@ -1,23 +1,24 @@
 {
+  "cleanUrls": true,
   "rewrites": [
     {
-      "source": "/chat/(.*)",
+      "source": "/chat/:path*",
       "destination": "/api/index.py"
     },
     {
-      "source": "/store/(.*)",
+      "source": "/store/:path*",
       "destination": "/api/index.py"
     },
     {
-      "source": "/profile/(.*)",
+      "source": "/profile/:path*",
       "destination": "/api/index.py"
     },
     {
-      "source": "/auth/(.*)",
+      "source": "/auth/:path*",
       "destination": "/api/index.py"
     },
     {
-      "source": "/medicine/(.*)",
+      "source": "/medicine/:path*",
       "destination": "/api/index.py"
     },
     {
