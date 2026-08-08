@@ -1,39 +1,28 @@
 {
-  "version": 2,
-  "builds": [
+  "rewrites": [
     {
-      "src": "application/backend/app/main.py",
-      "use": "@vercel/python"
+      "source": "/chat/(.*)",
+      "destination": "/api/index.py"
     },
     {
-      "src": "application/frontend/**",
-      "use": "@vercel/static"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/chat/(.*)",
-      "dest": "application/backend/app/main.py"
+      "source": "/store/(.*)",
+      "destination": "/api/index.py"
     },
     {
-      "src": "/store/(.*)",
-      "dest": "application/backend/app/main.py"
+      "source": "/profile/(.*)",
+      "destination": "/api/index.py"
     },
     {
-      "src": "/profile/(.*)",
-      "dest": "application/backend/app/main.py"
+      "source": "/auth/(.*)",
+      "destination": "/api/index.py"
     },
     {
-      "src": "/auth/(.*)",
-      "dest": "application/backend/app/main.py"
+      "source": "/medicine/(.*)",
+      "destination": "/api/index.py"
     },
     {
-      "src": "/medicine/(.*)",
-      "dest": "application/backend/app/main.py"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "application/frontend/$1"
+      "source": "/(.*)",
+      "destination": "/application/frontend/$1"
     }
   ]
 }
