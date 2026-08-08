@@ -470,13 +470,13 @@ function logoutUser() {
   const authText = document.getElementById('auth-btn-text');
   if (authText) authText.innerText = "Login / Register";
   
-  switchAuthTab('login');
+  switchAuthTab('register');
 
   // Lock app behind mandatory authentication guard
   const overlay = document.getElementById('auth-guard-overlay');
   if (overlay) overlay.classList.remove('hidden');
 
-  alert("🔒 Logged out successfully. Please sign in to access CuraAssist.");
+  alert("🔒 Logged out successfully. Please sign up or log in to access CuraAssist.");
 }
 
 function checkSavedSession() {
