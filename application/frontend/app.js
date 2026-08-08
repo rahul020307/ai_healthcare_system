@@ -1,4 +1,5 @@
 // CuraAssist CareHub - Complete Application Engine & Logic (11 Prototype Modules)
+const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:8000' : '';
 
 let state = {
   currentTab: 'home',
@@ -242,7 +243,7 @@ async function submitAuth(message, overrideName, mode = 'login') {
 
   // Attempt backend API call if server is active
   try {
-    const endpoint = mode === 'register' ? 'http://localhost:8000/profile/register' : 'http://localhost:8000/profile/login';
+    const endpoint = mode === 'register' ? `${API_BASE}/profile/register` : `${API_BASE}/profile/login`;
     await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -683,7 +684,7 @@ async function simulatePrescriptionOCR() {
   renderRecords();
 
   try {
-    await fetch('http://localhost:8000/profile/upload-record', {
+    await fetch(`${API_BASE}/profile/upload-record`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(newRec)
@@ -930,14 +931,18 @@ async function showMedInfoDetails(medId) {
 
   try {
     let med = null;
-    const res = await fetch(`http://localhost:8000/medicine/info/${medId}`);
+    const res = await fetch(`${API_BASE}/medicine/info/${medId}`);
     if (res.ok) {
       const data = await res.json();
-      med = data.medicine;
+      renderMedicineDetailModalFromData(data.medicine || data);
+      return;
     }
+  } catch (err) {
+    console.warn("Backend detail lookup fallback:", err);
+  }
 
-    if (!med) {
-      const storeRes = await fetch(`http://localhost:8000/store/medicines`);
+  try {
+    const storeRes = await fetch(`${API_BASE}/store/medicines`);
       if (storeRes.ok) {
         const storeData = await storeRes.json();
         med = (storeData.medicines || []).find(m => m.id === medId || m.name.toLowerCase().includes(medId.toLowerCase()));
@@ -1128,7 +1133,7 @@ async function renderStoreMedicines() {
   const infoEl = document.getElementById('store-fulfillment-info');
 
   try {
-    const res = await fetch(`http://localhost:8000/store/medicines?location=${encodeURIComponent(activeStoreLocation)}&search=${encodeURIComponent(query)}&category=${encodeURIComponent(activeStoreCat)}`);
+    const res = await fetch(`${API_BASE}/store/medicines?location=${encodeURIComponent(activeStoreLocation)}&search=${encodeURIComponent(query)}&category=${encodeURIComponent(activeStoreCat)}`);
     const data = await res.json();
 
     if (infoEl && data.fulfillingStore) {
@@ -1372,7 +1377,7 @@ async function processCheckout() {
   }));
 
   try {
-    const res = await fetch('http://localhost:8000/store/orders', {
+    const res = await fetch(`${API_BASE}/store/orders`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1863,7 +1868,7 @@ async function sendAIMessage() {
   lucide.createIcons();
 
   try {
-    const res = await fetch('http://localhost:8000/chat/ask', {
+    const res = await fetch(`${API_BASE}/chat/ask`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message: userText, patientContext: memberName })
@@ -2165,7 +2170,7 @@ async function performRealOCR(file, fileName) {
   let docCategory = "Prescriptions";
 
   try {
-    const apiRes = await fetch('http://localhost:8000/chat/ocr-scan', {
+    const apiRes = await fetch(`${API_BASE}/chat/ocr-scan`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -2337,13 +2342,13 @@ async function saveUploadedFileToDatabase(uploadObj) {
 
   // Store in backend database
   try {
-    await fetch('http://localhost:8000/profile/uploads', {
+    await fetch(`${API_BASE}/profile/uploads`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(item)
+      body: JSON.stringify(recordData)
     });
   } catch (err) {
-    console.warn("Backend save upload note:", err);
+    console.warn("Upload DB save error:", err);
   }
 
   updateUploadsBadgeCount();
@@ -2486,7 +2491,7 @@ async function triggerBarcodeScanProcess(queryOrBarcode, fileName = "", captured
 
   // 1. Query Backend Medicine Database Endpoint
   try {
-    const res = await fetch('http://localhost:8000/chat/scan-medicine', {
+    const res = await fetch(`${API_BASE}/chat/scan-medicine`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query_text: queryOrBarcode, barcode: queryOrBarcode })
@@ -2657,7 +2662,7 @@ async function simulatePrescriptionOCR() {
 
   // 3. Save in backend dataset file (health_records.json)
   try {
-    await fetch('http://localhost:8000/profile/upload-record', {
+    await fetch(`${API_BASE}/profile/upload-record`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(newRec)

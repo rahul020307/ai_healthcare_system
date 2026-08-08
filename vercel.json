@@ -1,13 +1,36 @@
 {
   "version": 2,
-  "public": true,
   "builds": [
     {
-      "src": "application/frontend/**/*",
+      "src": "application/backend/app/main.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "application/frontend/**",
       "use": "@vercel/static"
     }
   ],
   "routes": [
+    {
+      "src": "/chat/(.*)",
+      "dest": "application/backend/app/main.py"
+    },
+    {
+      "src": "/store/(.*)",
+      "dest": "application/backend/app/main.py"
+    },
+    {
+      "src": "/profile/(.*)",
+      "dest": "application/backend/app/main.py"
+    },
+    {
+      "src": "/auth/(.*)",
+      "dest": "application/backend/app/main.py"
+    },
+    {
+      "src": "/medicine/(.*)",
+      "dest": "application/backend/app/main.py"
+    },
     {
       "src": "/(.*)",
       "dest": "application/frontend/$1"
