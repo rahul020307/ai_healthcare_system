@@ -238,6 +238,15 @@ body.light-theme .bg-slate-800 {
     transform: translateZ(0) !important;
     padding: 0 !important;
   }
+  #modal-ai-assistant,
+  #cart-drawer,
+  #drawer-notifications {
+    top: 56px !important;
+    bottom: 68px !important;
+    height: calc(100vh - 124px) !important;
+    border-radius: 0 !important;
+    z-index: 100001 !important;
+  }
   #app-sidebar {
     display: none !important;
   }
