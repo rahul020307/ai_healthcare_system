@@ -967,11 +967,13 @@ async function showMedInfoDetails(medId) {
 
   try {
     const storeRes = await fetch(`${API_BASE}/store/medicines`);
-      if (storeRes.ok) {
-        const storeData = await storeRes.json();
-        med = (storeData.medicines || []).find(m => m.id === medId || m.name.toLowerCase().includes(medId.toLowerCase()));
-      }
+    if (storeRes.ok) {
+      const storeData = await storeRes.json();
+      med = (storeData.medicines || []).find(m => m.id === medId || m.name.toLowerCase().includes(medId.toLowerCase()));
     }
+  } catch (err) {
+    console.warn("Store lookup fallback:", err);
+  }
 
     if (!med) {
       med = INITIAL_DATA.medicines.find(m => m.id === medId) || INITIAL_DATA.medicines[0];
@@ -1071,9 +1073,6 @@ async function showMedInfoDetails(medId) {
     `;
 
     if (typeof lucide !== 'undefined') lucide.createIcons();
-  } catch (e) {
-    console.error("Error in showMedInfoDetails:", e);
-  }
 }
 
 function closeMedInfoModal() {
