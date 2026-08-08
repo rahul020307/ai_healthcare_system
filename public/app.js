@@ -56,6 +56,15 @@ function loadStateFromStorage() {
   }
 }
 
+function ensureLucideIcons() {
+  if (typeof lucide !== 'undefined' && lucide.createIcons) {
+    try { lucide.createIcons(); } catch (e) {}
+  } else {
+    setTimeout(ensureLucideIcons, 150);
+  }
+}
+window.addEventListener('load', ensureLucideIcons);
+
 // Initialize app when DOM is ready safely
 document.addEventListener('DOMContentLoaded', () => {
   const safeRun = (fn, name) => {
@@ -65,7 +74,9 @@ document.addEventListener('DOMContentLoaded', () => {
   safeRun(() => loadStateFromStorage(), 'initDataState');
   safeRun(() => checkSavedSession(), 'checkSavedSession');
 
-  safeRun(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); }, 'lucide');
+  safeRun(() => ensureLucideIcons(), 'lucide');
+  setTimeout(ensureLucideIcons, 300);
+  setTimeout(ensureLucideIcons, 800);
   safeRun(() => initFamilyDropdown(), 'initFamilyDropdown');
   safeRun(() => renderActiveFamilyContext(), 'renderActiveFamilyContext');
   safeRun(() => renderSchedule(), 'renderSchedule');
@@ -474,7 +485,7 @@ function checkSavedSession() {
     const overlay = document.getElementById('auth-guard-overlay');
     if (saved) {
       const parsed = JSON.parse(saved);
-      if (parsed && parsed.isLoggedIn && (parsed.userName || parsed.name)) {
+      if (parsed && (parsed.isLoggedIn || parsed.userName || parsed.name)) {
         if (typeof INITIAL_DATA !== 'undefined') {
           INITIAL_DATA.userAuth.isLoggedIn = true;
           INITIAL_DATA.userAuth.user.name = parsed.userName || parsed.name;
@@ -488,11 +499,24 @@ function checkSavedSession() {
       }
     }
 
-    // Default to Login Tab on startup when no active session exists
-    switchAuthTab('login');
-    if (overlay) overlay.classList.remove('hidden');
+    // Default guest profile fallback so visitors can immediately use the site
+    const defaultGuest = {
+      userName: "Rahul Sharma",
+      name: "Rahul Sharma",
+      email: "rahul.sharma@curahealth.in",
+      phone: "+91 98765 43210",
+      blood: "O+",
+      city: "Hyderabad, Telangana",
+      age: "34",
+      isLoggedIn: true
+    };
+    try {
+      localStorage.setItem('cura_auth_session', JSON.stringify(defaultGuest));
+    } catch (e) {}
+    updateAuthUIState(defaultGuest);
+    if (overlay) overlay.classList.add('hidden');
   } catch (e) {}
-  return false;
+  return true;
 }
 
 
