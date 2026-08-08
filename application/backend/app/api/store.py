@@ -43,18 +43,8 @@ def get_medicines(
 ):
     loc_lower = (location or "").lower()
 
-    # Determine region & fulfillment hub based on location
-    if "london" in loc_lower or "uk" in loc_lower or "united kingdom" in loc_lower:
-        currency = "£"
-        rate = 0.0095
-        hub = "Boots Chemist • London Central Hub"
-        eta = "20-30 mins"
-    elif "new york" in loc_lower or "us" in loc_lower or "usa" in loc_lower:
-        currency = "$"
-        rate = 0.012
-        hub = "CVS Pharmacy • Manhattan Center"
-        eta = "15-25 mins"
-    elif "mumbai" in loc_lower:
+    # Determine region & fulfillment hub based on location (All Indian context)
+    if "mumbai" in loc_lower:
         currency = "₹"
         rate = 1.0
         hub = "Apollo Pharmacy • Bandra West"
@@ -69,10 +59,15 @@ def get_medicines(
         rate = 1.0
         hub = "MedPlus Express • Indiranagar"
         eta = "15-20 mins"
+    elif "hyderabad" in loc_lower:
+        currency = "₹"
+        rate = 1.0
+        hub = "Apollo Pharmacy • Banjara Hills"
+        eta = "15-25 mins"
     else:
         currency = "₹"
         rate = 1.0
-        hub = f"MedPlus Express • {location or 'Local City Center'}"
+        hub = f"MedPlus Express • {location or 'Indian City Center'}"
         eta = "15-30 mins"
 
     json_records = load_json_medicines()
@@ -80,7 +75,7 @@ def get_medicines(
     base_medicines = []
     for item in json_records:
         raw_price = item.get("price", 50.0)
-        orig_price = round(raw_price * 1.25, 2)
+        orig_price = item.get("original_price", round(raw_price * 1.25, 2))
         base_medicines.append({
             "id": item.get("medicine_id", "med-1"),
             "name": item.get("brand_name", item.get("generic_name", "Medicine")),
@@ -90,16 +85,25 @@ def get_medicines(
             "price": round(raw_price * rate, 2),
             "originalPrice": round(orig_price * rate, 2),
             "currency": currency,
-            "discount": "20% OFF",
-            "rating": 4.8,
-            "reviews": 120,
+            "discount": f"{round((1 - raw_price/orig_price)*100)}% OFF" if orig_price > raw_price else "Best Price",
+            "rating": item.get("rating", 4.8),
+            "reviews": item.get("reviews_count", 120),
             "dosage": item.get("dosage", "1 tablet post meal"),
             "image": item.get("image_url", "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=300"),
             "genericAlt": f"{item.get('generic_name', 'Generic')} ({currency}{round(raw_price * 0.4 * rate, 2)})",
             "requiresRx": item.get("prescription_required", False),
             "fulfillingStore": hub,
             "deliveryEta": eta,
-            "stockStatus": "In Stock (Available Nearby)"
+            "stockStatus": "In Stock (Available Nearby)",
+            "manufacturer": item.get("manufacturer", "Pharma Certified"),
+            "platformSources": item.get("platform_sources", ["Tata 1mg", "Apollo Pharmacy", "Netmeds", "PharmEasy"]),
+            "verifiedPlatforms": item.get("verified_platforms", ["Tata 1mg Verified", "Apollo Certified"]),
+            "uses": item.get("uses", []),
+            "sideEffects": item.get("side_effects", []),
+            "warnings": item.get("warnings", []),
+            "contraindications": item.get("contraindications", []),
+            "storage": item.get("storage", "Store in a cool dry place."),
+            "barcode": item.get("barcode", "8901234567890")
         })
 
     cat_lower = (category or "all").lower()

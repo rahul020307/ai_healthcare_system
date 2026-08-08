@@ -1,12 +1,13 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.home import router as home_router
-from app.api.store import router as store_router
-from app.api.maps import router as maps_router
-from app.api.chat import router as chat_router
-from app.api.profile import router as profile_router
-from app.api.medicine import router as medicine_router
+from .api.home import router as home_router
+from .api.store import router as store_router
+from .api.maps import router as maps_router
+from .api.chat import router as chat_router
+from .api.profile import router as profile_router
+from .api.medicine import router as medicine_router
+from .api.db import router as db_router
 
 app = FastAPI(
     title="CuraAssist CareHub API",
@@ -28,6 +29,7 @@ app.include_router(maps_router)
 app.include_router(chat_router)
 app.include_router(profile_router)
 app.include_router(medicine_router)
+app.include_router(db_router)
 
 
 @app.get("/")

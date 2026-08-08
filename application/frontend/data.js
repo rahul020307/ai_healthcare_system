@@ -5,9 +5,9 @@ const INITIAL_DATA = {
   userAuth: {
     isLoggedIn: true,
     user: {
-      name: "Alex Morgan",
-      email: "alex.morgan@curaassist.health",
-      phone: "+1 (555) 019-2834",
+      name: "Rahul Sharma",
+      email: "rahul.sharma@curaassist.health",
+      phone: "+91 98765 43210",
       token: "jwt-token-xyz-88219"
     }
   },
@@ -16,17 +16,17 @@ const INITIAL_DATA = {
   familyMembers: [
     {
       id: "mem-1",
-      name: "Alex Morgan",
+      name: "Registered User",
       relation: "Self (Primary)",
-      age: 34,
-      gender: "Male",
+      age: 30,
+      gender: "User",
       bloodGroup: "O+",
-      height: "178 cm",
-      weight: "74 kg",
+      height: "175 cm",
+      weight: "70 kg",
       avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250",
-      allergies: ["Penicillin", "Dust Mites"],
-      conditions: ["Mild Hypertension", "Seasonal Allergies"],
-      surgeries: ["Appendectomy (2018)"],
+      allergies: ["None"],
+      conditions: ["General Wellness"],
+      surgeries: ["None"],
       vitals: {
         heartRate: 72,
         bp: "120/80",
@@ -34,75 +34,6 @@ const INITIAL_DATA = {
         glucose: 95,
         sleepHours: 7.5,
         steps: 8420,
-        stepGoal: 10000
-      }
-    },
-    {
-      id: "mem-2",
-      name: "Eleanor Morgan",
-      relation: "Mother",
-      age: 62,
-      gender: "Female",
-      bloodGroup: "A+",
-      height: "162 cm",
-      weight: "68 kg",
-      avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=250",
-      allergies: ["Sulfa Drugs"],
-      conditions: ["Type 2 Diabetes", "Osteoarthritis"],
-      surgeries: ["Knee Arthroscopy (2021)"],
-      vitals: {
-        heartRate: 76,
-        bp: "132/84",
-        spO2: 97,
-        glucose: 142,
-        sleepHours: 6.8,
-        steps: 4150,
-        stepGoal: 6000
-      }
-    },
-    {
-      id: "mem-3",
-      name: "Sarah Morgan",
-      relation: "Spouse",
-      age: 32,
-      gender: "Female",
-      bloodGroup: "B+",
-      height: "168 cm",
-      weight: "60 kg",
-      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=250",
-      allergies: ["Lactose"],
-      conditions: ["Asthma"],
-      surgeries: ["None"],
-      vitals: {
-        heartRate: 68,
-        bp: "115/75",
-        spO2: 99,
-        glucose: 88,
-        sleepHours: 8.0,
-        steps: 9120,
-        stepGoal: 10000
-      }
-    },
-    {
-      id: "mem-4",
-      name: "Leo Morgan",
-      relation: "Son",
-      age: 7,
-      gender: "Male",
-      bloodGroup: "O+",
-      height: "122 cm",
-      weight: "24 kg",
-      avatar: "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?auto=format&fit=crop&q=80&w=250",
-      allergies: ["Peanuts"],
-      conditions: ["Childhood Eczema"],
-      surgeries: ["Tonsillectomy (2023)"],
-      vitals: {
-        heartRate: 85,
-        bp: "105/70",
-        spO2: 99,
-        glucose: 90,
-        sleepHours: 9.5,
-        steps: 11200,
         stepGoal: 10000
       }
     }
@@ -730,8 +661,8 @@ const INITIAL_DATA = {
 
   // Store Offers & Coupons
   storeOffers: [
-    { code: "CURA20", title: "20% OFF First Order", subtitle: "On orders above $30", discount: "20% OFF", bg: "from-teal-600 to-cyan-700" },
-    { code: "GENERIC50", title: "Flat $15 Cashback", subtitle: "When buying Generic Alternatives", discount: "$15 OFF", bg: "from-indigo-600 to-purple-700" },
+    { code: "CURA20", title: "20% OFF First Order", subtitle: "On orders above ₹200", discount: "20% OFF", bg: "from-teal-600 to-cyan-700" },
+    { code: "GENERIC50", title: "Flat ₹100 Cashback", subtitle: "When buying Generic Alternatives", discount: "₹100 OFF", bg: "from-indigo-600 to-purple-700" },
     { code: "FREESHIP", title: "Free Express Shipping", subtitle: "Same-day doorstep delivery", discount: "FREE SHIP", bg: "from-emerald-600 to-teal-700" }
   ],
 
@@ -739,17 +670,6 @@ const INITIAL_DATA = {
   mapFacilities: [
     {
       id: "fac-1",
-      name: "MedPlus Pharmacy",
-      type: "Nearby Pharmacies",
-      lat: 37.7780,
-      lng: -122.4150,
-      address: "120 Market Street, Bay Area",
-      phone: "+1 (800) 555-0211",
-      distanceKm: 0.4,
-      etaMins: 2,
-      rating: 4.9,
-      is24x7: true,
-      openHours: "Open 24 hours",
       icon: "plus",
       colorClass: "teal",
       image: "https://images.unsplash.com/photo-1576602976047-174e57a47881?auto=format&fit=crop&q=80&w=400"

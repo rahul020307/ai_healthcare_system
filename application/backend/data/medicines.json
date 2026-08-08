@@ -1,129 +1,55 @@
 [
   {
-    "medicine_id": "PROTO-001",
-    "brand_name": "NeuroBoost Focus 250mg (Prototype Showcase)",
-    "generic_name": "Nootropic Brain & Memory Complex",
-    "composition": "Bacopa Monnieri (150 mg) + L-Theanine (100 mg) + Ginkgo Biloba",
-    "category": "Prototype Specials",
-    "dosage_form": "Capsule",
-    "strength": "250 mg",
-    "manufacturer": "CuraAssist BioLabs",
-    "uses": ["Cognitive focus & mental clarity", "Memory enhancement", "Brain fatigue reduction"],
-    "dosage": "1 capsule in morning with breakfast.",
-    "age_restriction": "Above 18 years",
-    "side_effects": ["None under normal usage"],
-    "warnings": ["⭐ [PROTOTYPE SHOWCASE MEDICINE] High-potency cognitive health formula"],
-    "contraindications": ["None known"],
-    "storage": "Store in a cool dry place below 25°C.",
-    "prescription_required": false,
-    "barcode": "8909990001111",
-    "image_url": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=400",
-    "price": 48.00
-  },
-  {
-    "medicine_id": "PROTO-002",
-    "brand_name": "CuraCardio Protect 10mg (Prototype Smart Pill)",
-    "generic_name": "CoQ10 + Omega-3 Heart & BP Support",
-    "composition": "Coenzyme Q10 (100 mg) + EPA/DHA (300 mg) + Resveratrol",
-    "category": "Prototype Specials",
-    "dosage_form": "Softgel Capsule",
-    "strength": "410 mg",
-    "manufacturer": "CuraAssist CardioCare",
-    "uses": ["Cardiovascular health & endothelial protection", "Blood pressure stability", "Cellular energy synthesis"],
-    "dosage": "1 softgel daily after dinner.",
-    "age_restriction": "Above 18 years",
-    "side_effects": ["Mild indigestion if taken empty stomach"],
-    "warnings": ["⭐ [PROTOTYPE SHOWCASE MEDICINE] Advanced cardiovascular protective complex"],
-    "contraindications": ["Known allergy to seafood"],
-    "storage": "Store below 25°C protected from sunlight.",
-    "prescription_required": false,
-    "barcode": "8909990002222",
-    "image_url": "https://images.unsplash.com/photo-1577401239170-897942555fb3?auto=format&fit=crop&q=80&w=400",
-    "price": 65.00
-  },
-  {
-    "medicine_id": "PROTO-003",
-    "brand_name": "ImmuneShield Max 24hr Emergency Defense",
-    "generic_name": "Zinc + Vitamin C + D3 + Elderberry Extract",
-    "composition": "Zinc (20 mg) + Vitamin C (1000 mg) + Vit D3 (4000 IU) + Elderberry (250 mg)",
-    "category": "Prototype Specials",
-    "dosage_form": "Efferverscent Tablet",
-    "strength": "1270 mg",
-    "manufacturer": "CuraAssist Immunity Labs",
-    "uses": ["Rapid immune activation", "Cold & flu defense", "Antioxidant protection"],
-    "dosage": "Dissolve 1 tablet in a glass of water daily.",
-    "age_restriction": "Above 12 years",
-    "side_effects": ["None"],
-    "warnings": ["⭐ [PROTOTYPE SHOWCASE MEDICINE] Effervescent fast-absorption defense drink"],
-    "contraindications": ["Hyperoxaluria"],
-    "storage": "Store below 25°C in airtight tube.",
-    "prescription_required": false,
-    "barcode": "8909990003333",
-    "image_url": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=400",
-    "price": 29.00
-  },
-  {
-    "medicine_id": "PROTO-004",
-    "brand_name": "SleepWell DeepRest Melatonin 10mg Strips",
-    "generic_name": "Sublingual Melatonin + Chamomile & L-Theanine",
-    "composition": "Melatonin (10 mg) + Chamomile Extract (50 mg) + L-Theanine (50 mg)",
-    "category": "Prototype Specials",
-    "dosage_form": "Oral Dissolving Strips",
-    "strength": "110 mg",
-    "manufacturer": "CuraAssist SleepTech",
-    "uses": ["Insomnia relief & jet lag recovery", "Deep REM sleep regulation", "Nighttime relaxation"],
-    "dosage": "Place 1 strip on tongue 20 minutes before bedtime.",
-    "age_restriction": "Above 18 years",
-    "side_effects": ["Morning drowsiness if slept < 7 hours"],
-    "warnings": ["Do not drive or operate machinery after consumption"],
-    "contraindications": ["Autoimmune conditions"],
-    "storage": "Store below 25°C.",
-    "prescription_required": false,
-    "barcode": "8909990004444",
-    "image_url": "https://images.unsplash.com/photo-1577401239170-897942555fb3?auto=format&fit=crop&q=80&w=400",
-    "price": 22.00
-  },
-  {
-    "medicine_id": "PROTO-005",
-    "brand_name": "ProGastro Relief Dual Action Suspension",
-    "generic_name": "Magaldrate + Simethicone + Oxetacaine",
-    "composition": "Magaldrate (540 mg) + Simethicone (50 mg) + Oxetacaine (10 mg)",
-    "category": "Prototype Specials",
-    "dosage_form": "Oral Liquid Syrup",
-    "strength": "600 mg / 10ml",
-    "manufacturer": "CuraAssist GastroCare",
-    "uses": ["Instant heartburn & acid reflux relief", "Stomach gas & bloating", "Gastric ulcer pain anesthetic"],
-    "dosage": "10 ml (2 teaspoonfuls) after meals and at bedtime.",
-    "age_restriction": "Above 12 years",
-    "side_effects": ["Constipation or diarrhea (rare)"],
-    "warnings": ["Shake bottle well before use"],
-    "contraindications": ["Hypophosphatemia"],
-    "storage": "Store below 30°C.",
-    "prescription_required": false,
-    "barcode": "8909990005555",
-    "image_url": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=400",
-    "price": 38.00
-  },
-  {
     "medicine_id": "MED-001",
     "brand_name": "Dolo 650 Tablet",
     "generic_name": "Paracetamol 650mg",
     "composition": "Paracetamol (650 mg)",
-    "category": "Pain Relief",
+    "category": "Pain Relief & Fever",
     "dosage_form": "Tablet",
     "strength": "650 mg",
     "manufacturer": "Micro Labs Ltd",
-    "uses": ["Fever reduction", "Headache relief", "Body pain & joint stiffness"],
-    "dosage": "1 tablet every 6 hours as needed post meal. Max 4 tablets/day.",
+    "uses": [
+      "Fever reduction",
+      "Mild to moderate pain",
+      "Headache relief",
+      "Post-vaccination fever"
+    ],
+    "dosage": "1 tablet every 4 to 6 hours post meal. Maximum 4 tablets (2600mg) per day.",
     "age_restriction": "Above 12 years",
-    "side_effects": ["Mild nausea", "Skin rash (rare)"],
-    "warnings": ["Do not consume alcohol", "Avoid liver failure risk by avoiding overdose"],
-    "contraindications": ["Severe hepatic impairment"],
-    "storage": "Store below 30°C in a dry place.",
+    "side_effects": [
+      "Nausea",
+      "Allergic skin rash",
+      "Gastric irritation (rare)"
+    ],
+    "warnings": [
+      "Avoid alcohol consumption while taking paracetamol",
+      "Do not exceed recommended dose to prevent liver injury"
+    ],
+    "contraindications": [
+      "Severe hepatic impairment",
+      "Hypersensitivity to paracetamol"
+    ],
+    "storage": "Store below 30°C in a dry place away from direct light.",
     "prescription_required": false,
     "barcode": "8901234567890",
     "image_url": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=400",
-    "price": 32.50
+    "price": 32.5,
+    "original_price": 40.0,
+    "currency": "₹",
+    "platform_sources": [
+      "Tata 1mg",
+      "Apollo Pharmacy",
+      "Netmeds",
+      "PharmEasy",
+      "MedlinePlus"
+    ],
+    "verified_platforms": [
+      "Tata 1mg Verified",
+      "Apollo Certified",
+      "PharmEasy Stocked"
+    ],
+    "rating": 4.9,
+    "reviews_count": 1420
   },
   {
     "medicine_id": "MED-002",
@@ -134,38 +60,100 @@
     "dosage_form": "Tablet",
     "strength": "625 mg",
     "manufacturer": "GlaxoSmithKline (GSK)",
-    "uses": ["Bacterial chest infection", "Sinusitis & ENT infection", "Urinary tract infection"],
-    "dosage": "1 tablet twice daily after meals for 5 to 7 days.",
-    "age_restriction": "Above 18 years",
-    "side_effects": ["Diarrhea", "Mild stomach pain", "Nausea"],
-    "warnings": ["Complete full course as prescribed by doctor", "Take with meals"],
-    "contraindications": ["Penicillin allergy", "Jaundice history"],
-    "storage": "Store below 25°C away from moisture.",
+    "uses": [
+      "Bacterial sinus infection",
+      "Pneumonia & bronchitis",
+      "Urinary tract infections (UTI)",
+      "Skin & soft tissue infections"
+    ],
+    "dosage": "1 tablet twice daily strictly after meals for 5 to 7 days.",
+    "age_restriction": "Above 12 years",
+    "side_effects": [
+      "Diarrhea",
+      "Mild nausea",
+      "Vomiting",
+      "Oral thrush"
+    ],
+    "warnings": [
+      "Complete the full course prescribed by physician",
+      "Take with food to minimize GI discomfort"
+    ],
+    "contraindications": [
+      "Penicillin allergy",
+      "History of cholestatic jaundice / liver dysfunction"
+    ],
+    "storage": "Store below 25°C in original foil strip protected from moisture.",
     "prescription_required": true,
     "barcode": "8902221113344",
     "image_url": "https://images.unsplash.com/photo-1471864190281-a93a3070b6de?auto=format&fit=crop&q=80&w=400",
-    "price": 215.00
+    "price": 215.0,
+    "original_price": 245.0,
+    "currency": "₹",
+    "platform_sources": [
+      "Tata 1mg",
+      "Apollo Pharmacy",
+      "Netmeds",
+      "PharmEasy",
+      "Drugs.com"
+    ],
+    "verified_platforms": [
+      "Apollo Certified",
+      "1mg Verified",
+      "Drugs.com Reviewed"
+    ],
+    "rating": 4.8,
+    "reviews_count": 890
   },
   {
     "medicine_id": "MED-003",
     "brand_name": "Pan 40 Tablet",
     "generic_name": "Pantoprazole Sodium 40mg",
     "composition": "Pantoprazole (40 mg)",
-    "category": "Gastroenterology",
+    "category": "Digestive Health",
     "dosage_form": "Gastro-resistant Tablet",
     "strength": "40 mg",
     "manufacturer": "Alkem Laboratories",
-    "uses": ["Acidity & GERD", "Stomach ulcer healing", "Heartburn relief"],
-    "dosage": "1 tablet daily in the morning 30 minutes before breakfast.",
+    "uses": [
+      "Acid reflux / GERD",
+      "Stomach & duodenal ulcers",
+      "Zollinger-Ellison syndrome",
+      "Heartburn relief"
+    ],
+    "dosage": "1 tablet daily in the morning 30 minutes before breakfast with plain water.",
     "age_restriction": "Above 12 years",
-    "side_effects": ["Headache", "Flatulence", "Mild constipation"],
-    "warnings": ["Swallow tablet whole with water", "Do not crush or chew"],
-    "contraindications": ["Known allergy to Pantoprazole"],
-    "storage": "Store below 30°C.",
+    "side_effects": [
+      "Headache",
+      "Flatulence",
+      "Abdominal discomfort",
+      "Dry mouth"
+    ],
+    "warnings": [
+      "Swallow whole tablet without chewing or crushing",
+      "Long-term use may impair B12 absorption"
+    ],
+    "contraindications": [
+      "Known hypersensitivity to substituted benzimidazoles"
+    ],
+    "storage": "Store below 30°C protected from moisture.",
     "prescription_required": false,
     "barcode": "8903332224455",
     "image_url": "https://images.unsplash.com/photo-1577401239170-897942555fb3?auto=format&fit=crop&q=80&w=400",
-    "price": 145.00
+    "price": 145.0,
+    "original_price": 160.0,
+    "currency": "₹",
+    "platform_sources": [
+      "Tata 1mg",
+      "Apollo Pharmacy",
+      "Netmeds",
+      "PharmEasy",
+      "WebMD"
+    ],
+    "verified_platforms": [
+      "Tata 1mg Verified",
+      "Apollo Certified"
+    ],
+    "rating": 4.8,
+    "reviews_count": 1150
   },
   {
     "medicine_id": "MED-004",
@@ -176,104 +164,149 @@
     "dosage_form": "Tablet",
     "strength": "500 mg",
     "manufacturer": "Cipla Ltd",
-    "uses": ["Typhoid & respiratory infection", "Tonsillitis & throat infection", "Skin bacterial infections"],
-    "dosage": "1 tablet once daily 1 hour before or 2 hours after meals for 3 to 5 days.",
+    "uses": [
+      "Typhoid fever",
+      "Streptococcal pharyngitis / Tonsillitis",
+      "Community-acquired pneumonia",
+      "Chlamydia infections"
+    ],
+    "dosage": "1 tablet once daily 1 hour before or 2 hours after food for 3 to 5 days.",
     "age_restriction": "Above 18 years",
-    "side_effects": ["Diarrhea", "Vomiting", "Abdominal pain"],
-    "warnings": ["Do not take antacids within 2 hours of Azithromycin"],
-    "contraindications": ["Liver dysfunction", "Hypersensitivity to macrolides"],
-    "storage": "Store below 25°C.",
+    "side_effects": [
+      "Loose stools / Diarrhea",
+      "Abdominal cramps",
+      "Temporary hearing changes (rare)"
+    ],
+    "warnings": [
+      "Do not take antacids containing aluminum or magnesium within 2 hours"
+    ],
+    "contraindications": [
+      "Cholestatic jaundice history",
+      "Hypersensitivity to macrolides"
+    ],
+    "storage": "Store below 25°C in dry place.",
     "prescription_required": true,
     "barcode": "8904443335566",
     "image_url": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=400",
-    "price": 120.00
+    "price": 120.0,
+    "original_price": 135.0,
+    "currency": "₹",
+    "platform_sources": [
+      "Tata 1mg",
+      "Apollo Pharmacy",
+      "Netmeds",
+      "PharmEasy",
+      "MedlinePlus"
+    ],
+    "verified_platforms": [
+      "Cipla Direct",
+      "1mg Verified",
+      "Netmeds Stocked"
+    ],
+    "rating": 4.7,
+    "reviews_count": 940
   },
   {
     "medicine_id": "MED-005",
     "brand_name": "Glycomet SR 500 Tablet",
-    "generic_name": "Metformin Hydrochloride Sustained Release 500mg",
-    "composition": "Metformin (500 mg)",
+    "generic_name": "Metformin Hydrochloride SR 500mg",
+    "composition": "Metformin Hydrochloride (500 mg)",
     "category": "Diabetes Care",
     "dosage_form": "Sustained Release Tablet",
     "strength": "500 mg",
     "manufacturer": "USV Pvt Ltd",
-    "uses": ["Type 2 Diabetes mellitus", "Blood glucose control", "Insulin sensitivity enhancement"],
-    "dosage": "1 tablet twice daily with or immediately after meals.",
+    "uses": [
+      "Type 2 Diabetes mellitus",
+      "Glycemic control",
+      "Polycystic ovary syndrome (PCOS) insulin resistance"
+    ],
+    "dosage": "1 tablet twice daily immediately after morning & evening meals.",
     "age_restriction": "Above 18 years",
-    "side_effects": ["Nausea", "Metallic taste", "Loose stool"],
-    "warnings": ["Monitor blood sugar regularly", "Report symptoms of lactic acidosis"],
-    "contraindications": ["Severe renal impairment", "Metabolic acidosis"],
+    "side_effects": [
+      "Metallic taste",
+      "Mild nausea",
+      "Bloating",
+      "Vitamin B12 deficiency on prolonged use"
+    ],
+    "warnings": [
+      "Monitor blood sugar levels regularly",
+      "Discontinue temporarily prior to iodinated contrast imaging"
+    ],
+    "contraindications": [
+      "Severe renal impairment (eGFR < 30 mL/min)",
+      "Acute metabolic acidosis"
+    ],
     "storage": "Store below 30°C.",
     "prescription_required": true,
     "barcode": "8905554446677",
     "image_url": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=400",
-    "price": 42.00
+    "price": 42.0,
+    "original_price": 50.0,
+    "currency": "₹",
+    "platform_sources": [
+      "Tata 1mg",
+      "Apollo Pharmacy",
+      "Netmeds",
+      "PharmEasy",
+      "Drugs.com"
+    ],
+    "verified_platforms": [
+      "Tata 1mg Verified",
+      "PharmEasy Verified"
+    ],
+    "rating": 4.9,
+    "reviews_count": 1680
   },
   {
     "medicine_id": "MED-006",
     "brand_name": "Montair LC Tablet",
     "generic_name": "Montelukast 10mg + Levocetirizine 5mg",
-    "composition": "Montelukast (10 mg) + Levocetirizine (5 mg)",
+    "composition": "Montelukast (10 mg) + Levocetirizine Dihydrochloride (5 mg)",
     "category": "Allergy & Asthma",
     "dosage_form": "Tablet",
     "strength": "15 mg",
     "manufacturer": "Cipla Ltd",
-    "uses": ["Allergies & allergic rhinitis", "Sneezing & runny nose", "Asthma prevention"],
+    "uses": [
+      "Allergic rhinitis & sneezing",
+      "Asthma maintenance",
+      "Hay fever & runny nose"
+    ],
     "dosage": "1 tablet daily at bedtime.",
     "age_restriction": "Above 15 years",
-    "side_effects": ["Mild drowsiness", "Dry mouth", "Headache"],
-    "warnings": ["May cause mild dizziness; avoid driving after taking dose"],
-    "contraindications": ["Severe renal failure"],
-    "storage": "Store below 25°C in a dry place.",
+    "side_effects": [
+      "Mild drowsiness",
+      "Dry mouth",
+      "Headache"
+    ],
+    "warnings": [
+      "May cause mild sedation; avoid driving if drowsy"
+    ],
+    "contraindications": [
+      "Severe renal impairment (CrCl < 10 mL/min)"
+    ],
+    "storage": "Store below 25°C protected from light.",
     "prescription_required": true,
     "barcode": "8906665557788",
     "image_url": "https://images.unsplash.com/photo-1577401239170-897942555fb3?auto=format&fit=crop&q=80&w=400",
-    "price": 185.00
+    "price": 185.0,
+    "original_price": 210.0,
+    "currency": "₹",
+    "platform_sources": [
+      "Tata 1mg",
+      "Apollo Pharmacy",
+      "Netmeds",
+      "PharmEasy",
+      "WebMD"
+    ],
+    "verified_platforms": [
+      "Apollo Certified",
+      "1mg Verified"
+    ],
+    "rating": 4.8,
+    "reviews_count": 760
   },
   {
     "medicine_id": "MED-007",
-    "brand_name": "Storvas 20 Tablet",
-    "generic_name": "Atorvastatin Calcium 20mg",
-    "composition": "Atorvastatin (20 mg)",
-    "category": "Cardiology",
-    "dosage_form": "Film-coated Tablet",
-    "strength": "20 mg",
-    "manufacturer": "Sun Pharma Ltd",
-    "uses": ["High cholesterol reduction", "Prevention of heart attack & stroke", "Triglyceride lowering"],
-    "dosage": "1 tablet once daily in the evening at bedtime.",
-    "age_restriction": "Above 18 years",
-    "side_effects": ["Muscle pain", "Joint discomfort", "Mild indigestion"],
-    "warnings": ["Report unexplained muscle soreness or weakness immediately"],
-    "contraindications": ["Active liver disease", "Pregnancy & breastfeeding"],
-    "storage": "Store below 30°C.",
-    "prescription_required": true,
-    "barcode": "8907776668899",
-    "image_url": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=400",
-    "price": 210.00
-  },
-  {
-    "medicine_id": "MED-008",
-    "brand_name": "Cetzine 10 Tablet",
-    "generic_name": "Cetirizine Dihydrochloride 10mg",
-    "composition": "Cetirizine (10 mg)",
-    "category": "Allergy & Anti-histamine",
-    "dosage_form": "Tablet",
-    "strength": "10 mg",
-    "manufacturer": "Dr. Reddy's Laboratories",
-    "uses": ["Seasonal allergies & hives", "Skin itching & redness", "Watery eyes & sneezing"],
-    "dosage": "1 tablet daily after food at bedtime.",
-    "age_restriction": "Above 6 years",
-    "side_effects": ["Mild sedation", "Dry mouth", "Fatigue"],
-    "warnings": ["Avoid alcohol consumption while on Cetirizine"],
-    "contraindications": ["End-stage renal disease"],
-    "storage": "Store below 30°C.",
-    "prescription_required": false,
-    "barcode": "8908887779900",
-    "image_url": "https://images.unsplash.com/photo-1471864190281-a93a3070b6de?auto=format&fit=crop&q=80&w=400",
-    "price": 38.00
-  },
-  {
-    "medicine_id": "MED-009",
     "brand_name": "Telma 40 Tablet",
     "generic_name": "Telmisartan 40mg",
     "composition": "Telmisartan (40 mg)",
@@ -281,142 +314,743 @@
     "dosage_form": "Tablet",
     "strength": "40 mg",
     "manufacturer": "Glenmark Pharmaceuticals",
-    "uses": ["High blood pressure (Hypertension)", "Cardiovascular risk reduction", "Kidney protection in diabetes"],
-    "dosage": "1 tablet daily morning with water.",
+    "uses": [
+      "Essential hypertension (High BP)",
+      "Cardiovascular risk reduction in high-risk patients"
+    ],
+    "dosage": "1 tablet once daily in morning with or without food.",
     "age_restriction": "Above 18 years",
-    "side_effects": ["Dizziness", "Back pain", "Upper respiratory tract discomfort"],
-    "warnings": ["Regularly monitor blood pressure and potassium levels"],
-    "contraindications": ["Pregnancy (2nd and 3rd trimesters)", "Biliary obstructive disorders"],
-    "storage": "Store below 25°C.",
+    "side_effects": [
+      "Upper respiratory tract infection",
+      "Dizziness",
+      "Back pain"
+    ],
+    "warnings": [
+      "Monitor serum potassium levels periodically",
+      "Avoid during pregnancy"
+    ],
+    "contraindications": [
+      "Pregnancy & lactation",
+      "Biliary obstructive disorders"
+    ],
+    "storage": "Store below 30°C away from moisture.",
     "prescription_required": true,
-    "barcode": "8909998880011",
+    "barcode": "8907776668899",
     "image_url": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=400",
-    "price": 115.00
+    "price": 210.0,
+    "original_price": 235.0,
+    "currency": "₹",
+    "platform_sources": [
+      "Tata 1mg",
+      "Apollo Pharmacy",
+      "Netmeds",
+      "PharmEasy",
+      "Drugs.com"
+    ],
+    "verified_platforms": [
+      "Glenmark Authorized",
+      "1mg Verified"
+    ],
+    "rating": 4.9,
+    "reviews_count": 1320
   },
   {
-    "medicine_id": "MED-010",
-    "brand_name": "Combiflam Tablet",
-    "generic_name": "Ibuprofen 400mg + Paracetamol 325mg",
-    "composition": "Ibuprofen (400 mg) + Paracetamol (325 mg)",
-    "category": "Pain Relief",
+    "medicine_id": "MED-008",
+    "brand_name": "Thyronorm 50mcg Tablet",
+    "generic_name": "Thyroxine Sodium 50mcg",
+    "composition": "Levothyroxine Sodium (50 mcg)",
+    "category": "Endocrinology",
     "dosage_form": "Tablet",
-    "strength": "725 mg",
-    "manufacturer": "Sanofi India",
-    "uses": ["Toothache & muscle pain", "Period cramps & joint pain", "Post-operative swelling"],
-    "dosage": "1 tablet 2-3 times daily post meals.",
+    "strength": "50 mcg",
+    "manufacturer": "Abbott India Ltd",
+    "uses": [
+      "Hypothyroidism (Thyroid hormone replacement)",
+      "Goiter prevention"
+    ],
+    "dosage": "1 tablet daily early morning on an empty stomach with water 30 mins before breakfast.",
+    "age_restriction": "All ages under medical supervision",
+    "side_effects": [
+      "Palpitations (if overdosed)",
+      "Insomnia",
+      "Weight loss"
+    ],
+    "warnings": [
+      "Do not take calcium or iron supplements within 4 hours of Thyronorm"
+    ],
+    "contraindications": [
+      "Untreated subclinical or overt thyrotoxicosis",
+      "Acute myocardial infarction"
+    ],
+    "storage": "Store between 15°C and 25°C protected from light.",
+    "prescription_required": true,
+    "barcode": "8908887779900",
+    "image_url": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=400",
+    "price": 165.0,
+    "original_price": 180.0,
+    "currency": "₹",
+    "platform_sources": [
+      "Tata 1mg",
+      "Apollo Pharmacy",
+      "Netmeds",
+      "PharmEasy",
+      "MedlinePlus"
+    ],
+    "verified_platforms": [
+      "Abbott Direct",
+      "Apollo Certified",
+      "1mg Verified"
+    ],
+    "rating": 4.9,
+    "reviews_count": 2100
+  },
+  {
+    "medicine_id": "MED-009",
+    "brand_name": "Crocin 650 Advance",
+    "generic_name": "Paracetamol Optizorb 650mg",
+    "composition": "Paracetamol Optizorb Formula (650 mg)",
+    "category": "Pain Relief & Fever",
+    "dosage_form": "Fast Action Tablet",
+    "strength": "650 mg",
+    "manufacturer": "Haleon / GSK Consumer Healthcare",
+    "uses": [
+      "Rapid fever relief",
+      "Body pain & joint stiffness",
+      "Toothache & headache"
+    ],
+    "dosage": "1 tablet every 4 to 6 hours post meal as needed.",
     "age_restriction": "Above 12 years",
-    "side_effects": ["Heartburn", "Stomach upset", "Dizziness"],
-    "warnings": ["Do not take on an empty stomach to prevent gastric ulcers"],
-    "contraindications": ["Peptic ulcer disease", "Severe asthma"],
+    "side_effects": [
+      "Rare mild skin rash"
+    ],
+    "warnings": [
+      "Fast release formula - do not exceed 4 tablets in 24 hours"
+    ],
+    "contraindications": [
+      "Severe liver failure"
+    ],
     "storage": "Store below 30°C.",
     "prescription_required": false,
     "barcode": "8901112223344",
     "image_url": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=400",
-    "price": 45.00
+    "price": 38.0,
+    "original_price": 45.0,
+    "currency": "₹",
+    "platform_sources": [
+      "Tata 1mg",
+      "Apollo Pharmacy",
+      "Netmeds",
+      "PharmEasy"
+    ],
+    "verified_platforms": [
+      "Haleon Official",
+      "1mg Verified"
+    ],
+    "rating": 4.9,
+    "reviews_count": 1890
+  },
+  {
+    "medicine_id": "MED-010",
+    "brand_name": "Shelcal 500 Tablet",
+    "generic_name": "Calcium Carbonate 1250mg + Vitamin D3 250 IU",
+    "composition": "Elemental Calcium (500 mg) + Vitamin D3 (250 IU)",
+    "category": "Vitamins & Supplements",
+    "dosage_form": "Tablet",
+    "strength": "500 mg / 250 IU",
+    "manufacturer": "Torrent Pharmaceuticals",
+    "uses": [
+      "Osteoporosis prevention",
+      "Calcium deficiency supplement",
+      "Bone density & joint support",
+      "Pregnancy calcium care"
+    ],
+    "dosage": "1 tablet daily after main meal.",
+    "age_restriction": "Above 12 years",
+    "side_effects": [
+      "Mild constipation",
+      "Flatulence"
+    ],
+    "warnings": [
+      "Maintain adequate fluid intake while taking calcium supplements"
+    ],
+    "contraindications": [
+      "Hypercalcemia",
+      "Hypercalciuria",
+      "Severe kidney stones"
+    ],
+    "storage": "Store in a dry place below 30°C.",
+    "prescription_required": false,
+    "barcode": "8909998881122",
+    "image_url": "https://images.unsplash.com/photo-1577401239170-897942555fb3?auto=format&fit=crop&q=80&w=400",
+    "price": 130.0,
+    "original_price": 148.0,
+    "currency": "₹",
+    "platform_sources": [
+      "Tata 1mg",
+      "Apollo Pharmacy",
+      "Netmeds",
+      "PharmEasy",
+      "MedlinePlus"
+    ],
+    "verified_platforms": [
+      "Torrent Direct",
+      "Apollo Certified",
+      "1mg Verified"
+    ],
+    "rating": 4.8,
+    "reviews_count": 1540
   },
   {
     "medicine_id": "MED-011",
-    "brand_name": "Limcee 500 Chewable Tablet",
-    "generic_name": "Ascorbic Acid (Vitamin C) 500mg",
-    "composition": "Vitamin C (500 mg) + Sodium Ascorbate",
-    "category": "Vitamins & Minerals",
-    "dosage_form": "Chewable Tablet",
-    "strength": "500 mg",
-    "manufacturer": "Abbott Healthcare",
-    "uses": ["Immunity enhancement", "Skin collagen support", "Cold & flu recovery"],
-    "dosage": "1 chewable tablet daily after breakfast.",
-    "age_restriction": "Above 4 years",
-    "side_effects": ["Mild acidity if chewed without food"],
-    "warnings": ["Store away from heat and moisture"],
-    "contraindications": ["Hyperoxaluria"],
-    "storage": "Store below 25°C.",
+    "brand_name": "Evion 400 Capsule",
+    "generic_name": "Tocopheryl Acetate 400mg (Vitamin E)",
+    "composition": "Vitamin E / Tocopheryl Acetate (400 mg)",
+    "category": "Vitamins & Supplements",
+    "dosage_form": "Softgel Capsule",
+    "strength": "400 mg",
+    "manufacturer": "Procter & Gamble (P&G)",
+    "uses": [
+      "Vitamin E deficiency",
+      "Cellular antioxidant protection",
+      "Skin hydration & hair health support"
+    ],
+    "dosage": "1 softgel daily after food.",
+    "age_restriction": "Above 12 years",
+    "side_effects": [
+      "Mild nausea if taken on empty stomach"
+    ],
+    "warnings": [
+      "Do not take high doses for extended periods without medical consultation"
+    ],
+    "contraindications": [
+      "Hypersensitivity to Vitamin E"
+    ],
+    "storage": "Store below 25°C protected from heat & direct sunlight.",
     "prescription_required": false,
-    "barcode": "8902223334455",
+    "barcode": "8908889992233",
     "image_url": "https://images.unsplash.com/photo-1577401239170-897942555fb3?auto=format&fit=crop&q=80&w=400",
-    "price": 25.00
+    "price": 35.5,
+    "original_price": 42.0,
+    "currency": "₹",
+    "platform_sources": [
+      "Tata 1mg",
+      "Apollo Pharmacy",
+      "Netmeds",
+      "PharmEasy"
+    ],
+    "verified_platforms": [
+      "P&G Health Direct",
+      "1mg Verified"
+    ],
+    "rating": 4.9,
+    "reviews_count": 2450
   },
   {
     "medicine_id": "MED-012",
-    "brand_name": "Calcirol 60K Softgel Capsule",
-    "generic_name": "Cholecalciferol (Vitamin D3) 60,000 IU",
-    "composition": "Vitamin D3 (60000 IU)",
-    "category": "Vitamins & Minerals",
-    "dosage_form": "Softgel Capsule",
-    "strength": "60000 IU",
-    "manufacturer": "Cadila Pharmaceuticals",
-    "uses": ["Vitamin D deficiency treatment", "Bone strength & calcium absorption", "Joint pain reduction"],
-    "dosage": "1 softgel capsule weekly with milk for 8 weeks or as advised.",
-    "age_restriction": "Above 18 years",
-    "side_effects": ["Hypercalcemia (only in severe overdose)"],
-    "warnings": ["Take with a fat-containing meal or milk for optimal absorption"],
-    "contraindications": ["Hypercalcemia", "Vitamin D toxicity"],
-    "storage": "Store below 25°C protected from light.",
+    "brand_name": "Becosules Performance Capsule",
+    "generic_name": "B-Complex + Vitamin C + Zinc",
+    "composition": "Thiamine (10mg) + Riboflavin (10mg) + Niacinamide (100mg) + Pyridoxine (3mg) + Vit C (150mg) + Zinc (15mg)",
+    "category": "Vitamins & Supplements",
+    "dosage_form": "Capsule",
+    "strength": "Multivitamin",
+    "manufacturer": "Pfizer Ltd",
+    "uses": [
+      "Mouth ulcer healing",
+      "Energy metabolism support",
+      "B-Complex deficiency recovery"
+    ],
+    "dosage": "1 capsule daily after lunch.",
+    "age_restriction": "Above 12 years",
+    "side_effects": [
+      "Bright yellow urine color (Harmless riboflavin excretion)"
+    ],
+    "warnings": [
+      "Take after meal to maximize absorption"
+    ],
+    "contraindications": [
+      "Hypersensitivity to any component"
+    ],
+    "storage": "Store in a cool dry place below 25°C.",
     "prescription_required": false,
-    "barcode": "8903334445566",
-    "image_url": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=400",
-    "price": 160.00
+    "barcode": "8907771113355",
+    "image_url": "https://images.unsplash.com/photo-1577401239170-897942555fb3?auto=format&fit=crop&q=80&w=400",
+    "price": 52.0,
+    "original_price": 60.0,
+    "currency": "₹",
+    "platform_sources": [
+      "Tata 1mg",
+      "Apollo Pharmacy",
+      "Netmeds",
+      "PharmEasy"
+    ],
+    "verified_platforms": [
+      "Pfizer Direct",
+      "1mg Verified"
+    ],
+    "rating": 4.8,
+    "reviews_count": 1780
   },
   {
     "medicine_id": "MED-013",
-    "brand_name": "Metolar XR 25 Tablet",
-    "generic_name": "Metoprolol Succinate Extended Release 25mg",
-    "composition": "Metoprolol Succinate (25 mg)",
-    "category": "Cardiology",
-    "dosage_form": "Extended Release Tablet",
-    "strength": "25 mg",
-    "manufacturer": "Cipla Ltd",
-    "uses": ["Hypertension management", "Angina chest pain prevention", "Heart failure therapy"],
-    "dosage": "1 tablet daily in the morning.",
-    "age_restriction": "Above 18 years",
-    "side_effects": ["Slow heart rate", "Cold extremities", "Fatigue"],
-    "warnings": ["Do not stop taking abruptly without consulting doctor"],
-    "contraindications": ["Severe bradycardia", "Second or third-degree AV block"],
+    "brand_name": "Electral Powder ORS",
+    "generic_name": "Oral Rehydration Salts (WHO Formula)",
+    "composition": "Sodium Chloride (2.6g) + Potassium Chloride (1.5g) + Sodium Citrate (2.9g) + Anhydrous Dextrose (13.5g)",
+    "category": "First Aid & OTC",
+    "dosage_form": "Sachet Powder",
+    "strength": "21.8 g sachet",
+    "manufacturer": "FDC Ltd",
+    "uses": [
+      "Dehydration recovery",
+      "Diarrhea & vomiting rehydration",
+      "Heat stroke electrolyte balance"
+    ],
+    "dosage": "Dissolve 1 sachet in 1 Litre of clean drinking water. Sip periodically over 24 hours.",
+    "age_restriction": "All ages",
+    "side_effects": [
+      "None when reconstituted in correct water ratio"
+    ],
+    "warnings": [
+      "Use reconstituted solution within 24 hours"
+    ],
+    "contraindications": [
+      "Severe renal impairment",
+      "Intestinal obstruction"
+    ],
+    "storage": "Store below 30°C in dry sachet.",
+    "prescription_required": false,
+    "barcode": "8906662224466",
+    "image_url": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=400",
+    "price": 22.0,
+    "original_price": 25.0,
+    "currency": "₹",
+    "platform_sources": [
+      "Tata 1mg",
+      "Apollo Pharmacy",
+      "Netmeds",
+      "PharmEasy",
+      "WHO Approved"
+    ],
+    "verified_platforms": [
+      "WHO Formula Standard",
+      "Apollo Certified",
+      "1mg Verified"
+    ],
+    "rating": 5.0,
+    "reviews_count": 3100
+  },
+  {
+    "medicine_id": "MED-021",
+    "brand_name": "Himalaya Liv 52 Syrup",
+    "generic_name": "Ayurvedic Hepatoprotective Formula",
+    "composition": "Caper Bush (Himsra 65mg) + Wild Chicory (Kasani 65mg) + Mandur Bhasma (33mg) + Kakamachi",
+    "category": "Ayurveda",
+    "dosage_form": "Herbal Syrup",
+    "strength": "200 ml bottle",
+    "manufacturer": "Himalaya Wellness Company",
+    "uses": [
+      "Loss of appetite recovery",
+      "Alcohol-induced liver protection",
+      "Sluggish liver function support",
+      "Jaundice recovery"
+    ],
+    "dosage": "1 to 2 teaspoonfuls (5-10 ml) twice daily before meals.",
+    "age_restriction": "Above 3 years",
+    "side_effects": [
+      "None reported under recommended dosage"
+    ],
+    "warnings": [
+      "Shake well before use"
+    ],
+    "contraindications": [
+      "Hypersensitivity to any herbal ingredient"
+    ],
+    "storage": "Store in a cool dry place away from direct sunlight.",
+    "prescription_required": false,
+    "barcode": "8901116667788",
+    "image_url": "https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&q=80&w=400",
+    "price": 170.0,
+    "original_price": 195.0,
+    "currency": "₹",
+    "platform_sources": [
+      "Tata 1mg",
+      "Apollo Pharmacy",
+      "Netmeds",
+      "PharmEasy",
+      "Himalaya Direct"
+    ],
+    "verified_platforms": [
+      "AYUSH Certified",
+      "Himalaya Official",
+      "1mg Verified"
+    ],
+    "rating": 4.9,
+    "reviews_count": 3420
+  },
+  {
+    "medicine_id": "MED-022",
+    "brand_name": "Dabur Chyawanprash",
+    "generic_name": "Ayurvedic Immunity & Vitality Rasayana",
+    "composition": "Amla (Emblica officinalis) + Ashwagandha + Guduchi + Shatavari + 40+ Medicinal Herbs",
+    "category": "Ayurveda",
+    "dosage_form": "Herbal Paste / Paste",
+    "strength": "1 kg jar",
+    "manufacturer": "Dabur India Ltd",
+    "uses": [
+      "Daily immunity booster",
+      "Cough & cold prevention",
+      "Stamina & energy support"
+    ],
+    "dosage": "1 teaspoonful (12g) twice daily, preferably followed by warm milk.",
+    "age_restriction": "Above 3 years",
+    "side_effects": [
+      "None"
+    ],
+    "warnings": [
+      "Diabetic patients should opt for Dabur Sugar-Free Chyawanprakash"
+    ],
+    "contraindications": [
+      "Uncontrolled hyper-glycemia (for regular sweetened formula)"
+    ],
+    "storage": "Store in a cool dry place. Keep container closed.",
+    "prescription_required": false,
+    "barcode": "8901234111222",
+    "image_url": "https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&q=80&w=400",
+    "price": 385.0,
+    "original_price": 435.0,
+    "currency": "₹",
+    "platform_sources": [
+      "Tata 1mg",
+      "Apollo Pharmacy",
+      "Netmeds",
+      "PharmEasy",
+      "Dabur Direct"
+    ],
+    "verified_platforms": [
+      "AYUSH Premium Certified",
+      "Dabur Authorized"
+    ],
+    "rating": 4.9,
+    "reviews_count": 4890
+  },
+  {
+    "medicine_id": "MED-023",
+    "brand_name": "Zandu Balm",
+    "generic_name": "Ayurvedic Pain Relief Balm",
+    "composition": "Mentha extract (16%) + Gaultheria oil (10%) + Eucalyptus oil (1%)",
+    "category": "Ayurveda",
+    "dosage_form": "Balm Ointment",
+    "strength": "50 g jar",
+    "manufacturer": "Emami Ltd / Zandu Healthcare",
+    "uses": [
+      "Rapid headache relief",
+      "Body ache & joint pain",
+      "Cold congestion vapor relief"
+    ],
+    "dosage": "Gently massage a thin layer on forehead or affected area 2-3 times daily.",
+    "age_restriction": "Above 6 years",
+    "side_effects": [
+      "Mild cooling sensation on skin"
+    ],
+    "warnings": [
+      "For external use only. Avoid contact with eyes"
+    ],
+    "contraindications": [
+      "Broken skin or severe open wounds"
+    ],
     "storage": "Store below 30°C.",
-    "prescription_required": true,
-    "barcode": "8904445556677",
-    "image_url": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=400",
-    "price": 78.00
+    "prescription_required": false,
+    "barcode": "8902223334455",
+    "image_url": "https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&q=80&w=400",
+    "price": 125.0,
+    "original_price": 140.0,
+    "currency": "₹",
+    "platform_sources": [
+      "Tata 1mg",
+      "Apollo Pharmacy",
+      "Netmeds",
+      "PharmEasy"
+    ],
+    "verified_platforms": [
+      "AYUSH Certified",
+      "Emami Authorized"
+    ],
+    "rating": 4.8,
+    "reviews_count": 2150
   },
   {
-    "medicine_id": "MED-014",
-    "brand_name": "Omez 20 Capsule",
-    "generic_name": "Omeprazole 20mg",
-    "composition": "Omeprazole (20 mg)",
-    "category": "Gastroenterology",
-    "dosage_form": "Capsule",
-    "strength": "20 mg",
-    "manufacturer": "Dr. Reddy's Laboratories",
-    "uses": ["Gastritis & acid reflux", "Peptic ulcer prevention", "Zollinger-Ellison syndrome"],
-    "dosage": "1 capsule daily morning before food.",
-    "age_restriction": "Above 12 years",
-    "side_effects": ["Headache", "Abdominal pain", "Nausea"],
-    "warnings": ["Take 30 minutes before meal"],
-    "contraindications": ["Hypersensitivity to Omeprazole"],
-    "storage": "Store below 25°C.",
+    "medicine_id": "MED-026",
+    "brand_name": "Dettol Antiseptic Liquid",
+    "generic_name": "Chloroxylenol Antiseptic Disinfectant",
+    "composition": "Chloroxylenol (4.8% w/v) + Terpineol + Absolute Alcohol",
+    "category": "Personal Care",
+    "dosage_form": "Antiseptic Liquid",
+    "strength": "500 ml bottle",
+    "manufacturer": "Reckitt Benckiser",
+    "uses": [
+      "First aid cut & wound disinfection",
+      "Personal hygiene & bathing dilution",
+      "Laundry disinfection"
+    ],
+    "dosage": "Dilute 1 capful (15ml) in 250ml water for wound washing or 1 capful in bath water.",
+    "age_restriction": "All ages",
+    "side_effects": [
+      "Mild stinging if applied undiluted on fresh open cut"
+    ],
+    "warnings": [
+      "Do not swallow. Dilute before application"
+    ],
+    "contraindications": [
+      "Hypersensitivity to Chloroxylenol"
+    ],
+    "storage": "Store away from heat and open flame below 30°C.",
     "prescription_required": false,
-    "barcode": "8905556667788",
-    "image_url": "https://images.unsplash.com/photo-1577401239170-897942555fb3?auto=format&fit=crop&q=80&w=400",
-    "price": 65.00
+    "barcode": "8901114445566",
+    "image_url": "https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&q=80&w=400",
+    "price": 210.0,
+    "original_price": 235.0,
+    "currency": "₹",
+    "platform_sources": [
+      "Tata 1mg",
+      "Apollo Pharmacy",
+      "Netmeds",
+      "PharmEasy",
+      "Reckitt Direct"
+    ],
+    "verified_platforms": [
+      "Reckitt Verified",
+      "Apollo Certified",
+      "1mg Verified"
+    ],
+    "rating": 4.9,
+    "reviews_count": 5120
   },
   {
-    "medicine_id": "MED-015",
-    "brand_name": "Becosules Z Capsule",
-    "generic_name": "B-Complex Fortified with Vitamin C and Zinc",
-    "composition": "Vitamin B-Complex + Vitamin C (150 mg) + Zinc (41.4 mg)",
-    "category": "Vitamins & Minerals",
-    "dosage_form": "Capsule",
-    "strength": "Standard Fortified",
-    "manufacturer": "Pfizer Ltd",
-    "uses": ["Mouth ulcers healing", "Tissue repair & immunity", "Nutritional deficiency correction"],
-    "dosage": "1 capsule daily post meals.",
-    "age_restriction": "Above 12 years",
-    "side_effects": ["Harmless bright yellow urine"],
-    "warnings": ["Store in a cool dry place"],
-    "contraindications": ["None known"],
-    "storage": "Store below 25°C.",
+    "medicine_id": "MED-027",
+    "brand_name": "Boroline Antiseptic Cream",
+    "generic_name": "Boric Acid + Zinc Oxide + Lanolin Cream",
+    "composition": "Boric Acid (1%) + Zinc Oxide (3%) + Anhydrous Lanolin",
+    "category": "Personal Care",
+    "dosage_form": "Antiseptic Ointment",
+    "strength": "40 g tube",
+    "manufacturer": "GD Pharmaceuticals",
+    "uses": [
+      "Chapped lips & dry skin repair",
+      "Minor cut healing",
+      "Cracked heels & elbow roughness"
+    ],
+    "dosage": "Clean area thoroughly and apply generously at bedtime.",
+    "age_restriction": "All ages",
+    "side_effects": [
+      "None"
+    ],
+    "warnings": [
+      "For topical external application only"
+    ],
+    "contraindications": [
+      "Hypersensitivity to lanolin"
+    ],
+    "storage": "Store in a cool dry place.",
     "prescription_required": false,
-    "barcode": "8906667778899",
-    "image_url": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=400",
-    "price": 55.00
+    "barcode": "8902225556677",
+    "image_url": "https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&q=80&w=400",
+    "price": 45.0,
+    "original_price": 50.0,
+    "currency": "₹",
+    "platform_sources": [
+      "Tata 1mg",
+      "Apollo Pharmacy",
+      "Netmeds",
+      "PharmEasy"
+    ],
+    "verified_platforms": [
+      "GD Pharma Authorized",
+      "1mg Verified"
+    ],
+    "rating": 4.9,
+    "reviews_count": 3890
+  },
+  {
+    "medicine_id": "MED-028",
+    "brand_name": "Himalaya Neem Face Wash",
+    "generic_name": "Purifying Herbal Face Wash",
+    "composition": "Neem Extract (Azadirachta Indica) + Turmeric (Curcuma Longa)",
+    "category": "Personal Care",
+    "dosage_form": "Facial Cleanser Gel",
+    "strength": "150 ml tube",
+    "manufacturer": "Himalaya Wellness Company",
+    "uses": [
+      "Acne & pimple prevention",
+      "Excess oil control",
+      "Skin impurity cleansing"
+    ],
+    "dosage": "Moisten face, massage small quantity in circular motion, rinse thoroughly twice daily.",
+    "age_restriction": "Above 10 years",
+    "side_effects": [
+      "Mild dryness if used excessively on very dry skin"
+    ],
+    "warnings": [
+      "Avoid contact with eyes; rinse immediately with water if contact occurs"
+    ],
+    "contraindications": [
+      "None"
+    ],
+    "storage": "Store in a cool dry place.",
+    "prescription_required": false,
+    "barcode": "8903336667788",
+    "image_url": "https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&q=80&w=400",
+    "price": 180.0,
+    "original_price": 200.0,
+    "currency": "₹",
+    "platform_sources": [
+      "Tata 1mg",
+      "Apollo Pharmacy",
+      "Netmeds",
+      "PharmEasy",
+      "Himalaya Direct"
+    ],
+    "verified_platforms": [
+      "Dermatologically Tested",
+      "Himalaya Official"
+    ],
+    "rating": 4.8,
+    "reviews_count": 4150
+  },
+  {
+    "medicine_id": "MED-031",
+    "brand_name": "Himalaya Baby Powder",
+    "generic_name": "Herbal Talc-Free Baby Powder",
+    "composition": "Yashada Bhasma (Natural Zinc) + Olive Oil + Almond Oil + Khus Grass",
+    "category": "Baby Care",
+    "dosage_form": "Dusting Powder",
+    "strength": "200 g bottle",
+    "manufacturer": "Himalaya Wellness Company",
+    "uses": [
+      "Diaper rash prevention",
+      "Excess moisture absorption",
+      "Baby skin chafing protection"
+    ],
+    "dosage": "Sprinkle powder onto palm away from baby's face and apply gently after bath & diaper change.",
+    "age_restriction": "Newborn & toddlers",
+    "side_effects": [
+      "None"
+    ],
+    "warnings": [
+      "Keep powder away from baby's nose and mouth to prevent inhalation"
+    ],
+    "contraindications": [
+      "Hypersensitivity to herbal components"
+    ],
+    "storage": "Store in a cool dry place.",
+    "prescription_required": false,
+    "barcode": "8901117778899",
+    "image_url": "https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format&fit=crop&q=80&w=400",
+    "price": 160.0,
+    "original_price": 185.0,
+    "currency": "₹",
+    "platform_sources": [
+      "Tata 1mg",
+      "Apollo Pharmacy",
+      "Netmeds",
+      "PharmEasy",
+      "FirstCry"
+    ],
+    "verified_platforms": [
+      "Pediatrician Approved",
+      "Himalaya Official",
+      "1mg Verified"
+    ],
+    "rating": 4.9,
+    "reviews_count": 2890
+  },
+  {
+    "medicine_id": "MED-032",
+    "brand_name": "Johnson's Baby Shampoo",
+    "generic_name": "No More Tears Baby Hair Cleanser",
+    "composition": "Cocamidopropyl Betaine + Sodium Lauroamphoacetate + Polyquaternium-10 (pH Balanced)",
+    "category": "Baby Care",
+    "dosage_form": "Baby Shampoo Liquid",
+    "strength": "500 ml pump bottle",
+    "manufacturer": "Johnson & Johnson",
+    "uses": [
+      "Gentle scalp cleansing",
+      "Soft hair maintenance",
+      "Tear-free hair wash"
+    ],
+    "dosage": "Wet baby's hair with warm water, apply gently, lather and rinse thoroughly.",
+    "age_restriction": "Newborns & Infants",
+    "side_effects": [
+      "Hypoallergenic - non irritating"
+    ],
+    "warnings": [
+      "For external use only"
+    ],
+    "contraindications": [
+      "None"
+    ],
+    "storage": "Store at room temperature.",
+    "prescription_required": false,
+    "barcode": "8902227778899",
+    "image_url": "https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format&fit=crop&q=80&w=400",
+    "price": 375.0,
+    "original_price": 425.0,
+    "currency": "₹",
+    "platform_sources": [
+      "Tata 1mg",
+      "Apollo Pharmacy",
+      "Netmeds",
+      "PharmEasy",
+      "J&J Direct"
+    ],
+    "verified_platforms": [
+      "No More Tears Certified",
+      "J&J Authorized"
+    ],
+    "rating": 4.9,
+    "reviews_count": 6240
+  },
+  {
+    "medicine_id": "MED-033",
+    "brand_name": "Woodward's Gripe Water",
+    "generic_name": "Dill Seed Oil + Sarjikakshara Gripe Solution",
+    "composition": "Dill Seed Oil (Anethum Graveolens 0.005ml) + Sarjikakshara (Sodium Bicarbonate 0.05g)",
+    "category": "Baby Care",
+    "dosage_form": "Liquid Drops / Syrup",
+    "strength": "130 ml bottle",
+    "manufacturer": "TTK Healthcare Ltd",
+    "uses": [
+      "Infant gas & colic relief",
+      "Teething pain gastric discomfort",
+      "Indigestion in infants"
+    ],
+    "dosage": "1 to 6 months: 5ml; 6 months to 1 year: 10ml during or after feed.",
+    "age_restriction": "From 1 month onwards",
+    "side_effects": [
+      "None"
+    ],
+    "warnings": [
+      "Alcohol free & Sugar free formula. Do not exceed recommended dosage"
+    ],
+    "contraindications": [
+      "Renal dysfunction in infants"
+    ],
+    "storage": "Store below 25°C. Use within 4 weeks after opening.",
+    "prescription_required": false,
+    "barcode": "8903337778899",
+    "image_url": "https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format&fit=crop&q=80&w=400",
+    "price": 65.0,
+    "original_price": 75.0,
+    "currency": "₹",
+    "platform_sources": [
+      "Tata 1mg",
+      "Apollo Pharmacy",
+      "Netmeds",
+      "PharmEasy",
+      "TTK Direct"
+    ],
+    "verified_platforms": [
+      "Alcohol-Free Certified",
+      "1mg Verified"
+    ],
+    "rating": 4.9,
+    "reviews_count": 5120
   }
 ]

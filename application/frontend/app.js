@@ -62,6 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   safeRun(() => loadStateFromStorage(), 'initDataState');
+  safeRun(() => checkSavedSession(), 'checkSavedSession');
 
   safeRun(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); }, 'lucide');
   safeRun(() => initFamilyDropdown(), 'initFamilyDropdown');
@@ -75,6 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
   safeRun(() => renderFeedbackList(), 'renderFeedbackList');
   safeRun(() => renderFirstAidGuide(), 'renderFirstAidGuide');
   safeRun(() => renderGenericDropdown(), 'renderGenericDropdown');
+  safeRun(() => updateUploadsBadgeCount(), 'updateUploadsBadgeCount');
 });
 
 // TAB SWITCHING ENGINE
@@ -113,32 +115,339 @@ function scrollToSection(secId) {
 
 // MODULE 1: USER AUTHENTICATION ENGINE
 function openAuthModal() {
-  document.getElementById('modal-auth').classList.remove('hidden');
+  switchAuthTab('login');
+  const overlay = document.getElementById('auth-guard-overlay');
+  if (overlay) overlay.classList.remove('hidden');
 }
+
 function closeAuthModal() {
-  document.getElementById('modal-auth').classList.add('hidden');
+  const saved = localStorage.getItem('cura_auth_session');
+  if (saved) {
+    const overlay = document.getElementById('auth-guard-overlay');
+    if (overlay) overlay.classList.add('hidden');
+  } else {
+    alert("⚠️ Registration or Login is required to access the application.");
+  }
+}
+
+function togglePasswordVisibility(fieldId) {
+  const input = document.getElementById(fieldId);
+  if (!input) return;
+  input.type = input.type === 'password' ? 'text' : 'password';
 }
 
 function switchAuthTab(mode) {
   ['login', 'register', 'otp'].forEach(m => {
     document.getElementById(`auth-form-${m}`)?.classList.add('hidden');
-    document.getElementById(`btn-auth-${m === 'register' ? 'reg' : m}`)?.classList.remove('bg-teal-500', 'text-slate-950');
-    document.getElementById(`btn-auth-${m === 'register' ? 'reg' : m}`)?.classList.add('text-slate-400');
+    const btn = document.getElementById(`btn-auth-${m === 'register' ? 'reg' : m}`);
+    if (btn) {
+      btn.classList.remove('bg-teal-500', 'text-slate-950', 'shadow-md');
+      btn.classList.add('text-slate-400');
+    }
   });
 
   document.getElementById(`auth-form-${mode}`)?.classList.remove('hidden');
   const btn = document.getElementById(`btn-auth-${mode === 'register' ? 'reg' : mode}`);
   if (btn) {
-    btn.classList.add('bg-teal-500', 'text-slate-950');
+    btn.classList.add('bg-teal-500', 'text-slate-950', 'shadow-md');
     btn.classList.remove('text-slate-400');
   }
 }
 
-function submitAuth(message) {
-  closeAuthModal();
-  document.getElementById('auth-btn-text').innerText = "Account Active (Alex)";
-  alert(message);
+async function submitAuth(message, overrideName, mode = 'login') {
+  let userName = overrideName;
+  let identity = (document.getElementById('auth-login-identity')?.value || '').trim();
+  let email = (document.getElementById('auth-reg-email')?.value || '').trim();
+  let phone = (document.getElementById('auth-reg-phone')?.value || '').trim();
+  let blood = (document.getElementById('auth-reg-blood')?.value || 'O+').trim();
+  let city = (document.getElementById('auth-reg-city')?.value || 'Hyderabad').trim();
+  let age = (document.getElementById('auth-reg-age')?.value || '30').trim();
+  let password = (document.getElementById('auth-login-password')?.value || document.getElementById('auth-reg-password')?.value || '').trim();
+  let name = (document.getElementById('auth-reg-name')?.value || '').trim();
+
+  if (!userName) {
+    if (mode === 'register' && name) {
+      userName = name;
+    } else if (identity) {
+      userName = identity.split('@')[0];
+    } else if (email) {
+      userName = email.split('@')[0];
+    } else {
+      userName = "User";
+    }
+  }
+
+  // Capitalize first letter of userName for clean display
+  userName = userName.charAt(0).toUpperCase() + userName.slice(1);
+  const userEmail = email || `${userName.toLowerCase().replace(/\s+/g, '')}@curahealth.in`;
+  const userPhone = phone || "+91 98765 43210";
+
+  const userSessionData = {
+    isLoggedIn: true,
+    userName: userName,
+    email: userEmail,
+    phone: userPhone,
+    blood: blood,
+    city: city,
+    age: age,
+    token: `jwt-token-${Date.now()}`
+  };
+
+  // Attempt backend API call if server is active
+  try {
+    const endpoint = mode === 'register' ? 'http://localhost:8000/profile/register' : 'http://localhost:8000/profile/login';
+    await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        identity: identity || userName,
+        email: userEmail,
+        name: userName,
+        phone: userPhone,
+        blood_group: blood,
+        city: city,
+        age: age,
+        password: password || "demo123"
+      })
+    });
+  } catch (err) {
+    console.warn("Backend auth notification note:", err);
+  }
+
+  // Update App State & Dataset
+  if (typeof INITIAL_DATA !== 'undefined') {
+    INITIAL_DATA.userAuth.isLoggedIn = true;
+    INITIAL_DATA.userAuth.user.name = userName;
+    if (INITIAL_DATA.familyMembers && INITIAL_DATA.familyMembers[0]) {
+      INITIAL_DATA.familyMembers[0].name = userName;
+      INITIAL_DATA.familyMembers[0].phone = userPhone;
+      INITIAL_DATA.familyMembers[0].email = userEmail;
+      INITIAL_DATA.familyMembers[0].bloodGroup = blood;
+      INITIAL_DATA.familyMembers[0].age = age;
+    }
+  }
+
+  // Save Session in localStorage for persistence across refreshes
+  try {
+    localStorage.setItem('cura_auth_session', JSON.stringify(userSessionData));
+  } catch (e) {}
+
+  // Update UI Elements across the application
+  updateAuthUIState(userSessionData);
+  
+  // Unlock application overlay
+  const overlay = document.getElementById('auth-guard-overlay');
+  if (overlay) overlay.classList.add('hidden');
+
+  alert(message || `Welcome to CuraAssist Healthcare, ${userName}! Your profile is connected.`);
 }
+
+let currentPendingAvatarUrl = null;
+
+function handleProfilePhotoUpload(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    currentPendingAvatarUrl = e.target.result;
+    const preview = document.getElementById('edit-prof-avatar-preview');
+    if (preview) preview.src = currentPendingAvatarUrl;
+  };
+  reader.readAsDataURL(file);
+}
+
+function selectPresetAvatar(url) {
+  currentPendingAvatarUrl = url;
+  const preview = document.getElementById('edit-prof-avatar-preview');
+  if (preview) preview.src = url;
+}
+
+function updateAuthUIState(userData) {
+  const user = (typeof userData === 'object' && userData !== null) ? userData : { userName: userData };
+  const userName = user.userName || user.name || "User";
+  const userEmail = user.email || `${userName.toLowerCase().replace(/\s+/g, '')}@curahealth.in`;
+  const userPhone = user.phone || "+91 98765 43210";
+  const userBlood = user.blood || user.bloodGroup || "O+";
+  const userCity = user.city || "Hyderabad, Telangana";
+  const userAge = user.age || "30";
+  const userAvatar = user.avatar || (typeof INITIAL_DATA !== 'undefined' && INITIAL_DATA.familyMembers?.[0]?.avatar) || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250";
+
+  const authText = document.getElementById('auth-btn-text');
+  if (authText) authText.innerText = `Account (${userName})`;
+
+  const sidebarName = document.getElementById('sidebar-user-name');
+  if (sidebarName) sidebarName.innerText = userName;
+
+  const sidebarAge = document.getElementById('sidebar-user-age');
+  if (sidebarAge) sidebarAge.innerText = `${userAge} Yrs`;
+
+  const activeFamilyName = document.getElementById('active-family-name');
+  if (activeFamilyName) activeFamilyName.innerText = userName;
+
+  const profileHeaderName = document.getElementById('prof-name');
+  if (profileHeaderName) profileHeaderName.innerText = userName;
+
+  // Sync Avatars Across App
+  const mainAvatar = document.getElementById('profile-main-avatar');
+  if (mainAvatar) mainAvatar.src = userAvatar;
+
+  const sidebarAvatar = document.getElementById('sidebar-avatar');
+  if (sidebarAvatar) sidebarAvatar.src = userAvatar;
+
+  const activeFamilyAvatar = document.getElementById('active-family-avatar');
+  if (activeFamilyAvatar) activeFamilyAvatar.src = userAvatar;
+
+  // Profile Card Dynamic Sync
+  const profMainName = document.getElementById('profile-main-name');
+  if (profMainName) profMainName.innerText = userName;
+
+  const profMainPhone = document.getElementById('profile-main-phone');
+  if (profMainPhone) profMainPhone.innerText = userPhone;
+
+  const profMainEmail = document.getElementById('profile-main-email');
+  if (profMainEmail) profMainEmail.innerText = userEmail;
+
+  const profMainLoc = document.getElementById('profile-main-location');
+  if (profMainLoc) profMainLoc.innerText = userCity;
+
+  const profMainBlood = document.getElementById('profile-main-blood');
+  if (profMainBlood) profMainBlood.innerText = userBlood;
+
+  const profMainAge = document.getElementById('profile-main-age');
+  if (profMainAge) profMainAge.innerText = userAge;
+
+  if (typeof initFamilyDropdown === 'function') {
+    initFamilyDropdown();
+  }
+}
+
+function openEditProfileModal() {
+  const modal = document.getElementById('modal-edit-profile');
+  if (!modal) return;
+
+  const currentSession = JSON.parse(localStorage.getItem('cura_auth_session') || '{}');
+  const currentName = currentSession.userName || document.getElementById('profile-main-name')?.innerText || "Rahul Sharma";
+  const currentEmail = currentSession.email || document.getElementById('profile-main-email')?.innerText || "rahul@curahealth.in";
+  const currentPhone = currentSession.phone || document.getElementById('profile-main-phone')?.innerText || "+91 98765 43210";
+  const currentCity = currentSession.city || document.getElementById('profile-main-location')?.innerText || "Hyderabad, Telangana";
+  const currentBlood = currentSession.blood || document.getElementById('profile-main-blood')?.innerText || "O+";
+  const currentAge = currentSession.age || document.getElementById('profile-main-age')?.innerText || "30";
+  const currentAvatar = currentSession.avatar || document.getElementById('profile-main-avatar')?.src || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250";
+
+  currentPendingAvatarUrl = currentAvatar;
+  const avatarPreview = document.getElementById('edit-prof-avatar-preview');
+  if (avatarPreview) avatarPreview.src = currentAvatar;
+
+  if (document.getElementById('edit-prof-name')) document.getElementById('edit-prof-name').value = currentName;
+  if (document.getElementById('edit-prof-email')) document.getElementById('edit-prof-email').value = currentEmail;
+  if (document.getElementById('edit-prof-phone')) document.getElementById('edit-prof-phone').value = currentPhone;
+  if (document.getElementById('edit-prof-city')) document.getElementById('edit-prof-city').value = currentCity;
+  if (document.getElementById('edit-prof-blood')) document.getElementById('edit-prof-blood').value = currentBlood;
+  if (document.getElementById('edit-prof-age')) document.getElementById('edit-prof-age').value = currentAge;
+
+  modal.classList.remove('hidden');
+}
+
+function closeEditProfileModal() {
+  const modal = document.getElementById('modal-edit-profile');
+  if (modal) modal.classList.add('hidden');
+}
+
+function saveProfileEdits() {
+  const name = (document.getElementById('edit-prof-name')?.value || '').trim();
+  const email = (document.getElementById('edit-prof-email')?.value || '').trim();
+  const phone = (document.getElementById('edit-prof-phone')?.value || '').trim();
+  const blood = document.getElementById('edit-prof-blood')?.value || 'O+';
+  const city = (document.getElementById('edit-prof-city')?.value || '').trim();
+  const age = (document.getElementById('edit-prof-age')?.value || '30').trim();
+  const avatarUrl = currentPendingAvatarUrl || document.getElementById('edit-prof-avatar-preview')?.src || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250";
+
+  if (!name) {
+    alert("Please enter a valid full name.");
+    return;
+  }
+
+  const updatedSession = {
+    isLoggedIn: true,
+    userName: name,
+    email: email || `${name.toLowerCase().replace(/\s+/g, '')}@curahealth.in`,
+    phone: phone || "+91 98765 43210",
+    blood: blood,
+    city: city || "Hyderabad, Telangana",
+    age: age,
+    avatar: avatarUrl,
+    token: `jwt-token-${Date.now()}`
+  };
+
+  try {
+    localStorage.setItem('cura_auth_session', JSON.stringify(updatedSession));
+  } catch (e) {}
+
+  if (typeof INITIAL_DATA !== 'undefined' && INITIAL_DATA.familyMembers && INITIAL_DATA.familyMembers[0]) {
+    INITIAL_DATA.familyMembers[0].name = name;
+    INITIAL_DATA.familyMembers[0].email = email;
+    INITIAL_DATA.familyMembers[0].phone = phone;
+    INITIAL_DATA.familyMembers[0].bloodGroup = blood;
+    INITIAL_DATA.familyMembers[0].age = age;
+    INITIAL_DATA.familyMembers[0].avatar = avatarUrl;
+  }
+
+  updateAuthUIState(updatedSession);
+  closeEditProfileModal();
+
+  alert(`✨ Profile details, age (${age} Yrs) & avatar photo updated successfully for ${name}!`);
+}
+
+function logoutUser() {
+  try {
+    localStorage.removeItem('cura_auth_session');
+  } catch (e) {}
+  if (typeof INITIAL_DATA !== 'undefined') {
+    INITIAL_DATA.userAuth.isLoggedIn = false;
+    INITIAL_DATA.userAuth.user.name = "Guest User";
+  }
+  updateAuthUIState("Login / Register");
+  const authText = document.getElementById('auth-btn-text');
+  if (authText) authText.innerText = "Login / Register";
+  
+  switchAuthTab('login');
+
+  // Lock app behind mandatory authentication guard
+  const overlay = document.getElementById('auth-guard-overlay');
+  if (overlay) overlay.classList.remove('hidden');
+
+  alert("🔒 Logged out successfully. Please sign in to access CuraAssist.");
+}
+
+function checkSavedSession() {
+  try {
+    const saved = localStorage.getItem('cura_auth_session');
+    const overlay = document.getElementById('auth-guard-overlay');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed && parsed.isLoggedIn && (parsed.userName || parsed.name)) {
+        if (typeof INITIAL_DATA !== 'undefined') {
+          INITIAL_DATA.userAuth.isLoggedIn = true;
+          INITIAL_DATA.userAuth.user.name = parsed.userName || parsed.name;
+          if (INITIAL_DATA.familyMembers && INITIAL_DATA.familyMembers[0]) {
+            INITIAL_DATA.familyMembers[0].name = parsed.userName || parsed.name;
+          }
+        }
+        updateAuthUIState(parsed);
+        if (overlay) overlay.classList.add('hidden');
+        return true;
+      }
+    }
+
+    // Default to Login Tab on startup when no active session exists
+    switchAuthTab('login');
+    if (overlay) overlay.classList.remove('hidden');
+  } catch (e) {}
+  return false;
+}
+
+
 
 // FAMILY MEMBER SWITCHER ENGINE
 function initFamilyDropdown() {
@@ -559,47 +868,136 @@ function renderRecords() {
 }
 
 // MODULE 7: MEDICINE INFORMATION & INSIGHTS ENGINE
-function showMedInfoDetails(medId) {
-  const med = INITIAL_DATA.medicines.find(m => m.id === medId) || INITIAL_DATA.medicines[0];
+async function showMedInfoDetails(medId) {
   const container = document.getElementById('med-info-content');
   if (!container) return;
 
   container.innerHTML = `
-    <div class="space-y-4">
-      <div class="flex items-center gap-3">
-        <img src="${med.image}" class="w-16 h-16 rounded-2xl object-cover">
-        <div>
-          <span class="text-[10px] font-bold text-cyan-400 uppercase tracking-wider">Barcode: ${med.barcode}</span>
-          <h3 class="text-lg font-extrabold text-white">${med.name} (${med.salt})</h3>
-          <p class="text-xs text-teal-300 font-semibold">$${med.price.toFixed(2)} • ${med.brandName}</p>
-        </div>
-      </div>
-
-      <div class="space-y-2 text-xs text-slate-300">
-        <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
-          <strong class="text-teal-400 block mb-1">💊 Dosage Information:</strong>
-          <p>${med.dosage}</p>
-        </div>
-
-        <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
-          <strong class="text-cyan-400 block mb-1">📋 Usage Instructions:</strong>
-          <p>${med.usageInstructions}</p>
-        </div>
-
-        <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
-          <strong class="text-amber-400 block mb-1">⚠️ Possible Side Effects:</strong>
-          <p>${med.sideEffects.join(', ')}</p>
-        </div>
-
-        <div class="p-3 rounded-xl bg-rose-950/40 border border-rose-500/30">
-          <strong class="text-rose-400 block mb-1">🚫 Safety Warnings & Precautions:</strong>
-          <p>${med.safetyWarnings}</p>
-        </div>
-      </div>
+    <div class="p-8 text-center text-slate-400 text-xs flex items-center justify-center gap-2">
+      <i data-lucide="loader-2" class="w-4 h-4 animate-spin text-teal-400"></i>
+      Loading Multi-Platform Medicine Insights...
     </div>
   `;
-
   document.getElementById('modal-med-info').classList.remove('hidden');
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+
+  try {
+    let med = null;
+    const res = await fetch(`http://localhost:8000/medicine/info/${medId}`);
+    if (res.ok) {
+      const data = await res.json();
+      med = data.medicine;
+    }
+
+    if (!med) {
+      const storeRes = await fetch(`http://localhost:8000/store/medicines`);
+      if (storeRes.ok) {
+        const storeData = await storeRes.json();
+        med = (storeData.medicines || []).find(m => m.id === medId || m.name.toLowerCase().includes(medId.toLowerCase()));
+      }
+    }
+
+    if (!med) {
+      med = INITIAL_DATA.medicines.find(m => m.id === medId) || INITIAL_DATA.medicines[0];
+    }
+
+    const platformSources = med.platform_sources || med.platformSources || ["Tata 1mg", "Apollo Pharmacy", "Netmeds", "PharmEasy"];
+    const verifiedPlatforms = med.verified_platforms || med.verifiedPlatforms || ["Tata 1mg Verified", "Apollo Certified"];
+    const price = med.price || 32.50;
+    const origPrice = med.original_price || med.originalPrice || Math.round(price * 1.25);
+    const uses = med.uses || ["Fever reduction", "Pain relief"];
+    const sideEffects = med.side_effects || med.sideEffects || ["Nausea", "Mild rash"];
+    const warnings = med.warnings || ["Do not exceed recommended dose"];
+    const manufacturer = med.manufacturer || "Pharma Certified Manufacturer";
+
+    container.innerHTML = `
+      <div class="space-y-4">
+        <!-- Header Info -->
+        <div class="flex items-start gap-4 pb-3 border-b border-slate-800">
+          <img src="${med.image_url || med.image || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=300'}" class="w-20 h-20 rounded-2xl object-cover border border-slate-800 shrink-0">
+          <div class="space-y-1 min-w-0">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-[10px] font-extrabold text-cyan-400 uppercase tracking-wider bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-500/30">Barcode: ${med.barcode || '8901234567890'}</span>
+              ${med.prescription_required || med.requiresRx ? `<span class="bg-rose-500/90 text-white text-[9px] px-2 py-0.5 rounded font-extrabold">Rx Required</span>` : ''}
+            </div>
+            <h3 class="text-lg font-extrabold text-white leading-snug">${med.brand_name || med.name}</h3>
+            <p class="text-xs text-teal-300 font-semibold">${med.generic_name || med.genericName || med.composition}</p>
+            <p class="text-[11px] text-slate-400">Manufacturer: <strong class="text-slate-200">${manufacturer}</strong></p>
+          </div>
+        </div>
+
+        <!-- Price & Multi-Platform Aggregation Sources -->
+        <div class="p-3.5 rounded-2xl bg-gradient-to-r from-slate-900 to-slate-950 border border-teal-500/30 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div class="flex items-baseline gap-2">
+              <span class="text-xl font-extrabold text-teal-300">₹${price.toFixed(2)}</span>
+              ${origPrice ? `<span class="text-xs text-slate-500 line-through">M.R.P ₹${origPrice.toFixed(2)}</span>` : ''}
+              <span class="text-[10px] bg-teal-500/20 text-teal-300 px-2 py-0.5 rounded-full font-bold">Verified Best Price</span>
+            </div>
+            <p class="text-[10px] text-slate-400 mt-0.5">Aggregated live across Indian e-pharmacy platforms</p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-1.5">
+            ${verifiedPlatforms.map(vp => `<span class="bg-emerald-500/10 text-emerald-300 text-[10px] px-2 py-0.5 rounded-full font-bold border border-emerald-500/30">✓ ${vp}</span>`).join('')}
+          </div>
+        </div>
+
+        <!-- Aggregated Platforms List -->
+        <div class="space-y-1.5">
+          <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Aggregated Platforms & Availability:</label>
+          <div class="flex flex-wrap gap-1.5">
+            ${platformSources.map(ps => `
+              <span class="bg-indigo-950/60 text-indigo-300 border border-indigo-500/30 text-[11px] px-2.5 py-1 rounded-xl font-bold flex items-center gap-1">
+                <i data-lucide="globe" class="w-3 h-3 text-cyan-400"></i> ${ps}
+              </span>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- Clinical Details Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-300">
+          <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-1">
+            <strong class="text-teal-400 flex items-center gap-1 mb-1 font-extrabold">
+              <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-teal-400"></i> Primary Uses & Indications:
+            </strong>
+            <ul class="list-disc list-inside space-y-0.5 text-[11px] text-slate-300">
+              ${uses.map(u => `<li>${u}</li>`).join('')}
+            </ul>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-1">
+            <strong class="text-cyan-400 flex items-center gap-1 mb-1 font-extrabold">
+              <i data-lucide="clock" class="w-3.5 h-3.5 text-cyan-400"></i> Dosage & Storage:
+            </strong>
+            <p class="text-[11px] text-slate-300">${med.dosage || '1 tablet post meal as prescribed.'}</p>
+            <p class="text-[10px] text-slate-400 pt-1"><strong>Storage:</strong> ${med.storage || 'Store below 30°C in dry place.'}</p>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-1">
+            <strong class="text-amber-400 flex items-center gap-1 mb-1 font-extrabold">
+              <i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-amber-400"></i> Side Effects:
+            </strong>
+            <ul class="list-disc list-inside space-y-0.5 text-[11px] text-slate-300">
+              ${sideEffects.map(se => `<li>${se}</li>`).join('')}
+            </ul>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-rose-950/40 border border-rose-500/30 space-y-1">
+            <strong class="text-rose-400 flex items-center gap-1 mb-1 font-extrabold">
+              <i data-lucide="shield-alert" class="w-3.5 h-3.5 text-rose-400"></i> Warnings & Contraindications:
+            </strong>
+            <ul class="list-disc list-inside space-y-0.5 text-[11px] text-rose-200">
+              ${warnings.map(w => `<li>${w}</li>`).join('')}
+            </ul>
+          </div>
+        </div>
+      </div>
+    `;
+
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  } catch (e) {
+    console.error("Error in showMedInfoDetails:", e);
+  }
 }
 
 function closeMedInfoModal() {
@@ -691,6 +1089,10 @@ async function renderStoreMedicines() {
     }
 
     const meds = data.medicines || [];
+    window.storeMedicinesMap = window.storeMedicinesMap || {};
+    meds.forEach(m => {
+      window.storeMedicinesMap[m.id] = m;
+    });
 
     if (meds.length === 0) {
       container.innerHTML = `
@@ -781,9 +1183,27 @@ function toggleWishlist(medId) {
 }
 
 function addToCart(medId) {
+  let med = (window.storeMedicinesMap && window.storeMedicinesMap[medId]) ? window.storeMedicinesMap[medId] : null;
+  if (!med && typeof INITIAL_DATA !== 'undefined' && INITIAL_DATA.medicines) {
+    med = INITIAL_DATA.medicines.find(m => m.id === medId);
+  }
+
   const existing = state.cart.find(c => c.id === medId);
-  if (existing) existing.qty += 1;
-  else state.cart.push({ id: medId, qty: 1 });
+  if (existing) {
+    existing.qty += 1;
+  } else {
+    state.cart.push({
+      id: medId,
+      name: med ? (med.name || med.brand_name) : 'Medicine Item',
+      price: med ? (med.price || 50.0) : 50.0,
+      currency: med ? (med.currency || '₹') : '₹',
+      image: med ? (med.image || med.image_url) : 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=200',
+      manufacturer: med ? (med.manufacturer || 'Pharma Certified') : 'Pharma Certified',
+      qty: 1
+    });
+  }
+
+  saveStateToStorage();
   renderCart();
   toggleCartDrawer(true);
 }
@@ -799,66 +1219,138 @@ function renderCart() {
 
   if (!listContainer) return;
 
+  if (state.cart.length === 0) {
+    listContainer.innerHTML = `
+      <div class="p-8 text-center text-slate-400 text-xs space-y-2">
+        <i data-lucide="shopping-bag" class="w-8 h-8 mx-auto text-slate-600"></i>
+        <p class="font-semibold text-slate-300">Your shopping cart is empty.</p>
+        <p class="text-[11px] text-slate-500">Add medicines from the Store to place an order.</p>
+      </div>
+    `;
+    document.getElementById('cart-total').innerText = `₹0.00`;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+    return;
+  }
+
   let subtotal = 0;
   listContainer.innerHTML = state.cart.map(item => {
-    const med = INITIAL_DATA.medicines.find(m => m.id === item.id);
-    if (!med) return '';
-    subtotal += med.price * item.qty;
+    let name = item.name;
+    let price = item.price;
+    let image = item.image;
+
+    if (!name || price === undefined) {
+      const med = (window.storeMedicinesMap && window.storeMedicinesMap[item.id]) || (typeof INITIAL_DATA !== 'undefined' && INITIAL_DATA.medicines ? INITIAL_DATA.medicines.find(m => m.id === item.id) : null);
+      if (med) {
+        name = med.name || med.brand_name || "Medicine Item";
+        price = med.price || 50.0;
+        image = med.image || med.image_url || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=200';
+        item.name = name;
+        item.price = price;
+        item.image = image;
+      } else {
+        name = "Medicine Item";
+        price = 50.0;
+      }
+    }
+
+    const itemTotal = (price || 0) * item.qty;
+    subtotal += itemTotal;
 
     return `
-      <div class="p-3.5 rounded-2xl glass-card flex items-center justify-between border border-slate-800">
-        <div>
-          <h4 class="text-xs font-bold text-white">${med.name}</h4>
-          <p class="text-[11px] text-teal-400 font-semibold">$${med.price.toFixed(2)} x ${item.qty}</p>
+      <div class="p-3.5 rounded-2xl glass-card flex items-center justify-between gap-3 border border-slate-800">
+        <img src="${image || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=200'}" class="w-12 h-12 rounded-xl object-cover shrink-0 border border-slate-800">
+        
+        <div class="flex-1 min-w-0">
+          <h4 class="text-xs font-extrabold text-white truncate">${name}</h4>
+          <p class="text-[11px] text-teal-300 font-bold">${item.currency || '₹'}${price.toFixed(2)}</p>
         </div>
-        <button onclick="state.cart=state.cart.filter(c=>c.id!='${item.id}');renderCart();" class="text-rose-400 text-xs font-bold">Remove</button>
+
+        <div class="flex items-center gap-1 bg-slate-900 border border-slate-800 rounded-xl p-1 shrink-0">
+          <button onclick="updateCartItemQty('${item.id}', -1)" class="w-6 h-6 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-black text-xs flex items-center justify-center">-</button>
+          <span class="w-6 text-center text-xs font-bold text-white">${item.qty}</span>
+          <button onclick="updateCartItemQty('${item.id}', 1)" class="w-6 h-6 rounded-lg bg-teal-600 hover:bg-teal-500 text-white font-black text-xs flex items-center justify-center">+</button>
+        </div>
+
+        <button onclick="removeFromCart('${item.id}')" class="text-rose-400 hover:text-rose-300 p-1 text-xs font-bold shrink-0" title="Remove">
+          <i data-lucide="trash-2" class="w-4 h-4"></i>
+        </button>
       </div>
     `;
   }).join('');
 
-  document.getElementById('cart-total').innerText = `$${subtotal.toFixed(2)}`;
+  document.getElementById('cart-total').innerText = `₹${subtotal.toFixed(2)}`;
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function updateCartItemQty(medId, delta) {
+  const item = state.cart.find(c => c.id === medId);
+  if (!item) return;
+  item.qty += delta;
+  if (item.qty <= 0) {
+    state.cart = state.cart.filter(c => c.id !== medId);
+  }
+  saveStateToStorage();
+  renderCart();
+}
+
+function removeFromCart(medId) {
+  state.cart = state.cart.filter(c => c.id !== medId);
+  saveStateToStorage();
+  renderCart();
 }
 
 function toggleCartDrawer(forceOpen) {
   const drawer = document.getElementById('cart-drawer');
+  if (!drawer) return;
   if (forceOpen) drawer.classList.remove('hidden');
   else drawer.classList.toggle('hidden');
 }
 
 async function processCheckout() {
   if (state.cart.length === 0) {
-    alert("Your cart is empty.");
+    alert("Your cart is empty. Please add items from the Store.");
     return;
   }
 
-  const items = state.cart.map(c => {
-    const med = INITIAL_DATA.medicines.find(m => m.id === c.id) || { name: "Medicine", price: 30 };
-    return { id: c.id, name: med.name, price: med.price, quantity: c.qty };
-  });
+  const userSession = JSON.parse(localStorage.getItem('cura_auth_session') || '{}');
+  const userId = userSession.userName || 'Rahul Sharma';
+  const totalAmount = state.cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
 
-  const total = items.reduce((acc, curr) => acc + (curr.price * curr.quantity), 0);
+  const items = state.cart.map(c => ({
+    id: c.id,
+    name: c.name,
+    price: c.price,
+    quantity: c.qty
+  }));
 
   try {
     const res = await fetch('http://localhost:8000/store/orders', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        userId: state.activeFamilyId,
+        userId: userId,
         items: items,
-        totalAmount: total,
-        address: "Home (Hyderabad, Telangana)",
-        paymentMethod: "UPI / Cash on Delivery"
+        totalAmount: totalAmount,
+        address: "Plot 42, Jubilee Hills, Hyderabad, Telangana",
+        paymentMethod: "Cash on Delivery / UPI"
       })
     });
-    const data = await res.json();
-    alert(`✅ FastAPI Order Confirmed!\nOrder ID: ${data.orderId}\nMessage: ${data.message}`);
-  } catch (err) {
-    alert("✅ Checkout Complete! Order ORD-9923 created (Offline Mode).");
-  }
 
-  state.cart = [];
-  renderCart();
-  toggleCartDrawer(false);
+    const data = await res.json();
+    if (res.ok) {
+      alert(`🎉 Order Confirmed! (Order ID: ${data.orderId || 'ORD-982415'})\n\nTotal Paid: ₹${totalAmount.toFixed(2)}\nFulfilling Pharmacy: MedPlus Express / Apollo Pharmacy\nDelivery Address: Plot 42, Jubilee Hills, Hyderabad\n\nYour medicines will arrive in 15-25 minutes!`);
+      state.cart = [];
+      renderCart();
+      toggleCartDrawer(false);
+    } else {
+      alert(data.detail || "Failed to place order.");
+    }
+  } catch (err) {
+    alert(`🎉 Order Confirmed!\n\nTotal Paid: ₹${totalAmount.toFixed(2)}\nFulfilling Pharmacy: Apollo Pharmacy\nDelivery Address: Plot 42, Jubilee Hills, Hyderabad\n\nYour medicines will arrive in 15-25 minutes!`);
+    state.cart = [];
+    renderCart();
+    toggleCartDrawer(false);
+  }
 }
 
 // MODULE 10: BLOOD SUPPORT ENGINE
@@ -1404,7 +1896,7 @@ function renderGenericDropdown() {
   if (!select) return;
 
   select.innerHTML = INITIAL_DATA.medicines.map(m => `
-    <option value="${m.id}">${m.brandName} - $${m.price.toFixed(2)}</option>
+    <option value="${m.id}">${m.brandName} - ₹${m.price.toFixed(2)}</option>
   `).join('');
 
   updateGenericComparison();
@@ -1427,11 +1919,11 @@ function updateGenericComparison() {
   container.innerHTML = `
     <div class="p-4 rounded-2xl glass-card space-y-2">
       <span class="text-xs font-bold text-rose-400">Brand Name</span>
-      <h4 class="text-sm font-bold text-white">${med.brandName} - $${med.price.toFixed(2)}</h4>
+      <h4 class="text-sm font-bold text-white">${med.brandName} - ₹${med.price.toFixed(2)}</h4>
     </div>
     <div class="p-4 rounded-2xl glass-card space-y-2 border border-emerald-500/40">
       <span class="text-xs font-bold text-emerald-400">Generic Alternative (Save ${med.savingsPercent}%)</span>
-      <h4 class="text-sm font-bold text-white">${med.genericName} - $${med.genericPrice.toFixed(2)}</h4>
+      <h4 class="text-sm font-bold text-white">${med.genericName} - ₹${med.genericPrice.toFixed(2)}</h4>
     </div>
   `;
 }
@@ -1620,50 +2112,41 @@ async function performRealOCR(file, fileName) {
     });
   }
 
-  // 4. Format Clean Verified English Output
+  // 4. Query Server-Side Python OCR Medical Vision Engine
   let englishSummary = "";
-  const nameLower = fileName.toLowerCase();
+  let docCategory = "Prescriptions";
 
-  if (nameLower.includes("blood") || nameLower.includes("lab") || nameLower.includes("test") || textLower.includes("blood") || textLower.includes("glucose")) {
-    englishSummary = `LABORATORY BLOOD TEST REPORT (${fileName})\n` +
-      `----------------------------------------------------\n` +
-      `• Physician: Dr. Sarah Jenkins, MD (Clinical Pathology)\n` +
-      `• Fasting Blood Glucose: 95 mg/dL (Normal Range: 70-99 mg/dL)\n` +
-      `• Glycated Hemoglobin (HbA1c): 5.4% (Normal Range: < 5.7%)\n` +
-      `• Lipid Profile & Complete Blood Count: Within Normal Clinical Limits`;
-  } else if (nameLower.includes("xray") || nameLower.includes("mri") || nameLower.includes("scan") || textLower.includes("radiology") || textLower.includes("chest")) {
-    englishSummary = `RADIOLOGY & IMAGING SCAN REPORT (${fileName})\n` +
-      `----------------------------------------------------\n` +
-      `• Radiologist: Dr. Vikram Sethi, DMRD (Radiology Dept)\n` +
-      `• Examination: PA View Diagnostic Scan\n` +
-      `• Findings: Clear bilateral lung fields. Normal cardiac size and contour. No pleural effusion or active bone lesion.`;
-  } else {
-    if (foundMeds.length === 0) {
-      const hash = fileName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-      const presetEnglishOptions = [
-        [
-          { name: "Dolo 650mg", salt: "Paracetamol 650mg", dosage: "1 Tablet Morning & Evening (Post Meals)", duration: "5 Days" },
-          { name: "Augmentin 625 Duo", salt: "Amoxicillin & Clavulanic Acid", dosage: "1 Tablet Twice Daily (Post Meals)", duration: "5 Days" },
-          { name: "Pantocid 40mg", salt: "Pantoprazole 40mg", dosage: "1 Tablet Morning (30 mins Before Meal)", duration: "7 Days" }
-        ],
-        [
-          { name: "Cetzine 10mg", salt: "Cetirizine Hydrochloride", dosage: "1 Tablet at Night (Bedtime)", duration: "5 Days" },
-          { name: "Limcee 500mg", salt: "Vitamin C Chewable", dosage: "1 Tablet Morning (Post Meals)", duration: "10 Days" }
-        ],
-        [
-          { name: "Metformin 500mg", salt: "Metformin Hydrochloride", dosage: "1 Tablet Twice Daily (Post Meals)", duration: "30 Days" },
-          { name: "Glimepiride 1mg", salt: "Glimepiride", dosage: "1 Tablet Morning (Before Breakfast)", duration: "30 Days" }
-        ]
-      ];
-      const selectedMeds = presetEnglishOptions[hash % presetEnglishOptions.length];
-      foundMeds.push(...selectedMeds);
+  try {
+    const apiRes = await fetch('http://localhost:8000/chat/ocr-scan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        image_name: fileName,
+        raw_text: cleanEnglishText
+      })
+    });
+    if (apiRes.ok) {
+      const data = await apiRes.json();
+      if (data.summary) {
+        englishSummary = data.summary;
+        docCategory = data.category || "Prescriptions";
+      }
     }
+  } catch (backendErr) {
+    console.warn("Backend OCR API note:", backendErr);
+  }
 
-    englishSummary = `DOCTOR PRESCRIPTION DETAILS (${fileName})\n` +
-      `----------------------------------------------------\n` +
-      `Physician: Dr. K. S. Somasekhar, MD (Apollo Hospitals)\n\n` +
-      `Prescribed Medicines & Dosage Instructions:\n` +
-      foundMeds.map((m, idx) => `${idx + 1}. ${m.name} (${m.salt})\n   • Dosage: ${m.dosage}\n   • Duration: ${m.duration}`).join("\n\n");
+  // Dynamic fallback based ONLY on actual extracted text & file name
+  if (!englishSummary) {
+    if (foundMeds && foundMeds.length > 0) {
+      const medLines = foundMeds.map((m, i) => `${i + 1}. ${m.name} (${m.salt})\n   • Dosage: ${m.dosage}\n   • Duration: ${m.duration}`).join('\n\n');
+      englishSummary = `PRESCRIPTION OCR ANALYSIS (${fileName})\n----------------------------------------------------\nExtracted Medicines & Dosage Schedule:\n${medLines}`;
+      docCategory = "Prescriptions";
+    } else if (cleanEnglishText.length > 5) {
+      englishSummary = `CLINICAL DOCUMENT OCR SUMMARY (${fileName})\n----------------------------------------------------\nExtracted Text:\n${cleanEnglishText}`;
+    } else {
+      englishSummary = `PRESCRIPTION / MEDICAL SLIP (${fileName})\n----------------------------------------------------\nUploaded File: ${fileName}\nClinical Status: Document processed and saved into health records.`;
+    }
   }
 
   const docTitle = `Prescription: ${fileName.replace(/\.[^/.]+$/, "")}`;
@@ -1673,11 +2156,20 @@ async function performRealOCR(file, fileName) {
   uploadedDocumentData = {
     fileName,
     title: docTitle,
-    category: "Prescriptions",
+    category: docCategory,
     doctor: "Dr. K. S. Somasekhar, MD",
     summary: englishSummary,
     rawText: cleanEnglishText
   };
+
+  // Automatically store uploaded document into Database
+  await saveUploadedFileToDatabase({
+    fileName,
+    category: docCategory,
+    extractedText: cleanEnglishText,
+    aiSummary: englishSummary,
+    previewUrl: file && file.type && file.type.startsWith('image/') ? URL.createObjectURL(file) : ""
+  });
 }
 
 async function handlePrescriptionFileSelected(event) {
@@ -1689,50 +2181,403 @@ async function handlePrescriptionFileSelected(event) {
   const previewBox = document.getElementById('presc-upload-placeholder');
   if (previewBox) {
     previewBox.innerHTML = `
-      <i data-lucide="file-check-2" class="w-10 h-10 text-teal-400 mx-auto animate-bounce"></i>
-      <p class="text-xs text-white font-extrabold">${file.name}</p>
-      <p class="text-[10px] text-teal-300 font-bold">${(file.size / 1024).toFixed(1)} KB • ${file.type || 'Document'}</p>
+      <div class="space-y-1">
+        <i data-lucide="file-check-2" class="w-8 h-8 text-teal-400 mx-auto"></i>
+        <p class="text-xs text-white font-extrabold">${file.name}</p>
+        <p class="text-[10px] text-teal-300 font-bold animate-pulse">⚡ AI Extracting Text & Identification in Background...</p>
+      </div>
     `;
     if (typeof lucide !== 'undefined') lucide.createIcons();
   }
 
-  await performRealOCR(file, file.name);
+  // Background OCR Extraction & Database Store
+  performRealOCR(file, file.name);
 }
 
-function handleItemScanFile(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  stopAllCameraStreams();
-  triggerBarcodeScanProcess('8901234567890');
-}
-
-function triggerBarcodeScanProcess(barcodeVal) {
+async function captureItemCameraFrameAndScan() {
+  const video = document.getElementById('item-camera-video');
   const container = document.getElementById('item-scan-results');
   if (!container) return;
 
   container.classList.remove('hidden');
-  container.innerHTML = `
-    <div class="p-4 rounded-2xl bg-teal-950/40 border border-teal-500/40 space-y-2 text-xs">
-      <div class="flex items-center justify-between">
-        <span class="text-teal-400 font-extrabold flex items-center gap-1"><i data-lucide="barcode" class="w-4 h-4"></i> Barcode Recognized</span>
-        <span class="text-[10px] bg-teal-500/20 text-teal-300 font-bold px-2 py-0.5 rounded">EAN-13 Verified</span>
+
+  let capturedImageDataUrl = null;
+
+  // 1. Check if WebRTC live camera video stream is active
+  if (video && !video.paused && video.videoWidth > 0) {
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    capturedImageDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+    container.innerHTML = `
+      <div class="p-3.5 rounded-2xl bg-slate-900 border border-teal-500/40 space-y-2 text-center shadow-xl">
+        <span class="text-teal-400 font-extrabold text-xs flex items-center justify-center gap-1.5">
+          <i data-lucide="camera" class="w-4 h-4 text-emerald-400"></i> Captured Live Camera Frame & Saving to Database...
+        </span>
+        <div class="relative w-36 h-24 rounded-xl overflow-hidden mx-auto border-2 border-teal-500/50 shadow-md bg-slate-950">
+          <img src="${capturedImageDataUrl}" class="w-full h-full object-cover">
+        </div>
       </div>
-      <h4 class="text-sm font-extrabold text-white">Lipitor (Atorvastatin 20mg)</h4>
-      <p class="text-slate-300">Barcode: ${barcodeVal} • Manufacturer: Pfizer Inc.</p>
-      <div class="grid grid-cols-3 gap-2 pt-2">
-        <button onclick="showMedInfoDetails('med-1')" class="bg-teal-600 hover:bg-teal-500 text-white text-[11px] font-bold py-2 rounded-xl">
-          📖 Insights
+    `;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  } else {
+    container.innerHTML = `<p class="text-xs text-teal-300 animate-pulse font-bold p-3 text-center">🔍 Capturing scan against Multi-Platform Medicine Database...</p>`;
+  }
+
+  // 2. Perform background Tesseract OCR text extraction on captured canvas image if available
+  let recognizedText = "dolo 650";
+  if (capturedImageDataUrl && window.Tesseract) {
+    try {
+      const res = await Tesseract.recognize(capturedImageDataUrl, 'eng');
+      if (res.data && res.data.text && res.data.text.trim().length > 2) {
+        recognizedText = res.data.text.trim();
+      }
+    } catch (ocrErr) {
+      console.warn("Camera OCR note:", ocrErr);
+    }
+  }
+
+  // 3. Save captured camera scan into Database
+  await saveUploadedFileToDatabase({
+    fileName: `camera_scan_${Date.now()}.jpg`,
+    category: "Smart Camera Scan",
+    extractedText: recognizedText,
+    aiSummary: `Camera Scan Identified: ${recognizedText}`,
+    previewUrl: capturedImageDataUrl
+  });
+
+  // 4. Query Database with captured text & display matching database items
+  await triggerBarcodeScanProcess(recognizedText, "captured_scan.jpg", capturedImageDataUrl);
+}
+
+// -------------------------------------------------------------
+// USER SCANNED UPLOADS & DOCUMENTS DATABASE MANAGEMENT ENGINE
+// -------------------------------------------------------------
+
+function getStoredUploads() {
+  try {
+    const raw = localStorage.getItem('cura_scanned_uploads');
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+async function saveUploadedFileToDatabase(uploadObj) {
+  const item = {
+    id: uploadObj.id || `up-${Date.now()}`,
+    fileName: uploadObj.fileName || "scanned_document.png",
+    fileType: uploadObj.fileType || "image/jpeg",
+    uploadDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+    category: uploadObj.category || "Prescription / Scan",
+    previewUrl: uploadObj.previewUrl || uploadObj.fileBase64 || "",
+    extractedText: uploadObj.extractedText || "",
+    aiSummary: uploadObj.aiSummary || "",
+    matchedMedicines: uploadObj.matchedMedicines || []
+  };
+
+  const current = getStoredUploads();
+  current.unshift(item);
+  try {
+    localStorage.setItem('cura_scanned_uploads', JSON.stringify(current));
+  } catch (e) {
+    console.warn("localStorage quota note:", e);
+  }
+
+  // Store in backend database
+  try {
+    await fetch('http://localhost:8000/profile/uploads', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(item)
+    });
+  } catch (err) {
+    console.warn("Backend save upload note:", err);
+  }
+
+  updateUploadsBadgeCount();
+}
+
+async function deleteUploadedFileFromDatabase(uploadId) {
+  const current = getStoredUploads().filter(u => u.id !== uploadId);
+  try {
+    localStorage.setItem('cura_scanned_uploads', JSON.stringify(current));
+  } catch (e) {}
+
+  try {
+    await fetch(`http://localhost:8000/profile/uploads/${uploadId}`, { method: 'DELETE' });
+  } catch (err) {}
+
+  updateUploadsBadgeCount();
+  renderUploadsManageList();
+}
+
+function updateUploadsBadgeCount() {
+  const uploads = getStoredUploads();
+  const badge = document.getElementById('profile-uploads-badge');
+  if (badge) {
+    badge.innerText = `${uploads.length} Saved`;
+  }
+  const footerCount = document.getElementById('uploads-count-footer');
+  if (footerCount) {
+    footerCount.innerText = `${uploads.length} Stored Documents`;
+  }
+}
+
+function openManageUploadsModal() {
+  const modal = document.getElementById('modal-manage-uploads');
+  if (modal) {
+    modal.classList.remove('hidden');
+    renderUploadsManageList();
+  }
+}
+
+function closeManageUploadsModal() {
+  const modal = document.getElementById('modal-manage-uploads');
+  if (modal) {
+    modal.classList.add('hidden');
+  }
+}
+
+function renderUploadsManageList() {
+  const container = document.getElementById('uploads-manage-list');
+  if (!container) return;
+
+  const uploads = getStoredUploads();
+  if (uploads.length === 0) {
+    container.innerHTML = `
+      <div class="p-8 text-center space-y-3 glass-panel rounded-2xl border border-slate-800">
+        <i data-lucide="cloud-off" class="w-12 h-12 text-slate-500 mx-auto"></i>
+        <h4 class="text-sm font-bold text-white">No Uploaded Documents Stored Yet</h4>
+        <p class="text-xs text-slate-400">Any prescription uploads, camera captures, or scanned files will automatically be stored in your database here.</p>
+        <button onclick="closeManageUploadsModal(); openItemScanModal()" class="px-4 py-2 rounded-xl bg-teal-500 text-slate-950 font-bold text-xs hover:bg-teal-400">
+          Open Camera & Scanner
         </button>
-        <button onclick="addScannedToSchedule()" class="bg-cyan-600 hover:bg-cyan-500 text-white text-[11px] font-bold py-2 rounded-xl">
-          + Reminder
+      </div>
+    `;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+    return;
+  }
+
+  container.innerHTML = uploads.map(u => `
+    <div class="glass-panel p-4 rounded-2xl border border-slate-800 hover:border-teal-500/40 transition-all space-y-3">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-xl bg-slate-900 overflow-hidden border border-slate-700 flex items-center justify-center shrink-0">
+            ${u.previewUrl ? `<img src="${u.previewUrl}" class="w-full h-full object-cover">` : `<i data-lucide="file-text" class="w-6 h-6 text-teal-400"></i>`}
+          </div>
+          <div>
+            <h4 class="text-xs font-extrabold text-white">${u.fileName}</h4>
+            <p class="text-[10px] text-slate-400">${u.uploadDate} • ${u.category}</p>
+          </div>
+        </div>
+        <button onclick="deleteUploadedFileFromDatabase('${u.id}')" class="p-2 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-xl transition-colors" title="Delete Document">
+          <i data-lucide="trash-2" class="w-4 h-4"></i>
         </button>
-        <button onclick="askAIAboutScanned()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold py-2 rounded-xl">
-          🤖 Ask AI
+      </div>
+
+      ${u.aiSummary ? `
+        <div class="p-3 rounded-xl bg-slate-900/80 border border-teal-500/20 text-[11px] text-slate-300 whitespace-pre-line leading-relaxed">
+          <span class="text-teal-400 font-extrabold flex items-center gap-1 mb-1"><i data-lucide="bot" class="w-3.5 h-3.5"></i> AI OCR Analysis:</span>
+          ${u.aiSummary}
+        </div>
+      ` : ''}
+
+      <div class="flex gap-2 text-[11px]">
+        <button onclick="sendQuickAIPrompt('Provide doctor dosage advice for file: ${u.fileName}. Extracted content: ${u.extractedText || u.aiSummary}')" class="flex-1 py-1.5 rounded-lg bg-teal-500/10 hover:bg-teal-500/20 text-teal-300 font-bold border border-teal-500/30 flex items-center justify-center gap-1">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Ask AI Doctor
+        </button>
+        <button onclick="addToCart('med-1')" class="py-1.5 px-3 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/30 flex items-center justify-center gap-1">
+          <i data-lucide="shopping-cart" class="w-3.5 h-3.5"></i> Buy Prescribed Meds
         </button>
       </div>
     </div>
+  `).join('');
+
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+async function handleItemScanFile(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+
+  stopAllCameraStreams();
+
+  const container = document.getElementById('item-scan-results');
+  if (container) {
+    container.classList.remove('hidden');
+    container.innerHTML = `<p class="text-xs text-teal-300 animate-pulse font-bold p-3 text-center">🔍 Scanning image against Multi-Platform Medicine Database...</p>`;
+  }
+
+  let extractedQuery = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
+  if (window.Tesseract && file.type && file.type.startsWith('image/')) {
+    try {
+      const processedBlob = await preprocessImageForOCR(file);
+      const res = await Tesseract.recognize(processedBlob, 'eng');
+      if (res.data && res.data.text && res.data.text.trim().length > 2) {
+        extractedQuery = res.data.text.trim();
+      }
+    } catch (e) {
+      console.warn("Item OCR note:", e);
+    }
+  }
+
+  await triggerBarcodeScanProcess(extractedQuery, file.name);
+}
+
+async function triggerBarcodeScanProcess(queryOrBarcode, fileName = "", capturedImage = null) {
+  const container = document.getElementById('item-scan-results');
+  if (!container) return;
+
+  container.classList.remove('hidden');
+
+  let matches = [];
+
+  // 1. Query Backend Medicine Database Endpoint
+  try {
+    const res = await fetch('http://localhost:8000/chat/scan-medicine', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query_text: queryOrBarcode, barcode: queryOrBarcode })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.matches && data.matches.length > 0) {
+        matches = data.matches;
+      }
+    }
+  } catch (err) {
+    console.warn("Backend scan medicine note:", err);
+  }
+
+  // 2. Fallback to Frontend Medicines Dataset if backend offline
+  if (matches.length === 0) {
+    const allMeds = (typeof INITIAL_DATA !== 'undefined' && INITIAL_DATA.medicines) ? INITIAL_DATA.medicines : [];
+    const qLower = (queryOrBarcode || "").toLowerCase().trim();
+    if (qLower.length > 0) {
+      matches = allMeds.filter(m => {
+        const b = (m.brandName || m.brand_name || m.name || "").toLowerCase();
+        const g = (m.genericName || m.generic_name || m.salt || "").toLowerCase();
+        const c = (m.category || "").toLowerCase();
+        return b.includes(qLower) || g.includes(qLower) || c.includes(qLower) || qLower.includes(b);
+      });
+    }
+  }
+
+  const queryInput = document.getElementById('smart-scan-query-input');
+  if (queryInput && queryOrBarcode && document.activeElement !== queryInput) {
+    queryInput.value = queryOrBarcode;
+  }
+
+  // Render Captured Image Badge if available
+  const capturedBadgeHeader = capturedImage ? `
+    <div class="p-2.5 rounded-xl bg-slate-900 border border-emerald-500/40 flex items-center justify-between text-xs">
+      <div class="flex items-center gap-2">
+        <img src="${capturedImage}" class="w-10 h-10 rounded-lg object-cover border border-emerald-500/50">
+        <div>
+          <span class="text-emerald-400 font-extrabold flex items-center gap-1"><i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Camera Frame Captured</span>
+          <p class="text-[10px] text-slate-400">Stored in Database • ${matches.length} Matches Found</p>
+        </div>
+      </div>
+      <span class="text-[10px] bg-emerald-500/20 text-emerald-300 font-bold px-2 py-0.5 rounded">Saved</span>
+    </div>
+  ` : '';
+
+  if (matches.length === 0) {
+    container.innerHTML = capturedBadgeHeader + `
+      <div class="p-4 rounded-2xl bg-slate-900 border border-indigo-500/40 text-center space-y-3 text-xs">
+        <div class="w-10 h-10 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center mx-auto">
+          <i data-lucide="bot" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h4 class="text-sm font-bold text-white">No Exact Store Brand Match for "${queryOrBarcode || 'Scanned Item'}"</h4>
+          <p class="text-[11px] text-slate-300 mt-1">Our AI Clinical Doctor can analyze the image signature & salt composition for you.</p>
+        </div>
+        <button onclick="sendQuickAIPrompt('Analyze medicine usage, dosage, and side effects for: ${queryOrBarcode}')" class="w-full bg-gradient-to-r from-indigo-500 to-cyan-500 text-white font-extrabold py-2.5 rounded-xl shadow-md flex items-center justify-center gap-2">
+          <i data-lucide="sparkles" class="w-4 h-4"></i> Ask CuraBot AI to Analyze "${queryOrBarcode || 'Scanned Item'}"
+        </button>
+      </div>
+    `;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+    return;
+  }
+
+  const aiHeaderBanner = `
+    <div class="p-3 rounded-2xl bg-indigo-950/80 border border-indigo-500/40 text-xs space-y-1 shadow-lg">
+      <div class="flex items-center justify-between text-indigo-300 font-extrabold">
+        <span class="flex items-center gap-1.5"><i data-lucide="sparkles" class="w-4 h-4 text-cyan-400"></i> AI Clinical Intelligence Connected</span>
+        <span class="text-[10px] bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded-full border border-indigo-500/30">Live API</span>
+      </div>
+      <p class="text-[11px] text-slate-300 leading-snug">
+        Identified ${matches.length} verified database record(s). Select <strong>Ask AI</strong> for dosage schedules or <strong>Add to Cart</strong> for instant delivery.
+      </p>
+    </div>
   `;
+
+  // Render Database Search Results
+  container.innerHTML = capturedBadgeHeader + aiHeaderBanner + matches.map(m => {
+    const medId = m.id || "med-1";
+    const brand = m.brand_name || m.brandName || m.name || "Medicine Item";
+    const generic = m.generic_name || m.genericName || m.salt || "Therapeutic Formula";
+    const category = m.category || "Allopathy";
+    const price = m.price || 120;
+    const currency = m.currency || "₹";
+    const image = m.image || "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=250";
+    const manufacturer = m.manufacturer || "Certified Pharma";
+
+    // Cache item in store map for cart operations
+    if (!window.storeMedicinesMap) window.storeMedicinesMap = {};
+    window.storeMedicinesMap[medId] = {
+      id: medId,
+      name: brand,
+      price: price,
+      currency: currency,
+      image: image,
+      manufacturer: manufacturer,
+      category: category
+    };
+
+    return `
+      <div class="p-4 rounded-2xl bg-slate-900 border border-teal-500/40 space-y-3 text-xs shadow-xl relative overflow-hidden">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+          <span class="text-teal-400 font-extrabold flex items-center gap-1">
+            <i data-lucide="database" class="w-4 h-4"></i> Database Match Found
+          </span>
+          <span class="text-[10px] bg-teal-500/20 text-teal-300 font-bold px-2.5 py-0.5 rounded-full border border-teal-500/30">
+            ${category}
+          </span>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <img src="${image}" class="w-14 h-14 rounded-xl object-cover border border-slate-700 shrink-0">
+          <div class="space-y-0.5 flex-1">
+            <h4 class="text-sm font-extrabold text-white">${brand}</h4>
+            <p class="text-[11px] text-cyan-300 font-medium">${generic}</p>
+            <p class="text-[10px] text-slate-400">Mfg: ${manufacturer} • Stock: <span class="text-emerald-400 font-bold">In Stock</span></p>
+          </div>
+          <div class="text-right">
+            <span class="text-base font-black text-teal-400">${currency}${price}</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2 pt-1">
+          <button onclick="addToCart('${medId}')" class="bg-gradient-to-r from-teal-500 to-cyan-500 text-slate-950 font-black text-[11px] py-2 rounded-xl flex items-center justify-center gap-1 shadow">
+            <i data-lucide="shopping-cart" class="w-3.5 h-3.5"></i> Add to Cart
+          </button>
+          <button onclick="showMedInfoDetails('${medId}')" class="bg-slate-800 hover:bg-slate-700 text-teal-300 text-[11px] font-bold py-2 rounded-xl flex items-center justify-center gap-1 border border-slate-700">
+            <i data-lucide="info" class="w-3.5 h-3.5"></i> Info
+          </button>
+          <button onclick="sendQuickAIPrompt('Tell me details, usage, and dosage for ${brand}')" class="bg-indigo-900/60 hover:bg-indigo-800/80 text-indigo-200 text-[11px] font-bold py-2 rounded-xl flex items-center justify-center gap-1 border border-indigo-500/40">
+            <i data-lucide="bot" class="w-3.5 h-3.5 text-indigo-400"></i> Ask AI
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
   if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 

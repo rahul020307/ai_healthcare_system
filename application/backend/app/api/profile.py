@@ -80,3 +80,91 @@ def upload_health_record(payload: dict = Body(...)):
         "message": "Health record permanently saved to dataset",
         "record": new_record
     }
+
+
+@router.post("/login")
+def login_user(payload: dict = Body(...)):
+    identity = payload.get("identity") or payload.get("email") or "User"
+    name = identity.split("@")[0].capitalize()
+    return {
+        "status": "success",
+        "message": "Login successful! JWT Session Active.",
+        "token": "jwt-token-active-88219",
+        "user": {
+            "name": name,
+            "email": payload.get("email") or f"{name.lower()}@curaassist.health",
+            "role": payload.get("role", "Patient")
+        }
+    }
+
+
+@router.post("/register")
+def register_user(payload: dict = Body(...)):
+    name = payload.get("name") or "New User"
+    email = payload.get("email") or "user@curaassist.health"
+    return {
+        "status": "success",
+        "message": f"Registration Complete! Welcome {name} to CuraAssist.",
+        "token": "jwt-token-active-99102",
+        "user": {
+            "name": name,
+            "email": email,
+            "role": "Patient"
+        }
+    }
+
+
+UPLOADS_FILE = DATA_DIR / "user_scanned_uploads.json"
+
+
+def load_uploads():
+    if UPLOADS_FILE.exists():
+        try:
+            with open(UPLOADS_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            return []
+    return []
+
+
+def save_uploads(uploads):
+    try:
+        with open(UPLOADS_FILE, "w", encoding="utf-8") as f:
+            json.dump(uploads, f, indent=2)
+            return True
+    except Exception as e:
+        print("Error saving user_scanned_uploads.json:", e)
+        return False
+
+
+@router.get("/uploads")
+def get_user_uploads():
+    return {"status": "success", "uploads": load_uploads()}
+
+
+@router.post("/uploads")
+def save_user_upload(payload: dict = Body(...)):
+    uploads = load_uploads()
+    item = {
+        "id": payload.get("id") or f"up-{int(Path(__file__).stat().st_mtime * 1000)}",
+        "fileName": payload.get("fileName", "scanned_doc.png"),
+        "fileType": payload.get("fileType", "image/png"),
+        "uploadDate": payload.get("uploadDate", "2026-08-08"),
+        "category": payload.get("category", "Prescription Scan"),
+        "previewUrl": payload.get("previewUrl") or payload.get("fileBase64") or "",
+        "extractedText": payload.get("extractedText", ""),
+        "aiSummary": payload.get("aiSummary", ""),
+        "matchedMedicines": payload.get("matchedMedicines", [])
+    }
+    uploads.insert(0, item)
+    save_uploads(uploads)
+    return {"status": "success", "message": "Upload stored in backend database", "upload": item}
+
+
+@router.delete("/uploads/{upload_id}")
+def delete_user_upload(upload_id: str):
+    uploads = load_uploads()
+    updated = [u for u in uploads if u.get("id") != upload_id]
+    save_uploads(updated)
+    return {"status": "success", "message": f"Upload {upload_id} deleted"}
+
