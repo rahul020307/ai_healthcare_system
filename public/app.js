@@ -499,24 +499,11 @@ function checkSavedSession() {
       }
     }
 
-    // Default guest profile fallback so visitors can immediately use the site
-    const defaultGuest = {
-      userName: "Rahul Sharma",
-      name: "Rahul Sharma",
-      email: "rahul.sharma@curahealth.in",
-      phone: "+91 98765 43210",
-      blood: "O+",
-      city: "Hyderabad, Telangana",
-      age: "34",
-      isLoggedIn: true
-    };
-    try {
-      localStorage.setItem('cura_auth_session', JSON.stringify(defaultGuest));
-    } catch (e) {}
-    updateAuthUIState(defaultGuest);
-    if (overlay) overlay.classList.add('hidden');
+    // Default to Sign Up / Register Gate on startup when no session exists
+    switchAuthTab('register');
+    if (overlay) overlay.classList.remove('hidden');
   } catch (e) {}
-  return true;
+  return false;
 }
 
 
