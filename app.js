@@ -1163,7 +1163,16 @@ async function renderStoreMedicines() {
       infoEl.innerText = `Hub: ${data.fulfillingStore} • ${data.deliveryEta || '15-25 min delivery'}`;
     }
 
-    const meds = data.medicines || [];
+    let meds = (data && data.medicines && data.medicines.length > 0) ? data.medicines : [];
+    
+    if (meds.length === 0 && typeof INITIAL_DATA !== 'undefined' && INITIAL_DATA.medicines) {
+      meds = INITIAL_DATA.medicines.filter(m => {
+        const matchesCat = activeStoreCat === 'All' || m.category === activeStoreCat || activeStoreCat === 'Prototype Specials';
+        const matchesSearch = !query || m.name.toLowerCase().includes(query) || (m.genericName && m.genericName.toLowerCase().includes(query));
+        return matchesCat && matchesSearch;
+      });
+    }
+
     window.storeMedicinesMap = window.storeMedicinesMap || {};
     meds.forEach(m => {
       window.storeMedicinesMap[m.id] = m;
