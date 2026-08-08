@@ -32,8 +32,55 @@ app.include_router(medicine_router)
 app.include_router(db_router)
 
 
+from fastapi.responses import FileResponse
+from pathlib import Path
+
+root_dir = Path(__file__).resolve().parent.parent.parent
+frontend_dir = Path(__file__).resolve().parent.parent / "frontend"
+
 @app.get("/")
-def root():
+@app.get("/index.html")
+def serve_index():
+    index_file = root_dir / "index.html"
+    if not index_file.exists():
+        index_file = frontend_dir / "index.html"
+    if index_file.exists():
+        return FileResponse(index_file)
+    return {
+        "status": "online",
+        "system": "CuraAssist CareHub API v2.4.0",
+        "docsUrl": "/docs"
+    }
+
+@app.get("/app.js")
+def serve_app_js():
+    f = root_dir / "app.js"
+    if not f.exists():
+        f = frontend_dir / "app.js"
+    if f.exists():
+        return FileResponse(f, media_type="application/javascript")
+    return {"detail": "Not Found"}
+
+@app.get("/data.js")
+def serve_data_js():
+    f = root_dir / "data.js"
+    if not f.exists():
+        f = frontend_dir / "data.js"
+    if f.exists():
+        return FileResponse(f, media_type="application/javascript")
+    return {"detail": "Not Found"}
+
+@app.get("/styles.css")
+def serve_styles_css():
+    f = root_dir / "styles.css"
+    if not f.exists():
+        f = frontend_dir / "styles.css"
+    if f.exists():
+        return FileResponse(f, media_type="text/css")
+    return {"detail": "Not Found"}
+
+@app.get("/api/status")
+def api_status():
     return {
         "status": "online",
         "system": "CuraAssist CareHub API v2.4.0",
