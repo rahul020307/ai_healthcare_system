@@ -2017,7 +2017,7 @@ async function callDirectGeminiAPI(userText, memberName, imageBase64Data = null,
   }
   parts.push({ text: `${systemPrompt}\n\nPatient Query: ${userText}` });
 
-  const models = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-pro"];
+  const models = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash-latest", "gemini-1.5-pro-latest", "gemini-1.5-flash", "gemini-pro"];
 
   for (const model of models) {
     try {
