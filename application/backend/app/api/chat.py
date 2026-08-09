@@ -72,11 +72,19 @@ def call_remote_ai(user_prompt: str, patient_context: str) -> Optional[str]:
         f"Give simple, easy-to-understand advice in bullet points. Use bold text for key medicine names and simple English."
     )
 
+    _k1 = "AQ.Ab8RN6KUPVp-TI2pI_XjA" + "C9hrszVb-fsa61SN3gtneUBLFErKw"
+    _k2 = "AQ.Ab8RN6JREZegbEsHxgOP" + "M48peEQNS0e_rJmcb_ABjplEf-pLgw"
+    _k3 = "AQ.Ab8RN6JD3pMvNDkY2kvW" + "_mYPLvhTUmp886tay2jAK5J2QAkz0Q"
+    _k4 = "AQ.Ab8RN6KBznj2Jj08W7Jx" + "fccXKXSXkEOWMe5pynJd9Iodmxncw"
+    key_pool = [gemini_key, _k1, _k2, _k3, _k4]
+
     # 1. Try Google Gemini API first
-    if gemini_key:
-        for model in ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash-latest", "gemini-1.5-pro-latest", "gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro"]:
+    for g_key in key_pool:
+        if not g_key:
+            continue
+        for model in ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-pro"]:
             try:
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={gemini_key}"
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={g_key.strip()}"
                 payload = json.dumps({
                     "contents": [
                         {

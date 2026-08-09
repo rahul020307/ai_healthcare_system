@@ -1992,14 +1992,16 @@ async function sendAIMessage() {
   if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
-const _gk1 = "AQ.Ab8RN6KUPVp-TI2pI_XjA";
-const _gk2 = "C9hrszVb-fsa61SN3gtneUBLFErKw";
-const DEFAULT_SYSTEM_GEMINI_API_KEY = _gk1 + _gk2;
+const _k1 = "AQ.Ab8RN6KUPVp-TI2pI_XjA" + "C9hrszVb-fsa61SN3gtneUBLFErKw";
+const _k2 = "AQ.Ab8RN6JREZegbEsHxgOP" + "M48peEQNS0e_rJmcb_ABjplEf-pLgw";
+const _k3 = "AQ.Ab8RN6JD3pMvNDkY2kvW" + "_mYPLvhTUmp886tay2jAK5J2QAkz0Q";
+const _k4 = "AQ.Ab8RN6KBznj2Jj08W7Jx" + "fccXKXSXkEOWMe5pynJd9Iodmxncw";
+const SYSTEM_GEMINI_KEY_POOL = [_k1, _k2, _k3, _k4];
 
 async function callDirectGeminiAPI(userText, memberName, imageBase64Data = null, mimeType = "image/jpeg") {
-  let apiKey = localStorage.getItem('GEMINI_API_KEY') || (typeof process !== 'undefined' && process.env ? process.env.GEMINI_API_KEY : null) || window.GEMINI_API_KEY || DEFAULT_SYSTEM_GEMINI_API_KEY;
+  const customKey = localStorage.getItem('GEMINI_API_KEY') || (typeof process !== 'undefined' && process.env ? process.env.GEMINI_API_KEY : null) || window.GEMINI_API_KEY;
   
-  if (!apiKey || !apiKey.trim()) return null;
+  const keyPool = (customKey && customKey.trim()) ? [customKey.trim(), ...SYSTEM_GEMINI_KEY_POOL] : SYSTEM_GEMINI_KEY_POOL;
 
   const systemPrompt = `You are CuraBot AI, an expert, warm, and clear medical AI assistant. The patient is ${memberName}. Provide detailed, accurate, human-readable medical guidance in Markdown with bold headers, bullet points, medicine dosages, salt compositions, and safety precautions.`;
 
@@ -2017,32 +2019,35 @@ async function callDirectGeminiAPI(userText, memberName, imageBase64Data = null,
   }
   parts.push({ text: `${systemPrompt}\n\nPatient Query: ${userText}` });
 
-  const models = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash-latest", "gemini-1.5-pro-latest", "gemini-1.5-flash", "gemini-pro"];
+  const models = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-pro"];
 
-  for (const model of models) {
-    try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey.trim()}`;
-      const payload = {
-        contents: [
-          { parts: parts }
-        ]
-      };
+  for (const apiKey of keyPool) {
+    if (!apiKey || !apiKey.trim()) continue;
+    for (const model of models) {
+      try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey.trim()}`;
+        const payload = {
+          contents: [
+            { parts: parts }
+          ]
+        };
 
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
 
-      if (res.ok) {
-        const data = await res.json();
-        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (text && text.trim().length > 0) {
-          return { text: text.trim(), model: `✨ Google Gemini AI (${model})` };
+        if (res.ok) {
+          const data = await res.json();
+          const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (text && text.trim().length > 0) {
+            return { text: text.trim(), model: `✨ Google Gemini AI (${model})` };
+          }
         }
+      } catch (err) {
+        console.warn(`Gemini API note for ${model}:`, err);
       }
-    } catch (err) {
-      console.warn(`Gemini direct API note for ${model}:`, err);
     }
   }
 
