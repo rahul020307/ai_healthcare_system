@@ -1997,9 +1997,9 @@ const _gk2 = "C9hrszVb-fsa61SN3gtneUBLFErKw";
 const DEFAULT_SYSTEM_GEMINI_API_KEY = _gk1 + _gk2;
 
 async function callDirectGeminiAPI(userText, memberName, imageBase64Data = null, mimeType = "image/jpeg") {
-  let apiKey = localStorage.getItem('GEMINI_API_KEY') || (typeof process !== 'undefined' && process.env ? process.env.GEMINI_API_KEY : null) || window.GEMINI_API_KEY || DEFAULT_SYSTEM_GEMINI_API_KEY;
+  let apiKey = localStorage.getItem('GEMINI_API_KEY') || (typeof process !== 'undefined' && process.env ? process.env.GEMINI_API_KEY : null) || window.GEMINI_API_KEY;
   
-  if (!apiKey || !apiKey.trim()) return null;
+  if (!apiKey || !apiKey.trim() || (!apiKey.startsWith('AIza') && !apiKey.startsWith('aiza'))) return null;
 
   const systemPrompt = `You are CuraBot AI, an expert, warm, and clear medical AI assistant. The patient is ${memberName}. Provide detailed, accurate, human-readable medical guidance in Markdown with bold headers, bullet points, medicine dosages, salt compositions, and safety precautions.`;
 
