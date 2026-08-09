@@ -2663,6 +2663,8 @@ async function triggerBarcodeScanProcess(queryOrBarcode, fileName = "", captured
     const textLower = rawInput.toLowerCase();
     if (textLower.includes('nexpro') || textLower.includes('esomeprazole')) {
       cleanMedicineTitle = "Nexpro-40 (Esomeprazole Magnesium 40mg - Torrent Pharma)";
+    } else if (textLower.includes('levocetirizine') || textLower.includes('allergin')) {
+      cleanMedicineTitle = "Levocetirizine 5mg (Allergin-L / Anti-Allergic)";
     } else if (textLower.includes('dolo') || textLower.includes('paracetamol')) {
       cleanMedicineTitle = "Dolo 650mg (Paracetamol 650mg)";
     } else if (textLower.includes('pan 40') || textLower.includes('pantoprazole')) {
@@ -2670,15 +2672,7 @@ async function triggerBarcodeScanProcess(queryOrBarcode, fileName = "", captured
     } else if (textLower.includes('amoxyclav') || textLower.includes('amoxicillin')) {
       cleanMedicineTitle = "Amoxyclav 625mg (Amoxicillin + Clavulanic Acid)";
     } else {
-      // Use Live Gemini AI to extract clean medicine name from raw OCR string
-      try {
-        const extractRes = await callDirectGeminiAPI(`Extract ONLY the primary Medicine Brand Name, Active Salt, and Dosage (max 6 words) from this raw OCR text. Do not include raw OCR noise or gibberish:\n\n"${rawInput.substring(0, 400)}"`, "Patient");
-        if (extractRes && extractRes.text && extractRes.text.length < 80) {
-          cleanMedicineTitle = extractRes.text.replace(/[*#]/g, '').trim();
-        }
-      } catch (e) {
-        console.warn("Name extraction note:", e);
-      }
+      cleanMedicineTitle = "Scanned Medicine Strip";
     }
   }
 
@@ -2751,18 +2745,19 @@ async function triggerBarcodeScanProcess(queryOrBarcode, fileName = "", captured
 
   // Live Google Gemini 2.5 Flash AI Medicine Analysis
   let geminiAnalysisHTML = "";
-  if (cleanMedicineTitle && cleanMedicineTitle.trim().length > 0) {
+  if ((cleanMedicineTitle && cleanMedicineTitle.trim().length > 0) || capturedImage) {
     try {
       const aiPrompt = `You are CuraBot AI, a top clinical medical AI assistant.
 The patient scanned a medicine package, foil strip, or barcode.
-Scanned Medicine: "${cleanMedicineTitle}".
+Query: "${cleanMedicineTitle || 'Scanned Medicine Packaging'}".
 
 Please provide a clear, professional, caring clinical medical analysis:
-1. 💊 **Brand Name, Manufacturer & Active Salt Composition**
-2. 🩺 **Primary Clinical Uses & Indications** (e.g. Gastric Acidity, GERD, Heartburn, Ulcer Protection)
-3. ⏰ **Standard Clinical Dosage & Timing** (e.g. 1 Tablet daily in the morning 30 mins before breakfast on an empty stomach; Swallow whole, do not crush or chew)
+1. 💊 **Brand Name, Manufacturer & Active Salt Composition** (e.g. Levocetirizine / Allergin-L / Nexpro 40 / Dolo 650)
+2. 🩺 **Primary Clinical Uses & Indications** (e.g. Anti-Allergic, Sneezing, Runny Nose, Acidity, GERD, Pain Relief)
+3. ⏰ **Standard Clinical Dosage & Timing** (e.g. 1 Tablet daily at bedtime or after meals)
 4. ⚠️ **Side Effects, Precautions & Storage**
 
+If an image photo is attached, analyze the packaging image pixels directly to identify the medicine name and active salt.
 DO NOT quote OCR text, OCR snippets, or raw camera gibberish. Write directly in a clean, professional, caring doctor voice in Markdown with bold headers and bullet points.`;
       
       const geminiRes = await callDirectGeminiAPI(aiPrompt, "Patient", capturedImage);
