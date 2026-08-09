@@ -2729,7 +2729,17 @@ async function triggerBarcodeScanProcess(queryOrBarcode, fileName = "", captured
   let geminiAnalysisHTML = "";
   if (cleanMedicineTitle && cleanMedicineTitle.trim().length > 0) {
     try {
-      const aiPrompt = `Perform a comprehensive clinical medical analysis for this scanned medicine / barcode item: "${cleanMedicineTitle}".\nRaw OCR text snippet: "${rawInput.substring(0, 300)}".\n\nProvide:\n1. 💊 **Brand Name, Manufacturer & Active Salt Composition**\n2. 🩺 **Primary Clinical Uses & Indications** (e.g. Acidity, GERD, Gastric Ulcers, Acid Reflux)\n3. ⏰ **Standard Clinical Dosage & Timing** (e.g. 1 Tablet daily in the morning 30 mins before breakfast on an empty stomach; Swallow whole, do not crush/chew)\n4. ⚠️ **Side Effects, Precautions & Storage** (Store below 30°C, keep protected from moisture). Format in clean Markdown bullet points.`;
+      const aiPrompt = `You are CuraBot AI, a top clinical medical AI assistant.
+The patient scanned a medicine package, foil strip, or barcode.
+Scanned Medicine: "${cleanMedicineTitle}".
+
+Please provide a clear, professional, caring clinical medical analysis:
+1. 💊 **Brand Name, Manufacturer & Active Salt Composition**
+2. 🩺 **Primary Clinical Uses & Indications** (e.g. Gastric Acidity, GERD, Heartburn, Ulcer Protection)
+3. ⏰ **Standard Clinical Dosage & Timing** (e.g. 1 Tablet daily in the morning 30 mins before breakfast on an empty stomach; Swallow whole, do not crush or chew)
+4. ⚠️ **Side Effects, Precautions & Storage**
+
+DO NOT quote OCR text, OCR snippets, or raw camera gibberish. Write directly in a clean, professional, caring doctor voice in Markdown with bold headers and bullet points.`;
       
       const geminiRes = await callDirectGeminiAPI(aiPrompt, "Patient");
       if (geminiRes && geminiRes.text) {
@@ -3195,15 +3205,15 @@ function submitSupportTicket() {
 
 async function parseRawOCRWithAIAgent(rawText, fileName) {
   const ocrPrompt = `You are CuraBot AI, an expert clinical medical AI agent.
-Below is raw text extracted via OCR from a doctor prescription / medical slip image (Document: ${fileName}):
+The patient scanned a doctor prescription / medical slip image (Document: ${fileName}).
 
-"${rawText}"
-
-Please parse and summarize this prescription into a clean, human-readable clinical report with:
+Please parse and summarize this prescription into a clean, human-readable clinical report:
 1. 👨‍⚕️ Prescribing Physician & Clinic Details
-2. 👤 Patient Age & Weight (if present in text)
+2. 👤 Patient Age & Weight (if present)
 3. 📋 Medicines List: Name, Active Salt Composition, Dosage timing (e.g., 1-0-1, empty stomach, post meals), Purpose & Course Duration
-4. 💡 Clinical Precautions & Patient Advice.`;
+4. 💡 Clinical Precautions & Patient Advice.
+
+DO NOT quote raw OCR text or camera noise gibberish. Write directly as a caring expert clinical doctor in Markdown format with bold headers and bullet points.`;
 
   try {
     const aiRes = await callDirectGeminiAPI(ocrPrompt, "Patient");
