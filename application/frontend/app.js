@@ -1950,8 +1950,8 @@ async function sendAIMessage() {
     }
 
     if (!aiReplyText || aiReplyText.trim().length === 0) {
-      aiReplyText = generateSmartAIChatResponse(userText, memberName);
-      senderBadge = "CuraBot AI Clinical Assistant";
+      aiReplyText = "🤖 **CuraBot AI Connection Note**\n\nUnable to reach live Google Gemini AI service. Please check your network connection.";
+      senderBadge = "CuraBot AI";
     }
 
     document.getElementById(typingId)?.remove();
@@ -1973,17 +1973,16 @@ async function sendAIMessage() {
     `;
   } catch (err) {
     document.getElementById(typingId)?.remove();
-    const fallbackText = generateSmartAIChatResponse(userText, memberName);
-    const formattedReply = formatMarkdownToHTML(fallbackText);
     container.innerHTML += `
       <div class="flex justify-start">
         <div class="bg-slate-900 border border-teal-500/30 text-slate-200 p-4 rounded-2xl max-w-[88%] space-y-1.5 text-xs shadow-xl">
           <div class="flex items-center justify-between text-[10px] text-teal-400 font-bold border-b border-slate-800 pb-1.5 mb-1.5">
-            <span class="flex items-center gap-1"><i data-lucide="bot" class="w-3.5 h-3.5"></i> CuraBot AI Clinical Assistant</span>
+            <span class="flex items-center gap-1"><i data-lucide="bot" class="w-3.5 h-3.5"></i> CuraBot AI</span>
             <span class="text-slate-400 font-normal">Medical Assistant</span>
           </div>
           <div class="leading-relaxed text-slate-300">
-            ${formattedReply}
+            <p>🤖 <strong>CuraBot AI Connection Note</strong></p>
+            <p>Unable to connect to live AI API. Please check your network connection.</p>
           </div>
         </div>
       </div>
@@ -2056,212 +2055,6 @@ function promptForGeminiAPIKey() {
       alert("Reset to default system Gemini API Key from .env!");
     }
   }
-}
-
-function generateSmartAIChatResponse(userText, memberName) {
-  const queryLower = userText.toLowerCase().trim();
-
-  // 1. CRITICAL EMERGENCY PROTOCOL (Chest Pain, Heart Attack, Breathing Difficulty)
-  if (queryLower.includes('chest pain') || queryLower.includes('heart attack') || queryLower.includes('chest pressure') || queryLower.includes('shortness of breath') || queryLower.includes('breathing difficulty') || queryLower.includes('passed out') || queryLower.includes('cardiac')) {
-    return `🚨 **EMERGENCY MEDICAL WARNING: CHEST PAIN / CARDIAC RISK DETECTED**
-
-Hello **${memberName}**! **Chest pain can be a sign of a severe cardiac emergency (Heart Attack / Angina) or pulmonary embolism!**
-
-⚠️ **IMMEDIATE EMERGENCY ACTIONS**:
-1. **Call 108 Ambulance / Emergency Services immediately** or tap the **🚨 Emergency SOS** button at the top of your screen.
-2. **Rest & Position**: Sit down immediately in a comfortable upright position (leaning back against a wall or pillow). Do NOT exert yourself or walk around.
-3. **Loosen Tight Clothing**: Unbutton collars, belts, or tight shirts to assist breathing.
-4. **Medication**: If prescribed by your cardiologist, take **Sublingual Nitroglycerin** or **Aspirin 325mg** (chew 1 uncoated tablet) if not allergic and advised by a physician.
-5. **DO NOT DRIVE**: Never attempt to drive yourself to the emergency department. Wait for the medical ambulance crew.`;
-  }
-
-  // 2. URINARY TRACT / HEMATURIA / BLOOD IN URINE / KIDNEY STONES PROTOCOL
-  if (queryLower.includes('urination') || queryLower.includes('urine') || queryLower.includes('pee') || queryLower.includes('hematuria') || queryLower.includes('kidney stone') || queryLower.includes('uti') || queryLower.includes('bladder')) {
-    let symptomTitle = "Urinary & Kidney Care";
-    let warningNote = "";
-    if (queryLower.includes('blood') || queryLower.includes('red') || queryLower.includes('bleeding')) {
-      symptomTitle = "Hematuria & Blood in Urine Warning";
-      warningNote = "\n⚠️ **Clinical Note**: Blood in urine (Hematuria) is a significant urological symptom that requires prompt medical evaluation by a Urologist or Primary Care Physician!";
-    }
-
-    return `🤖 **CuraBot AI Clinical Advice: ${symptomTitle.toUpperCase()}**
-
-Hello **${memberName}**! Here is your clinical guidance for urinary concerns:${warningNote}
-
-• 🩺 **Possible Causes**: Urinary Tract Infection (UTI), Kidney Stones, Bladder Inflammation, or Kidney Infection.
-• 💧 **Hydration Protocol**: Drink **3 to 4 Liters of water daily** to flush out bacteria, crystal deposits, and toxins from the urinary tract.
-• 💊 **Symptom & Acidity Relief**:
-  - **Alkasol Syrup / Cital Syrup** (Disodium Hydrogen Citrate) — 2 teaspoons in a full glass of water 3 times daily to neutralize urine acidity and relieve burning.
-  - **Dolo 650mg** for pain and fever relief.
-  - Antibiotic therapy (such as **Ciprofloxacin 500mg** or **Nitrofurantoin 100mg**) as prescribed by your doctor following a Urine Culture test.
-• 🚫 **Dietary Restrictions**: Avoid caffeine, carbonated sodas, alcohol, very spicy foods, and artificial sweeteners.
-• 🚨 **Urgent Warning**: If accompanied by severe flank/back pain, high fever (>102°F) with chills, or inability to pass urine, go to an Emergency Department immediately!`;
-  }
-
-  // 3. GASTROINTESTINAL / VOMITING / DIARRHEA / LOOSE MOTION / NAUSEA
-  if (queryLower.includes('vomit') || queryLower.includes('nausea') || queryLower.includes('diarrhea') || queryLower.includes('loose motion') || queryLower.includes('food poisoning') || queryLower.includes('stool')) {
-    return `🤖 **CuraBot AI Clinical Advice: Gastrointestinal & Diarrhea Care**
-
-Hello **${memberName}**! For nausea, vomiting & loose motions:
-
-• 💧 **Rehydration (Critical)**: Sip **ORS (Oral Rehydration Salts)** or Electral solution after every loose stool to restore sodium, potassium, and lost fluids.
-• 💊 **Medication**:
-  - **Ondem 4mg (Ondansetron)**: 1 tablet for nausea and vomiting control (30 mins before food).
-  - **Econorm / Sporlac Probiotic**: 1 sachet twice daily to restore healthy gut flora.
-  - **Norflox-TZ / Oflox-OZ** (if prescribed by physician for bacterial diarrhea).
-• 🥣 **BRAT Diet**: Eat bland foods — Bananas, Rice (curd rice), Applesauce, and Toast. Avoid milk, greasy foods, and caffeine.
-• 🚨 **Red Flags**: Seek urgent medical care if severe abdominal pain, high fever, or blood in stool occurs.`;
-  }
-
-  // 4. DERMATOLOGICAL / SKIN ALLERGY / RASH / ITCHING / HIVES
-  if (queryLower.includes('rash') || queryLower.includes('itch') || queryLower.includes('allergy') || queryLower.includes('hives') || queryLower.includes('skin') || queryLower.includes('eczema')) {
-    return `🤖 **CuraBot AI Clinical Advice: Skin Rash & Allergy Relief**
-
-Hello **${memberName}**! For skin rash, itching, and allergic reactions:
-
-• 💊 **Antihistamine Medication**: **Allegra 120mg (Fexofenadine)** or **Cetirizine 10mg** — 1 tablet daily for fast anti-itch and allergy relief.
-• 🧴 **Topical Relief**: Apply **Calamine Lotion** (Caladryl) or aloe vera gel over the itchy skin for cooling relief.
-• 🧼 **Skincare Protocol**: Take cool showers, use mild fragrance-free soaps, and avoid scratching to prevent secondary skin infections.
-• 🚨 **Anaphylaxis Emergency**: If skin rash is accompanied by swelling of lips/tongue, throat tightness, or difficulty breathing, call 108 / Emergency SOS immediately!`;
-  }
-
-  // 5. Greetings & Casual Chat
-  if (/^(hi|hello|hey|greetings|hola|namaste|good morning|good evening|who are you|help)/i.test(queryLower)) {
-    return `🤖 **Hello ${memberName}! I'm CuraBot AI, your 24/7 Personal Clinical Assistant.**
-
-How can I assist you with your health today? Here are things you can ask me:
-• 💊 **Medicines & Dosage**: *"What is Dolo 650 dosage?"*, *"Side effects of Pan 40"*
-• 🩺 **Symptoms & Care**: *"How to treat fever"*, *"Stomach gas relief"*, *"Migraine remedies"*
-• 📄 **Prescriptions**: *"Explain my doctor slip"*, *"Scan prescription photo"*
-• 🏥 **Hospitals & Labs**: *"Find emergency ICU near me"*`;
-  }
-
-  // 6. Doctor Prescriptions / OCR Extracted Document Analysis
-  if (queryLower.includes('bhide') || queryLower.includes('prescription') || queryLower.includes('slip') || queryLower.includes('dolo') || queryLower.includes('pan 40') || queryLower.includes('amoxicillin')) {
-    return `🤖 **CuraBot AI Clinical Prescription Guidance**
-
-Hello **${memberName}**! Here is the AI clinical breakdown for your prescription query:
-
-1. **Dolo 650mg (Paracetamol)**: Take 1 tablet 3 times daily after food for fever, body ache, and pain. Maximum 4 tablets (2600mg) per day.
-2. **Pan 40mg (Pantoprazole)**: Take 1 tablet in the morning 30 minutes BEFORE breakfast on an empty stomach to prevent acidity and protect your stomach lining.
-3. **Amoxyclav 625mg (Amoxicillin + Clavulanic Acid)**: Broad-spectrum antibiotic. Take 1 tablet twice daily (every 12 hours) after meals. **Complete the full 5-day course**.
-
-💡 **Clinical Precautions**:
-• Do not stop taking antibiotics early, even if symptoms improve.
-• Stay hydrated with 2-3 liters of fluids daily.
-• Consult your primary care doctor if high fever (above 102°F) persists after 48 hours.`;
-  }
-
-  // 7. Fever, Cold, Cough & Flu
-  if (queryLower.includes('fever') || queryLower.includes('cold') || queryLower.includes('cough') || queryLower.includes('flu') || queryLower.includes('chills') || queryLower.includes('temperature')) {
-    return `🤖 **CuraBot AI Clinical Advice: Fever & Flu Management**
-
-Hello **${memberName}**! For fever, cold & flu relief:
-
-• **Medication**: **Dolo 650mg** or **Crocin 650mg** (Paracetamol) — 1 tablet post meals, 6-8 hours apart.
-• **Cough & Throat**: **Chericof Cough Syrup** or **Alex Syrup** (10ml twice daily) + warm salt water gargle.
-• **Hydration**: Drink ORS solution, warm herbal tea, and rest.
-• 🚨 **Red Flags**: If fever exceeds 102°F (38.8°C), or is accompanied by severe headache, stiff neck, or shortness of breath, consult a doctor immediately.`;
-  }
-
-  // 8. Acidity, GERD, Gas & Indigestion
-  if (queryLower.includes('acid') || queryLower.includes('gas') || queryLower.includes('stomach') || queryLower.includes('gerd') || queryLower.includes('heartburn') || queryLower.includes('bloating')) {
-    return `🤖 **CuraBot AI Clinical Advice: Gastric & Acidity Relief**
-
-Hello **${memberName}**! For stomach acidity and gas relief:
-
-• **Medication**: **Pan 40mg** (Pantoprazole) or **Gelusil Liquid** (Antacid) gives fast relief. Take Pantoprazole 30 mins before breakfast.
-• **Dietary Advice**: Avoid fried, spicy, acidic foods, caffeine, and carbonated drinks.
-• **Lifestyle**: Eat smaller, frequent meals and avoid lying down for 2 hours after eating.`;
-  }
-
-  // 9. Universal Body-Part Pain & Symptom Specific Clinical Engine (Neck, Shoulder, Leg, Knee, Back, Ear, Tooth, Throat, Abdomen, etc.)
-  if (!queryLower.includes('chest') && (queryLower.includes('pain') || queryLower.includes('ache') || queryLower.includes('sore') || queryLower.includes('cramp') || queryLower.includes('stiff') || queryLower.includes('swelling') || queryLower.includes('headache') || queryLower.includes('migraine') || queryLower.includes('neck') || queryLower.includes('shoulder') || queryLower.includes('tooth') || queryLower.includes('throat') || queryLower.includes('ear'))) {
-
-    let bodyPart = "affected area";
-    let bodyTitle = "Pain & Soreness Management";
-    let specificCare = "Apply Volini gel or a warm compress, rest the affected area, and maintain proper posture.";
-
-    if (queryLower.includes('neck') || queryLower.includes('cervical') || queryLower.includes('nape')) {
-      bodyPart = "neck and cervical muscle region";
-      bodyTitle = "Neck Pain & Cervical Stiffness Care";
-      specificCare = "Apply Volini Spray or Omnigel on the neck and upper shoulder muscles. Use a warm heating pad for 15 minutes, avoid looking down at phone screens, and use a supportive neck pillow. Seek urgent care if neck stiffness is accompanied by high fever or numbness down the arms.";
-    } else if (queryLower.includes('shoulder') || queryLower.includes('trapezius') || queryLower.includes('rotator')) {
-      bodyPart = "shoulder and upper arm region";
-      bodyTitle = "Shoulder Pain & Rotator Cuff Care";
-      specificCare = "Rest the shoulder, avoid heavy lifting or overhead reaching. Apply ice packs for acute strain or warm compresses for chronic stiffness, and apply Volini/Omnigel.";
-    } else if (queryLower.includes('back') || queryLower.includes('spine') || queryLower.includes('lumbar') || queryLower.includes('sciatica')) {
-      bodyPart = "back and spinal lumbar area";
-      bodyTitle = "Back Pain & Lumbar Care";
-      specificCare = "Maintain proper ergonomic sitting posture, use a lumbar support cushion, apply hot/cold packs, and avoid sudden bending or heavy lifting. Do light cat-cow stretches.";
-    } else if (queryLower.includes('leg') || queryLower.includes('thigh') || queryLower.includes('calf') || queryLower.includes('foot') || queryLower.includes('ankle') || queryLower.includes('heel')) {
-      bodyPart = "leg, calf, and foot muscles";
-      bodyTitle = "Leg Pain & Muscle Cramp Care";
-      specificCare = "Apply Volini Spray or Omnigel on sore calf/thigh muscles. Elevate legs on 2 pillows while lying down, and drink plenty of water with ORS fluids to replenish electrolytes.";
-    } else if (queryLower.includes('knee') || queryLower.includes('joint') || queryLower.includes('arthritis') || queryLower.includes('elbow') || queryLower.includes('wrist')) {
-      bodyPart = "knee and joint articulation";
-      bodyTitle = "Knee & Joint Pain Care";
-      specificCare = "Avoid high-impact jumping or stairs. Apply cold ice packs for swelling, use a supportive knee/joint bandage, and elevate the joint.";
-    } else if (queryLower.includes('tooth') || queryLower.includes('teeth') || queryLower.includes('gum') || queryLower.includes('dental')) {
-      bodyPart = "dental tooth and jaw area";
-      bodyTitle = "Toothache & Dental Relief";
-      specificCare = "Gargle with warm salt water. Apply clove oil (Laung oil) on the affected tooth with a cotton swab. Take Dolo 650mg for pain relief and visit a dentist promptly.";
-    } else if (queryLower.includes('ear') || queryLower.includes('earache')) {
-      bodyPart = "ear and auditory canal";
-      bodyTitle = "Ear Pain Relief";
-      specificCare = "Keep ear dry, do not insert cotton swabs or sharp objects inside ear canal. Use warm compress outside ear and consult an ENT doctor if fluid drains.";
-    } else if (queryLower.includes('throat') || queryLower.includes('tonsil') || queryLower.includes('swallowing')) {
-      bodyPart = "throat and pharyngeal region";
-      bodyTitle = "Sore Throat & Tonsil Care";
-      specificCare = "Gargle with warm salt water or Betadine gargle 3 times daily. Sip warm ginger honey water, take Dolo 650mg, and take Alex / Chericof cough syrup if coughing.";
-    } else if (queryLower.includes('headache') || queryLower.includes('migraine')) {
-      bodyPart = "head and cranial region";
-      bodyTitle = "Headache & Migraine Relief";
-      specificCare = "Rest in a dark, quiet room. Apply cold compress on forehead, stay hydrated, avoid screen eye strain, and take Dolo 650mg or Combiflam.";
-    }
-
-    return `🤖 **CuraBot AI Clinical Advice: ${bodyTitle.toUpperCase()}**
-
-Hello **${memberName}**! Here is your tailored clinical guidance for **${bodyPart}**:
-
-• 💊 **Medication**: **Dolo 650mg** or **Combiflam** (Paracetamol + Ibuprofen) — 1 tablet after meals for effective pain and inflammation relief.
-• 🩹 **Targeted Clinical Care**: ${specificCare}
-• 🧘 **Rest & Posture**: Rest the affected area, avoid strenuous strain, and keep well-hydrated.
-• 🚨 **When to see a Doctor**: If pain is severe, persistent beyond 48 hours, or accompanied by fever, swelling, or numbness, consult a physician.`;
-  }
-
-  // 10. Diabetes & Blood Sugar
-  if (queryLower.includes('diabet') || queryLower.includes('sugar') || queryLower.includes('glucose') || queryLower.includes('metformin') || queryLower.includes('hba1c')) {
-    return `🤖 **CuraBot AI Clinical Advice: Diabetes & Sugar Control**
-
-Hello **${memberName}**! For blood sugar management:
-
-• **Medication**: **Metformin 500mg** or **Glimepiride 1mg** (as prescribed by your endocrinologist).
-• **Diet**: High-fiber, low-glycemic index foods (whole grains, green vegetables). Avoid refined sugar and sweet beverages.
-• **Tracking**: Log your fasting and post-meal glucose in your **Profile Vitals Tracker**.`;
-  }
-
-  // 11. Blood Pressure & Heart Health
-  if (queryLower.includes('bp') || queryLower.includes('blood pressure') || queryLower.includes('hypertension') || queryLower.includes('heart') || queryLower.includes('cardio')) {
-    return `🤖 **CuraBot AI Clinical Advice: Blood Pressure Management**
-
-Hello **${memberName}**! For blood pressure control:
-
-• **Medication**: **Metoprolol 25mg** or **Telmisartan 40mg** — 1 tablet daily at fixed morning time.
-• **Sodium & Salt**: Limit salt intake (< 2,000mg/day). Follow DASH diet rich in potassium.
-• **Vitals Log**: Measure and record BP daily in your **Profile Vitals Tracker**.`;
-  }
-
-  // 12. General Health & Custom Queries
-  const queryClean = userText.replace(/[^a-zA-Z0-9\s]/g, '').trim();
-  return `🤖 **CuraBot AI Clinical Medical Guidance**
-
-Hello **${memberName}**! Here is the clinical AI breakdown for **"${queryClean}"**:
-
-• 🩺 **Clinical Overview**: Regarding **"${queryClean}"**, CuraBot AI recommends reviewing your active health records, maintaining proper hydration, and monitoring key vitals.
-• 💊 **Medication & Safety Protocol**: Always verify drug dosage, active salt compositions, and drug-drug interactions before taking new medications.
-• 📊 **Vitals & Monitoring**: Log your daily Blood Pressure, Pulse, Temperature, and Glucose readings in your **Profile Vitals Tracker**.
-• 🚨 **Emergency Protocol**: If experiencing severe discomfort, chest pain, or breathing difficulty, tap **🚨 Emergency SOS** at the top right of your screen for 1-tap emergency medical dispatch.`;
 }
 
 // EMERGENCY ENGINE
