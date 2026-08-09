@@ -1982,7 +1982,21 @@ async function sendAIMessage() {
 function generateSmartAIChatResponse(userText, memberName) {
   const queryLower = userText.toLowerCase().trim();
 
-  // 1. Greetings & Casual Chat
+  // 1. CRITICAL EMERGENCY PROTOCOL (Chest Pain, Heart Attack, Breathing Difficulty)
+  if (queryLower.includes('chest pain') || queryLower.includes('heart attack') || queryLower.includes('chest pressure') || queryLower.includes('shortness of breath') || queryLower.includes('breathing difficulty') || queryLower.includes('passed out') || queryLower.includes('cardiac')) {
+    return `🚨 **EMERGENCY MEDICAL WARNING: CHEST PAIN / CARDIAC RISK DETECTED**
+
+Hello **${memberName}**! **Chest pain can be a sign of a severe cardiac emergency (Heart Attack / Angina) or pulmonary embolism!**
+
+⚠️ **IMMEDIATE EMERGENCY ACTIONS**:
+1. **Call 108 Ambulance / Emergency Services immediately** or tap the **🚨 Emergency SOS** button at the top of your screen.
+2. **Rest & Position**: Sit down immediately in a comfortable upright position (leaning back against a wall or pillow). Do NOT exert yourself or walk around.
+3. **Loosen Tight Clothing**: Unbutton collars, belts, or tight shirts to assist breathing.
+4. **Medication**: If prescribed by your cardiologist, take **Sublingual Nitroglycerin** or **Aspirin 325mg** (chew 1 uncoated tablet) if not allergic and advised by a physician.
+5. **DO NOT DRIVE**: Never attempt to drive yourself to the emergency department. Wait for the medical ambulance crew.`;
+  }
+
+  // 2. Greetings & Casual Chat
   if (/^(hi|hello|hey|greetings|hola|namaste|good morning|good evening|who are you|help)/i.test(queryLower)) {
     return `🤖 **Hello ${memberName}! I'm CuraBot AI, your 24/7 Personal Clinical Assistant.**
 
@@ -1993,7 +2007,7 @@ How can I assist you with your health today? Here are things you can ask me:
 • 🏥 **Hospitals & Labs**: *"Find emergency ICU near me"*`;
   }
 
-  // 2. Doctor Prescriptions / OCR Extracted Document Analysis
+  // 3. Doctor Prescriptions / OCR Extracted Document Analysis
   if (queryLower.includes('bhide') || queryLower.includes('prescription') || queryLower.includes('slip') || queryLower.includes('dolo') || queryLower.includes('pan 40') || queryLower.includes('amoxicillin')) {
     return `🤖 **CuraBot AI Clinical Prescription Guidance**
 
@@ -2009,7 +2023,7 @@ Hello **${memberName}**! Here is the AI clinical breakdown for your prescription
 • Consult your primary care doctor if high fever (above 102°F) persists after 48 hours.`;
   }
 
-  // 3. Fever, Cold, Cough & Flu
+  // 4. Fever, Cold, Cough & Flu
   if (queryLower.includes('fever') || queryLower.includes('cold') || queryLower.includes('cough') || queryLower.includes('flu') || queryLower.includes('chills') || queryLower.includes('temperature')) {
     return `🤖 **CuraBot AI Clinical Advice: Fever & Flu Management**
 
@@ -2021,7 +2035,7 @@ Hello **${memberName}**! For fever, cold & flu relief:
 • 🚨 **Red Flags**: If fever exceeds 102°F (38.8°C), or is accompanied by severe headache, stiff neck, or shortness of breath, consult a doctor immediately.`;
   }
 
-  // 4. Acidity, GERD, Gas & Indigestion
+  // 5. Acidity, GERD, Gas & Indigestion
   if (queryLower.includes('acid') || queryLower.includes('gas') || queryLower.includes('stomach') || queryLower.includes('gerd') || queryLower.includes('heartburn') || queryLower.includes('bloating')) {
     return `🤖 **CuraBot AI Clinical Advice: Gastric & Acidity Relief**
 
@@ -2032,8 +2046,8 @@ Hello **${memberName}**! For stomach acidity and gas relief:
 • **Lifestyle**: Eat smaller, frequent meals and avoid lying down for 2 hours after eating.`;
   }
 
-  // 5. Pain, Headache, Backache & Joint Pain
-  if (queryLower.includes('headache') || queryLower.includes('pain') || queryLower.includes('migraine') || queryLower.includes('back') || queryLower.includes('joint') || queryLower.includes('muscle')) {
+  // 6. Pain, Headache, Backache & Joint Pain (excluding Chest Pain)
+  if (!queryLower.includes('chest') && (queryLower.includes('headache') || queryLower.includes('migraine') || queryLower.includes('back') || queryLower.includes('joint') || queryLower.includes('muscle') || queryLower.includes('pain'))) {
     return `🤖 **CuraBot AI Clinical Advice: Pain & Soreness Management**
 
 Hello **${memberName}**! For pain and headache relief:
