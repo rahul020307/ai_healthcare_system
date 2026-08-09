@@ -2420,22 +2420,28 @@ async function captureItemCameraFrameAndScan() {
     capturedImageDataUrl = canvas.toDataURL('image/jpeg', 0.85);
 
     container.innerHTML = `
-      <div class="p-3.5 rounded-2xl bg-slate-900 border border-teal-500/40 space-y-2 text-center shadow-xl">
-        <span class="text-teal-400 font-extrabold text-xs flex items-center justify-center gap-1.5">
-          <i data-lucide="camera" class="w-4 h-4 text-emerald-400"></i> Captured Live Camera Frame & Saving to Database...
+      <div class="p-4 rounded-2xl bg-slate-900 border border-teal-500/40 space-y-3 text-center shadow-xl">
+        <span class="text-teal-400 font-extrabold text-xs flex items-center justify-center gap-1.5 animate-pulse">
+          <i data-lucide="sparkles" class="w-4 h-4 text-amber-400"></i> Google Gemini Vision AI Analyzing Tablet Photo...
         </span>
-        <div class="relative w-36 h-24 rounded-xl overflow-hidden mx-auto border-2 border-teal-500/50 shadow-md bg-slate-950">
+        <div class="relative w-40 h-28 rounded-xl overflow-hidden mx-auto border-2 border-teal-500/50 shadow-md bg-slate-950">
           <img src="${capturedImageDataUrl}" class="w-full h-full object-cover">
         </div>
       </div>
     `;
     if (typeof lucide !== 'undefined') lucide.createIcons();
   } else {
-    container.innerHTML = `<p class="text-xs text-teal-300 animate-pulse font-bold p-3 text-center">🔍 Capturing scan against Multi-Platform Medicine Database...</p>`;
+    // If WebRTC camera stream is not running, check if query typed or auto-open file selector
+    const queryInput = document.getElementById('smart-scan-query-input');
+    const typedVal = queryInput ? queryInput.value.trim() : "";
+    if (!typedVal) {
+      document.getElementById('item-file-input')?.click();
+      return;
+    }
   }
 
   // 2. Perform background Tesseract OCR text extraction on captured canvas image if available
-  let recognizedText = "dolo 650";
+  let recognizedText = "";
   if (capturedImageDataUrl && window.Tesseract) {
     try {
       const res = await Tesseract.recognize(capturedImageDataUrl, 'eng');
@@ -2447,17 +2453,11 @@ async function captureItemCameraFrameAndScan() {
     }
   }
 
-  // 3. Save captured camera scan into Database
-  await saveUploadedFileToDatabase({
-    fileName: `camera_scan_${Date.now()}.jpg`,
-    category: "Smart Camera Scan",
-    extractedText: recognizedText,
-    aiSummary: `Camera Scan Identified: ${recognizedText}`,
-    previewUrl: capturedImageDataUrl
-  });
+  const queryInput = document.getElementById('smart-scan-query-input');
+  const queryVal = (queryInput && queryInput.value.trim()) ? queryInput.value.trim() : recognizedText;
 
-  // 4. Query Database with captured text & display matching database items
-  await triggerBarcodeScanProcess(recognizedText, "captured_scan.jpg", capturedImageDataUrl);
+  // 3. Query Live Gemini Vision AI with captured frame or typed name
+  await triggerBarcodeScanProcess(queryVal, "captured_scan.jpg", capturedImageDataUrl);
 }
 
 // -------------------------------------------------------------
