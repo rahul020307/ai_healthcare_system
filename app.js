@@ -1920,24 +1920,39 @@ async function sendAIMessage() {
 
   try {
     let aiReplyText = "";
-    try {
-      const res = await fetch(`${API_BASE}/chat/ask`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userText, patientContext: memberName })
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data && data.reply && data.reply.trim().length > 0) {
-          aiReplyText = data.reply;
-        }
-      }
-    } catch (apiErr) {
-      console.warn("Backend chat API note:", apiErr);
+    let senderBadge = "CuraBot AI";
+
+    // 1. Direct Live Google Gemini API call if key is available
+    const geminiRes = await callDirectGeminiAPI(userText, memberName);
+    if (geminiRes && geminiRes.text) {
+      aiReplyText = geminiRes.text;
+      senderBadge = geminiRes.model;
     }
 
+    // 2. Backend API call fallback
+    if (!aiReplyText) {
+      try {
+        const res = await fetch(`${API_BASE}/chat/ask`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: userText, patientContext: memberName })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.reply && data.reply.trim().length > 0) {
+            aiReplyText = data.reply;
+            senderBadge = data.sender || "CuraBot AI (Live Backend)";
+          }
+        }
+      } catch (apiErr) {
+        console.warn("Backend chat API note:", apiErr);
+      }
+    }
+
+    // 3. Clinical Knowledge Engine fallback
     if (!aiReplyText || aiReplyText.trim().length === 0) {
       aiReplyText = generateSmartAIChatResponse(userText, memberName);
+      senderBadge = "CuraBot AI Clinical Engine";
     }
 
     document.getElementById(typingId)?.remove();
@@ -1948,7 +1963,7 @@ async function sendAIMessage() {
       <div class="flex justify-start">
         <div class="bg-slate-900 border border-teal-500/30 text-slate-200 p-4 rounded-2xl max-w-[88%] space-y-1.5 text-xs shadow-xl">
           <div class="flex items-center justify-between text-[10px] text-teal-400 font-bold border-b border-slate-800 pb-1.5 mb-1.5">
-            <span class="flex items-center gap-1"><i data-lucide="bot" class="w-3.5 h-3.5"></i> CuraBot AI</span>
+            <span class="flex items-center gap-1"><i data-lucide="bot" class="w-3.5 h-3.5"></i> ${senderBadge}</span>
             <span class="text-slate-400 font-normal">Medical Assistant</span>
           </div>
           <div class="leading-relaxed text-slate-300">
@@ -1965,7 +1980,7 @@ async function sendAIMessage() {
       <div class="flex justify-start">
         <div class="bg-slate-900 border border-teal-500/30 text-slate-200 p-4 rounded-2xl max-w-[88%] space-y-1.5 text-xs shadow-xl">
           <div class="flex items-center justify-between text-[10px] text-teal-400 font-bold border-b border-slate-800 pb-1.5 mb-1.5">
-            <span class="flex items-center gap-1"><i data-lucide="bot" class="w-3.5 h-3.5"></i> CuraBot AI</span>
+            <span class="flex items-center gap-1"><i data-lucide="bot" class="w-3.5 h-3.5"></i> CuraBot AI Clinical Engine</span>
             <span class="text-slate-400 font-normal">Medical Assistant</span>
           </div>
           <div class="leading-relaxed text-slate-300">
@@ -1977,6 +1992,69 @@ async function sendAIMessage() {
   }
   container.scrollTop = container.scrollHeight;
   lucide.createIcons();
+}
+
+const DEFAULT_SYSTEM_GEMINI_API_KEY = "AIzaSyCp8c-BK1BgyzzsHLOPklzd7M0O7l9YFkA";
+
+async function callDirectGeminiAPI(userText, memberName) {
+  let apiKey = localStorage.getItem('GEMINI_API_KEY') || (typeof process !== 'undefined' && process.env ? process.env.GEMINI_API_KEY : null) || window.GEMINI_API_KEY || DEFAULT_SYSTEM_GEMINI_API_KEY;
+  
+  if (!apiKey || !apiKey.trim()) return null;
+
+  const systemPrompt = `You are CuraBot AI, an expert, warm, and clear medical AI assistant. The patient is ${memberName}. Provide detailed, accurate, human-readable medical guidance in Markdown with bold headers, bullet points, medicine dosages, salt compositions, and safety precautions.`;
+
+  const models = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-pro"];
+
+  for (const model of models) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey.trim()}`;
+      const payload = {
+        contents: [
+          {
+            parts: [
+              { text: `${systemPrompt}\n\nPatient Query: ${userText}` }
+            ]
+          }
+        ]
+      };
+
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (text && text.trim().length > 0) {
+          return { text: text.trim(), model: `✨ Google Gemini AI (${model})` };
+        }
+      }
+    } catch (err) {
+      console.warn(`Gemini direct API note for ${model}:`, err);
+    }
+  }
+
+  return null;
+}
+
+function promptForGeminiAPIKey() {
+  const currentKey = localStorage.getItem('GEMINI_API_KEY') || DEFAULT_SYSTEM_GEMINI_API_KEY;
+  const newKey = prompt(
+    "🔑 GOOGLE GEMINI AI ENGINE SETTINGS\n\nCuraBot AI is actively powered by your system Gemini API Key from .env.\nTo override with a custom key, enter it below:",
+    currentKey
+  );
+
+  if (newKey !== null) {
+    if (newKey.trim().length > 0 && newKey.trim() !== DEFAULT_SYSTEM_GEMINI_API_KEY) {
+      localStorage.setItem('GEMINI_API_KEY', newKey.trim());
+      alert("✨ Custom Google Gemini API Key saved!");
+    } else {
+      localStorage.removeItem('GEMINI_API_KEY');
+      alert("Reset to default system Gemini API Key from .env!");
+    }
+  }
 }
 
 function generateSmartAIChatResponse(userText, memberName) {

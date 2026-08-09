@@ -1994,8 +1994,10 @@ async function sendAIMessage() {
   lucide.createIcons();
 }
 
+const DEFAULT_SYSTEM_GEMINI_API_KEY = "AIzaSyCp8c-BK1BgyzzsHLOPklzd7M0O7l9YFkA";
+
 async function callDirectGeminiAPI(userText, memberName) {
-  let apiKey = localStorage.getItem('GEMINI_API_KEY') || (typeof process !== 'undefined' && process.env ? process.env.GEMINI_API_KEY : null) || window.GEMINI_API_KEY || "";
+  let apiKey = localStorage.getItem('GEMINI_API_KEY') || (typeof process !== 'undefined' && process.env ? process.env.GEMINI_API_KEY : null) || window.GEMINI_API_KEY || DEFAULT_SYSTEM_GEMINI_API_KEY;
   
   if (!apiKey || !apiKey.trim()) return null;
 
@@ -2038,19 +2040,19 @@ async function callDirectGeminiAPI(userText, memberName) {
 }
 
 function promptForGeminiAPIKey() {
-  const currentKey = localStorage.getItem('GEMINI_API_KEY') || "";
+  const currentKey = localStorage.getItem('GEMINI_API_KEY') || DEFAULT_SYSTEM_GEMINI_API_KEY;
   const newKey = prompt(
-    "🔑 CONNECT LIVE GOOGLE GEMINI AI ENGINE\n\nEnter your Google Gemini API Key below (starts with AIzaSy...):\n(Get a free key at https://aistudio.google.com/app/apikey)",
+    "🔑 GOOGLE GEMINI AI ENGINE SETTINGS\n\nCuraBot AI is actively powered by your system Gemini API Key from .env.\nTo override with a custom key, enter it below:",
     currentKey
   );
 
   if (newKey !== null) {
-    if (newKey.trim().length > 0) {
+    if (newKey.trim().length > 0 && newKey.trim() !== DEFAULT_SYSTEM_GEMINI_API_KEY) {
       localStorage.setItem('GEMINI_API_KEY', newKey.trim());
-      alert("✨ Google Gemini API Key saved! CuraBot AI will now connect directly to Google Gemini 2.5 Flash for real-time live AI responses!");
+      alert("✨ Custom Google Gemini API Key saved!");
     } else {
       localStorage.removeItem('GEMINI_API_KEY');
-      alert("Removed Gemini API Key. CuraBot AI will use backend & clinical AI reasoning fallback.");
+      alert("Reset to default system Gemini API Key from .env!");
     }
   }
 }
