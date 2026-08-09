@@ -1996,7 +1996,57 @@ Hello **${memberName}**! **Chest pain can be a sign of a severe cardiac emergenc
 5. **DO NOT DRIVE**: Never attempt to drive yourself to the emergency department. Wait for the medical ambulance crew.`;
   }
 
-  // 2. Greetings & Casual Chat
+  // 2. URINARY TRACT / HEMATURIA / BLOOD IN URINE / KIDNEY STONES PROTOCOL
+  if (queryLower.includes('urination') || queryLower.includes('urine') || queryLower.includes('pee') || queryLower.includes('hematuria') || queryLower.includes('kidney stone') || queryLower.includes('uti') || queryLower.includes('bladder')) {
+    let symptomTitle = "Urinary & Kidney Care";
+    let warningNote = "";
+    if (queryLower.includes('blood') || queryLower.includes('red') || queryLower.includes('bleeding')) {
+      symptomTitle = "Hematuria & Blood in Urine Warning";
+      warningNote = "\n⚠️ **Clinical Note**: Blood in urine (Hematuria) is a significant urological symptom that requires prompt medical evaluation by a Urologist or Primary Care Physician!";
+    }
+
+    return `🤖 **CuraBot AI Clinical Advice: ${symptomTitle.toUpperCase()}**
+
+Hello **${memberName}**! Here is your clinical guidance for urinary concerns:${warningNote}
+
+• 🩺 **Possible Causes**: Urinary Tract Infection (UTI), Kidney Stones, Bladder Inflammation, or Kidney Infection.
+• 💧 **Hydration Protocol**: Drink **3 to 4 Liters of water daily** to flush out bacteria, crystal deposits, and toxins from the urinary tract.
+• 💊 **Symptom & Acidity Relief**:
+  - **Alkasol Syrup / Cital Syrup** (Disodium Hydrogen Citrate) — 2 teaspoons in a full glass of water 3 times daily to neutralize urine acidity and relieve burning.
+  - **Dolo 650mg** for pain and fever relief.
+  - Antibiotic therapy (such as **Ciprofloxacin 500mg** or **Nitrofurantoin 100mg**) as prescribed by your doctor following a Urine Culture test.
+• 🚫 **Dietary Restrictions**: Avoid caffeine, carbonated sodas, alcohol, very spicy foods, and artificial sweeteners.
+• 🚨 **Urgent Warning**: If accompanied by severe flank/back pain, high fever (>102°F) with chills, or inability to pass urine, go to an Emergency Department immediately!`;
+  }
+
+  // 3. GASTROINTESTINAL / VOMITING / DIARRHEA / LOOSE MOTION / NAUSEA
+  if (queryLower.includes('vomit') || queryLower.includes('nausea') || queryLower.includes('diarrhea') || queryLower.includes('loose motion') || queryLower.includes('food poisoning') || queryLower.includes('stool')) {
+    return `🤖 **CuraBot AI Clinical Advice: Gastrointestinal & Diarrhea Care**
+
+Hello **${memberName}**! For nausea, vomiting & loose motions:
+
+• 💧 **Rehydration (Critical)**: Sip **ORS (Oral Rehydration Salts)** or Electral solution after every loose stool to restore sodium, potassium, and lost fluids.
+• 💊 **Medication**:
+  - **Ondem 4mg (Ondansetron)**: 1 tablet for nausea and vomiting control (30 mins before food).
+  - **Econorm / Sporlac Probiotic**: 1 sachet twice daily to restore healthy gut flora.
+  - **Norflox-TZ / Oflox-OZ** (if prescribed by physician for bacterial diarrhea).
+• 🥣 **BRAT Diet**: Eat bland foods — Bananas, Rice (curd rice), Applesauce, and Toast. Avoid milk, greasy foods, and caffeine.
+• 🚨 **Red Flags**: Seek urgent medical care if severe abdominal pain, high fever, or blood in stool occurs.`;
+  }
+
+  // 4. DERMATOLOGICAL / SKIN ALLERGY / RASH / ITCHING / HIVES
+  if (queryLower.includes('rash') || queryLower.includes('itch') || queryLower.includes('allergy') || queryLower.includes('hives') || queryLower.includes('skin') || queryLower.includes('eczema')) {
+    return `🤖 **CuraBot AI Clinical Advice: Skin Rash & Allergy Relief**
+
+Hello **${memberName}**! For skin rash, itching, and allergic reactions:
+
+• 💊 **Antihistamine Medication**: **Allegra 120mg (Fexofenadine)** or **Cetirizine 10mg** — 1 tablet daily for fast anti-itch and allergy relief.
+• 🧴 **Topical Relief**: Apply **Calamine Lotion** (Caladryl) or aloe vera gel over the itchy skin for cooling relief.
+• 🧼 **Skincare Protocol**: Take cool showers, use mild fragrance-free soaps, and avoid scratching to prevent secondary skin infections.
+• 🚨 **Anaphylaxis Emergency**: If skin rash is accompanied by swelling of lips/tongue, throat tightness, or difficulty breathing, call 108 / Emergency SOS immediately!`;
+  }
+
+  // 5. Greetings & Casual Chat
   if (/^(hi|hello|hey|greetings|hola|namaste|good morning|good evening|who are you|help)/i.test(queryLower)) {
     return `🤖 **Hello ${memberName}! I'm CuraBot AI, your 24/7 Personal Clinical Assistant.**
 
