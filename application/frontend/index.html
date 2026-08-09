@@ -1557,9 +1557,14 @@
           <p class="text-[11px] text-teal-400 font-bold">24/7 Clinical & Medication Guide</p>
         </div>
       </div>
-      <button onclick="closeAIAssistantModal()" class="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/60 transition-all">
-        <i data-lucide="x" class="w-5 h-5"></i>
-      </button>
+      <div class="flex items-center gap-2">
+        <button onclick="promptForGeminiAPIKey()" class="p-1.5 px-2.5 rounded-xl text-amber-400 hover:text-amber-300 hover:bg-slate-800/80 transition-all text-[11px] font-extrabold flex items-center gap-1 border border-amber-500/30 bg-amber-500/10 shadow-sm" title="Connect Live Google Gemini API Key">
+          <i data-lucide="key" class="w-3.5 h-3.5 text-amber-400"></i> Set Gemini API Key
+        </button>
+        <button onclick="closeAIAssistantModal()" class="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/60 transition-all">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
     </div>
 
     <div id="ai-chat-messages" class="flex-1 overflow-y-auto py-4 space-y-4 text-xs pr-1">
