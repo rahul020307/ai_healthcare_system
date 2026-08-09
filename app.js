@@ -2752,17 +2752,18 @@ async function triggerBarcodeScanProcess(queryOrBarcode, fileName = "", captured
   }
 
   if (matches.length === 0) {
+    const displayTitle = (cleanMedicineTitle && cleanMedicineTitle.length < 60) ? cleanMedicineTitle : "Scanned Item";
     container.innerHTML = capturedBadgeHeader + geminiAnalysisHTML + `
       <div class="p-4 rounded-2xl bg-slate-900 border border-indigo-500/40 text-center space-y-3 text-xs">
         <div class="w-10 h-10 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center mx-auto">
           <i data-lucide="bot" class="w-5 h-5"></i>
         </div>
         <div>
-          <h4 class="text-sm font-bold text-white">No Exact Store Brand Match for "${queryOrBarcode || 'Scanned Item'}"</h4>
-          <p class="text-[11px] text-slate-300 mt-1">Our AI Clinical Doctor can analyze the image signature & salt composition for you.</p>
+          <h4 class="text-sm font-bold text-white">AI Scanned Item Analysis: ${displayTitle}</h4>
+          <p class="text-[11px] text-slate-300 mt-1">Our Live Google Gemini AI has analyzed the medicine salt & clinical indications above.</p>
         </div>
-        <button onclick="sendQuickAIPrompt('Analyze medicine usage, dosage, and side effects for: ${queryOrBarcode}')" class="w-full bg-gradient-to-r from-indigo-500 to-cyan-500 text-white font-extrabold py-2.5 rounded-xl shadow-md flex items-center justify-center gap-2">
-          <i data-lucide="sparkles" class="w-4 h-4"></i> Ask CuraBot AI to Analyze "${queryOrBarcode || 'Scanned Item'}"
+        <button onclick="sendQuickAIPrompt('Analyze medicine usage, dosage, and side effects for: ${displayTitle}')" class="w-full bg-gradient-to-r from-indigo-500 to-cyan-500 text-white font-extrabold py-2.5 rounded-xl shadow-md flex items-center justify-center gap-2">
+          <i data-lucide="sparkles" class="w-4 h-4"></i> Ask CuraBot AI to Explain "${displayTitle}"
         </button>
       </div>
     `;
