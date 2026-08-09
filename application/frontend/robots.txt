@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://ai-healthcare-system-eta.vercel.app/sitemap.xml
