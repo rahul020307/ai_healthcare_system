@@ -1980,9 +1980,21 @@ async function sendAIMessage() {
 }
 
 function generateSmartAIChatResponse(userText, memberName) {
-  const queryLower = userText.toLowerCase();
+  const queryLower = userText.toLowerCase().trim();
 
-  if (queryLower.includes('bhide') || queryLower.includes('prescription') || queryLower.includes('dolo') || queryLower.includes('pan 40') || queryLower.includes('amoxicillin')) {
+  // 1. Greetings & Casual Chat
+  if (/^(hi|hello|hey|greetings|hola|namaste|good morning|good evening|who are you|help)/i.test(queryLower)) {
+    return `🤖 **Hello ${memberName}! I'm CuraBot AI, your 24/7 Personal Clinical Assistant.**
+
+How can I assist you with your health today? Here are things you can ask me:
+• 💊 **Medicines & Dosage**: *"What is Dolo 650 dosage?"*, *"Side effects of Pan 40"*
+• 🩺 **Symptoms & Care**: *"How to treat fever"*, *"Stomach gas relief"*, *"Migraine remedies"*
+• 📄 **Prescriptions**: *"Explain my doctor slip"*, *"Scan prescription photo"*
+• 🏥 **Hospitals & Labs**: *"Find emergency ICU near me"*`;
+  }
+
+  // 2. Doctor Prescriptions / OCR Extracted Document Analysis
+  if (queryLower.includes('bhide') || queryLower.includes('prescription') || queryLower.includes('slip') || queryLower.includes('dolo') || queryLower.includes('pan 40') || queryLower.includes('amoxicillin')) {
     return `🤖 **CuraBot AI Clinical Prescription Guidance**
 
 Hello **${memberName}**! Here is the AI clinical breakdown for your prescription query:
@@ -1997,34 +2009,72 @@ Hello **${memberName}**! Here is the AI clinical breakdown for your prescription
 • Consult your primary care doctor if high fever (above 102°F) persists after 48 hours.`;
   }
 
-  if (queryLower.includes('fever') || queryLower.includes('headache') || queryLower.includes('pain')) {
-    return `🤖 **CuraBot AI Clinical Advice for Fever & Headache**
+  // 3. Fever, Cold, Cough & Flu
+  if (queryLower.includes('fever') || queryLower.includes('cold') || queryLower.includes('cough') || queryLower.includes('flu') || queryLower.includes('chills') || queryLower.includes('temperature')) {
+    return `🤖 **CuraBot AI Clinical Advice: Fever & Flu Management**
 
-Hello **${memberName}**! For fever and headache management:
+Hello **${memberName}**! For fever, cold & flu relief:
 
-• **Medication**: **Dolo 650mg** or **Crocin 650mg** (Paracetamol) is recommended (1 tablet post meals, 6-8 hours apart).
-• **Hydration**: Drink ORS solution, warm water, or fresh fruit juices to prevent dehydration.
-• **Rest**: Rest in a well-ventilated, cool room. Use lukewarm water sponge compresses if temperature is high.
-• **When to see a doctor**: If fever exceeds 102°F (38.8°C) or is accompanied by stiff neck, rash, or vomiting, seek immediate medical attention.`;
+• **Medication**: **Dolo 650mg** or **Crocin 650mg** (Paracetamol) — 1 tablet post meals, 6-8 hours apart.
+• **Cough & Throat**: **Chericof Cough Syrup** or **Alex Syrup** (10ml twice daily) + warm salt water gargle.
+• **Hydration**: Drink ORS solution, warm herbal tea, and rest.
+• 🚨 **Red Flags**: If fever exceeds 102°F (38.8°C), or is accompanied by severe headache, stiff neck, or shortness of breath, consult a doctor immediately.`;
   }
 
-  if (queryLower.includes('acid') || queryLower.includes('gas') || queryLower.includes('stomach') || queryLower.includes('gerd')) {
-    return `🤖 **CuraBot AI Clinical Advice for Acidity & Gastric Distress**
+  // 4. Acidity, GERD, Gas & Indigestion
+  if (queryLower.includes('acid') || queryLower.includes('gas') || queryLower.includes('stomach') || queryLower.includes('gerd') || queryLower.includes('heartburn') || queryLower.includes('bloating')) {
+    return `🤖 **CuraBot AI Clinical Advice: Gastric & Acidity Relief**
 
 Hello **${memberName}**! For stomach acidity and gas relief:
 
-• **Medication**: **Pan 40mg** (Pantoprazole) or **Gelusil Liquid** (Antacid) gives effective relief. Take Pantoprazole 30 mins before breakfast.
-• **Dietary Advice**: Avoid fried, spicy, acidic foods, carbonated drinks, and caffeine.
+• **Medication**: **Pan 40mg** (Pantoprazole) or **Gelusil Liquid** (Antacid) gives fast relief. Take Pantoprazole 30 mins before breakfast.
+• **Dietary Advice**: Avoid fried, spicy, acidic foods, caffeine, and carbonated drinks.
 • **Lifestyle**: Eat smaller, frequent meals and avoid lying down for 2 hours after eating.`;
   }
 
-  return `🤖 **CuraBot AI Health Assistant**
+  // 5. Pain, Headache, Backache & Joint Pain
+  if (queryLower.includes('headache') || queryLower.includes('pain') || queryLower.includes('migraine') || queryLower.includes('back') || queryLower.includes('joint') || queryLower.includes('muscle')) {
+    return `🤖 **CuraBot AI Clinical Advice: Pain & Soreness Management**
 
-Hello **${memberName}**! Thank you for consulting CuraBot AI regarding **"${userText}"**.
+Hello **${memberName}**! For pain and headache relief:
 
-• **Clinical Recommendation**: Ensure adequate rest, stay hydrated, and monitor your vitals using the **Profile Vitals Tracker** (BP, Sugar, SpO2).
-• **Medication Reminders**: Check your active dosage schedule under the **Home & Reminders** tab.
-• **Emergency Support**: If you experience severe chest pain, shortness of breath, or sudden dizziness, tap the **🚨 Emergency SOS** button at the top right of your screen for immediate assistance.`;
+• **Medication**: **Dolo 650mg** or **Combiflam** (Paracetamol + Ibuprofen) — 1 tablet post meals.
+• **Topical Pain Relief**: Apply **Volini Spray** or **Omnigel** on sore muscles or joints.
+• **Rest & Relaxation**: Rest in a dark, quiet room, apply a warm compress, and stay hydrated.`;
+  }
+
+  // 6. Diabetes & Blood Sugar
+  if (queryLower.includes('diabet') || queryLower.includes('sugar') || queryLower.includes('glucose') || queryLower.includes('metformin') || queryLower.includes('hba1c')) {
+    return `🤖 **CuraBot AI Clinical Advice: Diabetes & Sugar Control**
+
+Hello **${memberName}**! For blood sugar management:
+
+• **Medication**: **Metformin 500mg** or **Glimepiride 1mg** (as prescribed by your endocrinologist).
+• **Diet**: High-fiber, low-glycemic index foods (whole grains, green vegetables). Avoid refined sugar and sweet beverages.
+• **Tracking**: Log your fasting and post-meal glucose in your **Profile Vitals Tracker**.`;
+  }
+
+  // 7. Blood Pressure & Heart Health
+  if (queryLower.includes('bp') || queryLower.includes('blood pressure') || queryLower.includes('hypertension') || queryLower.includes('heart') || queryLower.includes('cardio')) {
+    return `🤖 **CuraBot AI Clinical Advice: Blood Pressure Management**
+
+Hello **${memberName}**! For blood pressure control:
+
+• **Medication**: **Metoprolol 25mg** or **Telmisartan 40mg** — 1 tablet daily at fixed morning time.
+• **Sodium & Salt**: Limit salt intake (< 2,000mg/day). Follow DASH diet rich in potassium.
+• **Vitals Log**: Measure and record BP daily in your **Profile Vitals Tracker**.`;
+  }
+
+  // 8. General Health & Custom Queries (Smart AI Dynamic Response)
+  const queryClean = userText.replace(/[^a-zA-Z0-9\s]/g, '').trim();
+  return `🤖 **CuraBot AI Clinical Medical Guidance**
+
+Hello **${memberName}**! Here is the clinical AI breakdown for **"${queryClean}"**:
+
+• 🩺 **Clinical Overview**: Regarding **"${queryClean}"**, CuraBot AI recommends reviewing your active health records, maintaining proper hydration, and monitoring key vitals.
+• 💊 **Medication & Safety Protocol**: Always verify drug dosage, active salt compositions, and drug-drug interactions before taking new medications.
+• 📊 **Vitals & Monitoring**: Log your daily Blood Pressure, Pulse, Temperature, and Glucose readings in your **Profile Vitals Tracker**.
+• 🚨 **Emergency Protocol**: If experiencing severe discomfort, chest pain, or breathing difficulty, tap **🚨 Emergency SOS** at the top right of your screen for 1-tap emergency medical dispatch.`;
 }
 
 // EMERGENCY ENGINE
