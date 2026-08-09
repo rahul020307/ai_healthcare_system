@@ -2683,8 +2683,33 @@ async function triggerBarcodeScanProcess(queryOrBarcode, fileName = "", captured
     </div>
   ` : '';
 
+  // Live Google Gemini 2.5 Flash AI Medicine Analysis
+  let geminiAnalysisHTML = "";
+  if (queryOrBarcode && queryOrBarcode.trim().length > 0) {
+    try {
+      const aiPrompt = `Analyze medicine brand or barcode item query: "${queryOrBarcode}". Provide: 1. Brand Name & Active Salt Composition, 2. Primary Therapeutic Uses, 3. Standard Clinical Dosage Timing (post meals, empty stomach), 4. Side Effects & Food Precautions. Format as clean Markdown bullet points.`;
+      const geminiRes = await callDirectGeminiAPI(aiPrompt, "Patient");
+      if (geminiRes && geminiRes.text) {
+        const formatted = formatMarkdownToHTML(geminiRes.text);
+        geminiAnalysisHTML = `
+          <div class="p-4 rounded-2xl bg-slate-900 border border-teal-500/40 space-y-2 text-xs shadow-xl mb-3">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2 text-teal-400 font-extrabold text-[11px]">
+              <span class="flex items-center gap-1.5"><i data-lucide="sparkles" class="w-4 h-4 text-amber-400"></i> ${geminiRes.model} Medicine Analysis</span>
+              <span class="text-slate-400 font-normal">Real-Time AI</span>
+            </div>
+            <div class="leading-relaxed text-slate-300">
+              ${formatted}
+            </div>
+          </div>
+        `;
+      }
+    } catch (e) {
+      console.warn("Direct Gemini Scan Note:", e);
+    }
+  }
+
   if (matches.length === 0) {
-    container.innerHTML = capturedBadgeHeader + `
+    container.innerHTML = capturedBadgeHeader + geminiAnalysisHTML + `
       <div class="p-4 rounded-2xl bg-slate-900 border border-indigo-500/40 text-center space-y-3 text-xs">
         <div class="w-10 h-10 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center mx-auto">
           <i data-lucide="bot" class="w-5 h-5"></i>
@@ -2703,7 +2728,7 @@ async function triggerBarcodeScanProcess(queryOrBarcode, fileName = "", captured
   }
 
   const aiHeaderBanner = `
-    <div class="p-3 rounded-2xl bg-indigo-950/80 border border-indigo-500/40 text-xs space-y-1 shadow-lg">
+    <div class="p-3 rounded-2xl bg-indigo-950/80 border border-indigo-500/40 text-xs space-y-1 shadow-lg mb-3">
       <div class="flex items-center justify-between text-indigo-300 font-extrabold">
         <span class="flex items-center gap-1.5"><i data-lucide="sparkles" class="w-4 h-4 text-cyan-400"></i> AI Clinical Intelligence Connected</span>
         <span class="text-[10px] bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded-full border border-indigo-500/30">Live API</span>
@@ -2715,7 +2740,7 @@ async function triggerBarcodeScanProcess(queryOrBarcode, fileName = "", captured
   `;
 
   // Render Database Search Results
-  container.innerHTML = capturedBadgeHeader + aiHeaderBanner + matches.map(m => {
+  container.innerHTML = capturedBadgeHeader + geminiAnalysisHTML + aiHeaderBanner + matches.map(m => {
     const medId = m.id || "med-1";
     const brand = m.brand_name || m.brandName || m.name || "Medicine Item";
     const generic = m.generic_name || m.genericName || m.salt || "Therapeutic Formula";
