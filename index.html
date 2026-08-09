@@ -1411,17 +1411,17 @@
       </div>
 
       <button onclick="captureItemCameraFrameAndScan()" class="w-full bg-gradient-to-r from-teal-500 via-cyan-500 to-teal-400 hover:scale-[1.01] text-slate-950 font-black py-3 rounded-xl text-xs shadow-lg shadow-teal-500/20 flex items-center justify-center gap-2 transition-all">
-        <i data-lucide="camera" class="w-4 h-4"></i> 📸 Capture Photo & Search Database
+        <i data-lucide="sparkles" class="w-4 h-4"></i> 📸 Capture Photo & Analyze Tablet with Live Gemini AI
       </button>
 
       <!-- Manual Query / Recognized Text Adjustment & AI Trigger Bar -->
       <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2 text-xs">
-        <label class="block text-[11px] font-bold text-slate-300">Recognized Name / Manual Database Search:</label>
+        <label class="block text-[11px] font-bold text-slate-300">Tablet Name / Barcode Code:</label>
         <div class="relative flex gap-2">
-          <input type="text" id="smart-scan-query-input" onkeydown="if(event.key==='Enter') triggerBarcodeScanProcess(this.value)" oninput="triggerBarcodeScanProcess(this.value)" placeholder="Type medicine name or barcode (e.g. Dolo 650, Liv 52, Dettol)..." class="flex-1 glass-input rounded-xl pl-3.5 pr-8 py-2 text-xs text-white focus:ring-2 focus:ring-teal-500">
-          <button onclick="document.getElementById('smart-scan-query-input').value=''; triggerBarcodeScanProcess('')" class="absolute right-24 top-2 text-slate-400 hover:text-white text-xs px-1" title="Clear Search">✕</button>
+          <input type="text" id="smart-scan-query-input" onkeydown="if(event.key==='Enter') triggerBarcodeScanProcess(this.value)" oninput="triggerBarcodeScanProcess(this.value)" placeholder="Type tablet name or barcode (e.g. Nexpro 40, Dolo 650, Pan 40)..." class="flex-1 glass-input rounded-xl pl-3.5 pr-8 py-2 text-xs text-white focus:ring-2 focus:ring-teal-500">
+          <button onclick="document.getElementById('smart-scan-query-input').value=''; triggerBarcodeScanProcess('')" class="absolute right-28 top-2 text-slate-400 hover:text-white text-xs px-1" title="Clear Search">✕</button>
           <button onclick="triggerBarcodeScanProcess(document.getElementById('smart-scan-query-input').value)" class="px-4 py-2 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-500 text-slate-950 font-black hover:opacity-90 text-xs transition-all shrink-0 flex items-center gap-1 shadow-md">
-            <i data-lucide="search" class="w-3.5 h-3.5"></i> Search DB
+            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Analyze Tablet
           </button>
         </div>
 
