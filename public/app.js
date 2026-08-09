@@ -831,8 +831,11 @@ function openRecordDetailModal(recId) {
         </button>
 
         <div class="flex items-center gap-2">
-          <button onclick="downloadHealthRecord('${rec.id}')" class="px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-extrabold text-xs flex items-center gap-1.5 shadow-lg">
-            <i data-lucide="download" class="w-4 h-4"></i> Download Copy
+          <button onclick="askAIAboutRecord('${rec.id}')" class="px-4 py-2 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-500 text-slate-950 font-extrabold text-xs flex items-center gap-1.5 shadow-lg hover:from-teal-400 hover:to-cyan-400 transition-all">
+            <i data-lucide="bot" class="w-4 h-4"></i> Ask CuraBot AI to Explain Prescription
+          </button>
+          <button onclick="downloadHealthRecord('${rec.id}')" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center gap-1.5">
+            <i data-lucide="download" class="w-3.5 h-3.5"></i> Download
           </button>
         </div>
       </div>
@@ -2557,11 +2560,11 @@ function renderUploadsManageList() {
       ` : ''}
 
       <div class="flex gap-2 text-[11px]">
-        <button onclick="sendQuickAIPrompt('Provide doctor dosage advice for file: ${u.fileName}. Extracted content: ${u.extractedText || u.aiSummary}')" class="flex-1 py-1.5 rounded-lg bg-teal-500/10 hover:bg-teal-500/20 text-teal-300 font-bold border border-teal-500/30 flex items-center justify-center gap-1">
-          <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Ask AI Doctor
+        <button onclick="askAIAboutUploadedFile('${u.id}')" class="flex-1 py-2 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-500 text-slate-950 font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-md hover:from-teal-400 hover:to-cyan-400 transition-all">
+          <i data-lucide="bot" class="w-4 h-4"></i> Ask CuraBot AI to Explain Prescription
         </button>
-        <button onclick="addToCart('med-1')" class="py-1.5 px-3 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/30 flex items-center justify-center gap-1">
-          <i data-lucide="shopping-cart" class="w-3.5 h-3.5"></i> Buy Prescribed Meds
+        <button onclick="addToCart('med-1')" class="py-2 px-3 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/30 flex items-center justify-center gap-1">
+          <i data-lucide="shopping-cart" class="w-3.5 h-3.5"></i> Reorder Meds
         </button>
       </div>
     </div>
@@ -3179,6 +3182,33 @@ function askAIAboutExtractedPrescription() {
   const input = document.getElementById('ai-chat-input');
   if (input) {
     input.value = `Can you explain the medicines and dosage in this prescription in simple terms?\n\n${text}`;
+    sendAIMessage();
+  }
+}
+
+function askAIAboutRecord(recId) {
+  const rec = state.records.find(r => r.id === recId);
+  if (!rec) return;
+
+  closeRecordDetailModal();
+  openAIAssistantModal();
+  const input = document.getElementById('ai-chat-input');
+  if (input) {
+    input.value = `Can you explain the medicines, dosage instructions, and diagnosis in this saved prescription for me?\n\nPrescription Title: ${rec.title}\nPhysician/Facility: ${rec.doctor} (${rec.facility})\nDate: ${rec.date}\nExtracted Findings & Medicines:\n${rec.summary}`;
+    sendAIMessage();
+  }
+}
+
+function askAIAboutUploadedFile(uploadId) {
+  const uploads = getStoredUploads();
+  const u = uploads.find(item => item.id === uploadId);
+  if (!u) return;
+
+  closeManageUploadsModal();
+  openAIAssistantModal();
+  const input = document.getElementById('ai-chat-input');
+  if (input) {
+    input.value = `Can you explain the medicines and clinical guidance in this uploaded prescription for me?\n\nFile Name: ${u.fileName}\nCategory: ${u.category}\nUpload Date: ${u.uploadDate}\nExtracted Content:\n${u.aiSummary || u.extractedText}`;
     sendAIMessage();
   }
 }
