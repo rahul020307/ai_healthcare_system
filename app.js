@@ -2046,28 +2046,59 @@ Hello **${memberName}**! For stomach acidity and gas relief:
 • **Lifestyle**: Eat smaller, frequent meals and avoid lying down for 2 hours after eating.`;
   }
 
-  // 6. Pain, Soreness & Body Part Specific Relief (Leg Pain, Knee Pain, Headache, Back Pain, Joint Pain)
-  if (!queryLower.includes('chest') && (queryLower.includes('headache') || queryLower.includes('migraine') || queryLower.includes('back') || queryLower.includes('joint') || queryLower.includes('muscle') || queryLower.includes('leg') || queryLower.includes('knee') || queryLower.includes('foot') || queryLower.includes('pain'))) {
+  // 6. Universal Body-Part Pain & Symptom Specific Clinical Engine (Neck, Shoulder, Leg, Knee, Back, Ear, Tooth, Throat, Abdomen, etc.)
+  if (!queryLower.includes('chest') && (queryLower.includes('pain') || queryLower.includes('ache') || queryLower.includes('sore') || queryLower.includes('cramp') || queryLower.includes('stiff') || queryLower.includes('swelling') || queryLower.includes('headache') || queryLower.includes('migraine') || queryLower.includes('neck') || queryLower.includes('shoulder') || queryLower.includes('tooth') || queryLower.includes('throat') || queryLower.includes('ear'))) {
 
-    let painTarget = "pain and body soreness";
-    if (queryLower.includes('leg') || queryLower.includes('thigh') || queryLower.includes('calf') || queryLower.includes('foot')) {
-      painTarget = "leg pain, calf cramps, and muscle soreness";
-    } else if (queryLower.includes('knee') || queryLower.includes('joint') || queryLower.includes('arthritis')) {
-      painTarget = "knee and joint pain management";
-    } else if (queryLower.includes('back') || queryLower.includes('spine') || queryLower.includes('lumbar')) {
-      painTarget = "back pain and spinal stiffness";
+    let bodyPart = "affected area";
+    let bodyTitle = "Pain & Soreness Management";
+    let specificCare = "Apply Volini gel or a warm compress, rest the affected area, and maintain proper posture.";
+
+    if (queryLower.includes('neck') || queryLower.includes('cervical') || queryLower.includes('nape')) {
+      bodyPart = "neck and cervical muscle region";
+      bodyTitle = "Neck Pain & Cervical Stiffness Care";
+      specificCare = "Apply Volini Spray or Omnigel on the neck and upper shoulder muscles. Use a warm heating pad for 15 minutes, avoid looking down at phone screens, and use a supportive neck pillow. Seek urgent care if neck stiffness is accompanied by high fever or numbness down the arms.";
+    } else if (queryLower.includes('shoulder') || queryLower.includes('trapezius') || queryLower.includes('rotator')) {
+      bodyPart = "shoulder and upper arm region";
+      bodyTitle = "Shoulder Pain & Rotator Cuff Care";
+      specificCare = "Rest the shoulder, avoid heavy lifting or overhead reaching. Apply ice packs for acute strain or warm compresses for chronic stiffness, and apply Volini/Omnigel.";
+    } else if (queryLower.includes('back') || queryLower.includes('spine') || queryLower.includes('lumbar') || queryLower.includes('sciatica')) {
+      bodyPart = "back and spinal lumbar area";
+      bodyTitle = "Back Pain & Lumbar Care";
+      specificCare = "Maintain proper ergonomic sitting posture, use a lumbar support cushion, apply hot/cold packs, and avoid sudden bending or heavy lifting. Do light cat-cow stretches.";
+    } else if (queryLower.includes('leg') || queryLower.includes('thigh') || queryLower.includes('calf') || queryLower.includes('foot') || queryLower.includes('ankle') || queryLower.includes('heel')) {
+      bodyPart = "leg, calf, and foot muscles";
+      bodyTitle = "Leg Pain & Muscle Cramp Care";
+      specificCare = "Apply Volini Spray or Omnigel on sore calf/thigh muscles. Elevate legs on 2 pillows while lying down, and drink plenty of water with ORS fluids to replenish electrolytes.";
+    } else if (queryLower.includes('knee') || queryLower.includes('joint') || queryLower.includes('arthritis') || queryLower.includes('elbow') || queryLower.includes('wrist')) {
+      bodyPart = "knee and joint articulation";
+      bodyTitle = "Knee & Joint Pain Care";
+      specificCare = "Avoid high-impact jumping or stairs. Apply cold ice packs for swelling, use a supportive knee/joint bandage, and elevate the joint.";
+    } else if (queryLower.includes('tooth') || queryLower.includes('teeth') || queryLower.includes('gum') || queryLower.includes('dental')) {
+      bodyPart = "dental tooth and jaw area";
+      bodyTitle = "Toothache & Dental Relief";
+      specificCare = "Gargle with warm salt water. Apply clove oil (Laung oil) on the affected tooth with a cotton swab. Take Dolo 650mg for pain relief and visit a dentist promptly.";
+    } else if (queryLower.includes('ear') || queryLower.includes('earache')) {
+      bodyPart = "ear and auditory canal";
+      bodyTitle = "Ear Pain Relief";
+      specificCare = "Keep ear dry, do not insert cotton swabs or sharp objects inside ear canal. Use warm compress outside ear and consult an ENT doctor if fluid drains.";
+    } else if (queryLower.includes('throat') || queryLower.includes('tonsil') || queryLower.includes('swallowing')) {
+      bodyPart = "throat and pharyngeal region";
+      bodyTitle = "Sore Throat & Tonsil Care";
+      specificCare = "Gargle with warm salt water or Betadine gargle 3 times daily. Sip warm ginger honey water, take Dolo 650mg, and take Alex / Chericof cough syrup if coughing.";
     } else if (queryLower.includes('headache') || queryLower.includes('migraine')) {
-      painTarget = "headache and migraine relief";
+      bodyPart = "head and cranial region";
+      bodyTitle = "Headache & Migraine Relief";
+      specificCare = "Rest in a dark, quiet room. Apply cold compress on forehead, stay hydrated, avoid screen eye strain, and take Dolo 650mg or Combiflam.";
     }
 
-    return `🤖 **CuraBot AI Clinical Advice: Pain & Soreness Management**
+    return `🤖 **CuraBot AI Clinical Advice: ${bodyTitle.toUpperCase()}**
 
-Hello **${memberName}**! For **${painTarget}**:
+Hello **${memberName}**! Here is your tailored clinical guidance for **${bodyPart}**:
 
-• **Medication**: **Dolo 650mg** or **Combiflam** (Paracetamol + Ibuprofen) — 1 tablet post meals for pain and inflammation relief.
-• **Topical Pain Relief**: Apply **Volini Spray** or **Omnigel** on affected legs, joints, or sore muscles.
-• **Hot/Cold Compress & Elevation**: Apply ice packs for acute swelling or a warm compress for muscle stiffness. Elevate legs on pillows if swollen.
-• **Hydration & Electrolytes**: Drink plenty of water and ORS fluids (leg cramps are frequently caused by dehydration or electrolyte imbalance).`;
+• 💊 **Medication**: **Dolo 650mg** or **Combiflam** (Paracetamol + Ibuprofen) — 1 tablet after meals for effective pain and inflammation relief.
+• 🩹 **Targeted Clinical Care**: ${specificCare}
+• 🧘 **Rest & Posture**: Rest the affected area, avoid strenuous strain, and keep well-hydrated.
+• 🚨 **When to see a Doctor**: If pain is severe, persistent beyond 48 hours, or accompanied by fever, swelling, or numbness, consult a physician.`;
   }
 
   // 6. Diabetes & Blood Sugar
