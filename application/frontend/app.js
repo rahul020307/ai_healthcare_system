@@ -2046,15 +2046,28 @@ Hello **${memberName}**! For stomach acidity and gas relief:
 • **Lifestyle**: Eat smaller, frequent meals and avoid lying down for 2 hours after eating.`;
   }
 
-  // 6. Pain, Headache, Backache & Joint Pain (excluding Chest Pain)
-  if (!queryLower.includes('chest') && (queryLower.includes('headache') || queryLower.includes('migraine') || queryLower.includes('back') || queryLower.includes('joint') || queryLower.includes('muscle') || queryLower.includes('pain'))) {
+  // 6. Pain, Soreness & Body Part Specific Relief (Leg Pain, Knee Pain, Headache, Back Pain, Joint Pain)
+  if (!queryLower.includes('chest') && (queryLower.includes('headache') || queryLower.includes('migraine') || queryLower.includes('back') || queryLower.includes('joint') || queryLower.includes('muscle') || queryLower.includes('leg') || queryLower.includes('knee') || queryLower.includes('foot') || queryLower.includes('pain'))) {
+
+    let painTarget = "pain and body soreness";
+    if (queryLower.includes('leg') || queryLower.includes('thigh') || queryLower.includes('calf') || queryLower.includes('foot')) {
+      painTarget = "leg pain, calf cramps, and muscle soreness";
+    } else if (queryLower.includes('knee') || queryLower.includes('joint') || queryLower.includes('arthritis')) {
+      painTarget = "knee and joint pain management";
+    } else if (queryLower.includes('back') || queryLower.includes('spine') || queryLower.includes('lumbar')) {
+      painTarget = "back pain and spinal stiffness";
+    } else if (queryLower.includes('headache') || queryLower.includes('migraine')) {
+      painTarget = "headache and migraine relief";
+    }
+
     return `🤖 **CuraBot AI Clinical Advice: Pain & Soreness Management**
 
-Hello **${memberName}**! For pain and headache relief:
+Hello **${memberName}**! For **${painTarget}**:
 
-• **Medication**: **Dolo 650mg** or **Combiflam** (Paracetamol + Ibuprofen) — 1 tablet post meals.
-• **Topical Pain Relief**: Apply **Volini Spray** or **Omnigel** on sore muscles or joints.
-• **Rest & Relaxation**: Rest in a dark, quiet room, apply a warm compress, and stay hydrated.`;
+• **Medication**: **Dolo 650mg** or **Combiflam** (Paracetamol + Ibuprofen) — 1 tablet post meals for pain and inflammation relief.
+• **Topical Pain Relief**: Apply **Volini Spray** or **Omnigel** on affected legs, joints, or sore muscles.
+• **Hot/Cold Compress & Elevation**: Apply ice packs for acute swelling or a warm compress for muscle stiffness. Elevate legs on pillows if swollen.
+• **Hydration & Electrolytes**: Drink plenty of water and ORS fluids (leg cramps are frequently caused by dehydration or electrolyte imbalance).`;
   }
 
   // 6. Diabetes & Blood Sugar
