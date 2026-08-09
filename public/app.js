@@ -2340,16 +2340,10 @@ async function performRealOCR(file, fileName) {
     console.warn("Backend OCR API note:", backendErr);
   }
 
-  // Dynamic fallback based ONLY on actual extracted text & file name
+  // Direct Live Google Gemini AI Prescription Analysis
   if (!englishSummary) {
-    if (foundMeds && foundMeds.length > 0) {
-      const medLines = foundMeds.map((m, i) => `${i + 1}. ${m.name} (${m.salt})\n   • Dosage: ${m.dosage}\n   • Duration: ${m.duration}`).join('\n\n');
-      englishSummary = `PRESCRIPTION OCR ANALYSIS (${fileName})\n----------------------------------------------------\nExtracted Medicines & Dosage Schedule:\n${medLines}`;
-      docCategory = "Prescriptions";
-    } else {
-      englishSummary = parseRawOCRWithAIAgent(cleanEnglishText, fileName);
-      docCategory = "Prescriptions";
-    }
+    englishSummary = await parseRawOCRWithAIAgent(cleanEnglishText, fileName);
+    docCategory = "Prescriptions";
   }
 
   const docTitle = `Prescription: ${fileName.replace(/\.[^/.]+$/, "")}`;
@@ -3130,7 +3124,27 @@ function submitSupportTicket() {
 
 // ================= AI CLINICAL PRESCRIPTION TRANSLATION & PARSING ENGINE =================
 
-function parseRawOCRWithAIAgent(rawText, fileName) {
+async function parseRawOCRWithAIAgent(rawText, fileName) {
+  const ocrPrompt = `You are CuraBot AI, an expert clinical medical AI agent.
+Below is raw text extracted via OCR from a doctor prescription / medical slip image (Document: ${fileName}):
+
+"${rawText}"
+
+Please parse and summarize this prescription into a clean, human-readable clinical report with:
+1. 👨‍⚕️ Prescribing Physician & Clinic Details
+2. 👤 Patient Age & Weight (if present in text)
+3. 📋 Medicines List: Name, Active Salt Composition, Dosage timing (e.g., 1-0-1, empty stomach, post meals), Purpose & Course Duration
+4. 💡 Clinical Precautions & Patient Advice.`;
+
+  try {
+    const aiRes = await callDirectGeminiAPI(ocrPrompt, "Patient");
+    if (aiRes && aiRes.text) {
+      return `🤖 CURABOT AI CLINICAL AGENT • LIVE GEMINI PRESCRIPTION ANALYSIS\n====================================================\n${aiRes.text}`;
+    }
+  } catch (err) {
+    console.warn("Direct Gemini OCR note:", err);
+  }
+
   let doctorMatch = rawText.match(/(?:Dr\.?|DR\.?|ce)\s*([A-Za-z\s]{3,25})/i);
   let doctorName = doctorMatch ? `Dr. ${doctorMatch[1].replace(/ce|Tv|wr|Se/gi, '').trim()}` : "Dr. Milind Bhide, MD";
   if (rawText.toLowerCase().includes("bhide") || rawText.toLowerCase().includes("milind")) {
