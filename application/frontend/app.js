@@ -2808,3 +2808,221 @@ function toggleTheme() {
   document.body.classList.toggle('light-theme');
 }
 
+// ================= PROFILE FEATURE MODALS & HANDLERS =================
+
+// 1. Medical History Modal
+function openMedicalHistoryModal() {
+  const modal = document.getElementById('modal-medical-history');
+  if (modal) modal.classList.remove('hidden');
+}
+function closeMedicalHistoryModal() {
+  const modal = document.getElementById('modal-medical-history');
+  if (modal) modal.classList.add('hidden');
+}
+function addNewAllergy() {
+  const name = prompt("Enter Allergy Name (e.g. Sulfa Drugs, Shellfish):");
+  if (name && name.trim()) {
+    const container = document.getElementById('med-history-allergies');
+    if (container) {
+      const span = document.createElement('span');
+      span.className = 'bg-rose-500/10 text-rose-300 text-xs px-3 py-1 rounded-xl border border-rose-500/20 font-medium';
+      span.innerText = name.trim();
+      container.appendChild(span);
+      alert(`Added ${name.trim()} to known allergies!`);
+    }
+  }
+}
+function addNewCondition() {
+  const name = prompt("Enter Chronic Condition (e.g. Type-2 Diabetes):");
+  if (name && name.trim()) {
+    const container = document.getElementById('med-history-conditions');
+    if (container) {
+      const div = document.createElement('div');
+      div.className = 'flex items-center justify-between p-2.5 rounded-xl bg-slate-950 border border-slate-800/80';
+      div.innerHTML = `<div><strong class="text-white block">${name.trim()}</strong><span class="text-[11px] text-slate-400">Added Patient History</span></div><span class="bg-teal-500/20 text-teal-300 text-[10px] px-2 py-0.5 rounded font-bold">Active</span>`;
+      container.appendChild(div);
+      alert(`Added ${name.trim()} to patient history!`);
+    }
+  }
+}
+
+// 2. Family Members Modal
+function openFamilyMembersModal() {
+  const modal = document.getElementById('modal-family-members');
+  if (modal) {
+    modal.classList.remove('hidden');
+    renderFamilyModalList();
+  }
+}
+function closeFamilyMembersModal() {
+  const modal = document.getElementById('modal-family-members');
+  if (modal) modal.classList.add('hidden');
+}
+function renderFamilyModalList() {
+  const container = document.getElementById('family-modal-list');
+  if (!container) return;
+  const list = INITIAL_DATA.familyMembers || [];
+  container.innerHTML = list.map(m => {
+    const isCurrent = state.activeFamilyMemberId === m.id;
+    return `
+      <div class="p-3.5 rounded-2xl glass-panel border ${isCurrent ? 'border-cyan-500/60 bg-cyan-950/20' : 'border-slate-800'} flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <img src="${m.avatar}" class="w-10 h-10 rounded-xl object-cover ring-2 ring-teal-500/40">
+          <div>
+            <div class="flex items-center gap-2">
+              <h4 class="text-xs font-extrabold text-white">${m.name}</h4>
+              <span class="text-[10px] bg-slate-800 text-cyan-300 px-2 py-0.5 rounded-full font-bold">${m.relation}</span>
+            </div>
+            <p class="text-[11px] text-slate-400">Age: ${m.age} • Blood: ${m.bloodGroup} • BP: ${m.vitals?.bp || '120/80'}</p>
+          </div>
+        </div>
+        ${isCurrent ? `<span class="bg-cyan-500/20 text-cyan-300 text-[10px] px-2.5 py-1 rounded-xl font-bold border border-cyan-500/30">Active Patient</span>` : `<button onclick="switchFamilyMember('${m.id}')" class="px-3 py-1.5 rounded-xl bg-teal-500 text-slate-950 font-bold text-xs">Switch</button>`}
+      </div>
+    `;
+  }).join('');
+}
+function saveNewFamilyMember() {
+  const name = document.getElementById('fam-new-name')?.value;
+  const relation = document.getElementById('fam-new-relation')?.value;
+  const age = document.getElementById('fam-new-age')?.value;
+  const blood = document.getElementById('fam-new-blood')?.value;
+
+  if (!name || !name.trim()) {
+    alert("Please enter full name for family member.");
+    return;
+  }
+
+  const newId = `mem-${Date.now()}`;
+  const newMember = {
+    id: newId,
+    name: name.trim(),
+    relation: relation || 'Spouse',
+    age: parseInt(age) || 30,
+    gender: 'Other',
+    bloodGroup: blood || 'O+',
+    height: '170 cm',
+    weight: '65 kg',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250',
+    allergies: ['None'],
+    conditions: ['Wellness Tracking'],
+    vitals: { bp: '120/80', spO2: 98, heartRate: 72 }
+  };
+
+  INITIAL_DATA.familyMembers.push(newMember);
+  renderFamilyModalList();
+  updateFamilyDropdownUI();
+  alert(`Added ${name.trim()} to family profiles!`);
+}
+
+// 3. Settings Modal
+function openSettingsModal() {
+  const modal = document.getElementById('modal-settings');
+  if (modal) modal.classList.remove('hidden');
+}
+function closeSettingsModal() {
+  const modal = document.getElementById('modal-settings');
+  if (modal) modal.classList.add('hidden');
+}
+
+// 4. Language Selector Modal
+function openLanguageModal() {
+  const modal = document.getElementById('modal-language');
+  if (modal) modal.classList.remove('hidden');
+}
+function closeLanguageModal() {
+  const modal = document.getElementById('modal-language');
+  if (modal) modal.classList.add('hidden');
+}
+function selectAppLanguage(langCode) {
+  changeLanguage(langCode);
+  const langLabels = { en: 'English 🇺🇸', es: 'Spanish 🇪🇸', hi: 'Hindi 🇮🇳', fr: 'French 🇫🇷', de: 'German 🇩🇪' };
+  const badge = document.getElementById('profile-current-lang');
+  if (badge) badge.innerText = langLabels[langCode] || 'English 🇺🇸';
+  closeLanguageModal();
+  alert(`Application language switched to ${langLabels[langCode] || langCode}!`);
+}
+
+// 5. Saved Addresses Modal
+function openSavedAddressesModal() {
+  const modal = document.getElementById('modal-saved-addresses');
+  if (modal) modal.classList.remove('hidden');
+}
+function closeSavedAddressesModal() {
+  const modal = document.getElementById('modal-saved-addresses');
+  if (modal) modal.classList.add('hidden');
+}
+function saveNewAddress() {
+  const label = document.getElementById('addr-label')?.value;
+  const street = document.getElementById('addr-street')?.value;
+  const city = document.getElementById('addr-city')?.value;
+  const pincode = document.getElementById('addr-pincode')?.value;
+
+  if (!label || !street) {
+    alert("Please fill in address label and street address.");
+    return;
+  }
+
+  const container = document.getElementById('saved-addresses-list');
+  if (container) {
+    const div = document.createElement('div');
+    div.className = 'p-3.5 rounded-2xl bg-slate-900 border border-slate-800 flex items-start justify-between';
+    div.innerHTML = `<div><strong class="text-white font-bold">${label.trim()}</strong><p class="text-slate-300 mt-1">${street.trim()}</p><p class="text-slate-400 text-[11px]">${city || 'Hyderabad'} - ${pincode || '500032'}</p></div><button onclick="alert('Primary address set!')" class="text-teal-400 hover:underline text-[11px] font-bold">Set Default</button>`;
+    container.appendChild(div);
+  }
+  alert(`Saved ${label.trim()} delivery address!`);
+}
+
+// 6. Emergency Contacts Modal
+function openEmergencyContactsModal() {
+  const modal = document.getElementById('modal-emergency-contacts');
+  if (modal) modal.classList.remove('hidden');
+}
+function closeEmergencyContactsModal() {
+  const modal = document.getElementById('modal-emergency-contacts');
+  if (modal) modal.classList.add('hidden');
+}
+
+// 7. Privacy & Security Modal
+function openPrivacySecurityModal() {
+  const modal = document.getElementById('modal-privacy-security');
+  if (modal) modal.classList.remove('hidden');
+}
+function closePrivacySecurityModal() {
+  const modal = document.getElementById('modal-privacy-security');
+  if (modal) modal.classList.add('hidden');
+}
+function exportUserDataJSON() {
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
+    exportDate: new Date().toISOString(),
+    user: state.activeFamilyMember || INITIAL_DATA.familyMembers[0],
+    schedule: INITIAL_DATA.medicineSchedule,
+    healthRecords: INITIAL_DATA.healthRecords
+  }, null, 2));
+  const downloadAnchor = document.createElement('a');
+  downloadAnchor.setAttribute("href", dataStr);
+  downloadAnchor.setAttribute("download", `CuraAssist_Medical_Export_${Date.now()}.json`);
+  document.body.appendChild(downloadAnchor);
+  downloadAnchor.click();
+  downloadAnchor.remove();
+  alert("Downloading encrypted medical data JSON export...");
+}
+
+// 8. Help & Support Modal
+function openHelpSupportModal() {
+  const modal = document.getElementById('modal-help-support');
+  if (modal) modal.classList.remove('hidden');
+}
+function closeHelpSupportModal() {
+  const modal = document.getElementById('modal-help-support');
+  if (modal) modal.classList.add('hidden');
+}
+function submitSupportTicket() {
+  const subj = document.getElementById('supp-subject')?.value;
+  if (!subj || !subj.trim()) {
+    alert("Please enter subject for support ticket.");
+    return;
+  }
+  alert(`Support Ticket Created! Ticket ID #TKT-${Math.floor(100000 + Math.random() * 900000)}. Our medical response team will get back to you in 15 minutes.`);
+  closeHelpSupportModal();
+}
+

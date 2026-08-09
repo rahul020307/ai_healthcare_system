@@ -856,64 +856,72 @@
           </div>
         </div>
 
-        <!-- Health Records List -->
-        <div id="sec-health-records" class="space-y-3">
-          <div class="flex items-center justify-between">
-            <h3 class="text-sm font-extrabold text-white">Health Records</h3>
-            <button onclick="openMedicalReports()" class="text-xs text-teal-400 font-bold hover:underline">View All</button>
-          </div>
+        <!-- 1. PERSONAL INFORMATION & FAMILY MEMBERS -->
+        <div class="space-y-3">
+          <h3 class="text-sm font-extrabold text-white flex items-center gap-2">
+            <i data-lucide="user-check" class="w-4 h-4 text-teal-400"></i> Personal & Family Account
+          </h3>
 
-          <div class="glass-panel rounded-3xl border border-slate-800 divide-y divide-slate-800/80 overflow-hidden">
-            <button onclick="openManageUploadsModal()" class="w-full p-4 flex items-center justify-between hover:bg-slate-900/50 transition-colors text-left group">
+          <div class="glass-panel rounded-3xl border border-slate-800 divide-y divide-slate-800/80 overflow-hidden shadow-xl">
+            <button onclick="openEditProfileModal()" class="w-full p-4 flex items-center justify-between hover:bg-slate-900/50 transition-colors text-left group">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-teal-500/20 text-teal-400 flex items-center justify-center">
-                  <i data-lucide="cloud-upload" class="w-5 h-5"></i>
+                  <i data-lucide="user" class="w-5 h-5"></i>
                 </div>
                 <div>
-                  <h4 class="text-xs font-bold text-white group-hover:text-teal-300 transition-colors">My Scanned Uploads & Documents</h4>
-                  <p class="text-[11px] text-slate-400">Manage all camera scans, prescriptions, & files stored in DB</p>
+                  <h4 class="text-xs font-bold text-white group-hover:text-teal-300 transition-colors">Personal Information</h4>
+                  <p class="text-[11px] text-slate-400">Name, Phone, Email, Age, Blood Group & Vitals</p>
+                </div>
+              </div>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
+            </button>
+
+            <button onclick="openFamilyMembersModal()" class="w-full p-4 flex items-center justify-between hover:bg-slate-900/50 transition-colors text-left group">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center">
+                  <i data-lucide="users" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-white group-hover:text-cyan-300 transition-colors">Family Members</h4>
+                  <p class="text-[11px] text-slate-400">Switch patient context or add family profiles</p>
                 </div>
               </div>
               <div class="flex items-center gap-2">
-                <span id="profile-uploads-badge" class="text-[10px] bg-teal-500/20 text-teal-300 font-extrabold px-2 py-0.5 rounded-full border border-teal-500/30">0 Saved</span>
+                <span id="profile-family-count" class="text-[10px] bg-cyan-500/20 text-cyan-300 font-extrabold px-2 py-0.5 rounded-full border border-cyan-500/30">1 Active</span>
                 <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
               </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. MEDICAL HISTORY & HEALTH RECORDS -->
+        <div class="space-y-3">
+          <h3 class="text-sm font-extrabold text-white flex items-center gap-2">
+            <i data-lucide="heart-pulse" class="w-4 h-4 text-rose-400"></i> Health & Clinical History
+          </h3>
+
+          <div class="glass-panel rounded-3xl border border-slate-800 divide-y divide-slate-800/80 overflow-hidden shadow-xl">
+            <button onclick="openMedicalHistoryModal()" class="w-full p-4 flex items-center justify-between hover:bg-slate-900/50 transition-colors text-left group">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center">
+                  <i data-lucide="activity" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-white group-hover:text-rose-300 transition-colors">Medical History</h4>
+                  <p class="text-[11px] text-slate-400">Allergies, Chronic Conditions, Surgeries & Diagnoses</p>
+                </div>
+              </div>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
             </button>
 
             <button onclick="openMedicalReports()" class="w-full p-4 flex items-center justify-between hover:bg-slate-900/50 transition-colors text-left group">
               <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center">
+                <div class="w-10 h-10 rounded-xl bg-teal-500/20 text-teal-400 flex items-center justify-center">
                   <i data-lucide="folder-heart" class="w-5 h-5"></i>
                 </div>
                 <div>
-                  <h4 class="text-xs font-bold text-white group-hover:text-cyan-300 transition-colors">Medical Reports</h4>
-                  <p class="text-[11px] text-slate-400">X-Rays, Blood Tests, Lab Reports</p>
-                </div>
-              </div>
-              <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
-            </button>
-
-            <button onclick="alert('Immunization Records: COVID Booster (Nov 2025), Flu Spikevax (Oct 2025)')" class="w-full p-4 flex items-center justify-between hover:bg-slate-900/50 transition-colors text-left group">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center">
-                  <i data-lucide="shield-check" class="w-5 h-5"></i>
-                </div>
-                <div>
-                  <h4 class="text-xs font-bold text-white group-hover:text-cyan-300 transition-colors">Immunization</h4>
-                  <p class="text-[11px] text-slate-400">Vaccination & Immunization Records</p>
-                </div>
-              </div>
-              <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
-            </button>
-
-            <button onclick="alert('Vitals History: BP 120/80 mmHg (Normal), Sugar 95 mg/dL, BMI 22.4')" class="w-full p-4 flex items-center justify-between hover:bg-slate-900/50 transition-colors text-left group">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
-                  <i data-lucide="activity" class="w-5 h-5"></i>
-                </div>
-                <div>
-                  <h4 class="text-xs font-bold text-white group-hover:text-indigo-300 transition-colors">Vitals History</h4>
-                  <p class="text-[11px] text-slate-400">Blood Pressure, Sugar, BMI & more</p>
+                  <h4 class="text-xs font-bold text-white group-hover:text-teal-300 transition-colors">My Health Records & Reports</h4>
+                  <p class="text-[11px] text-slate-400">Lab Results, X-Rays, Prescriptions & Documents</p>
                 </div>
               </div>
               <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
@@ -921,69 +929,120 @@
           </div>
         </div>
 
-        <!-- Settings List -->
+        <!-- 3. PREFERENCES, SETTINGS & LANGUAGE -->
         <div class="space-y-3">
-          <h3 class="text-sm font-extrabold text-white">Settings</h3>
+          <h3 class="text-sm font-extrabold text-white flex items-center gap-2">
+            <i data-lucide="sliders" class="w-4 h-4 text-indigo-400"></i> Preferences & Settings
+          </h3>
 
-          <div class="glass-panel rounded-3xl border border-slate-800 divide-y divide-slate-800/80 overflow-hidden">
-            <button onclick="alert('Privacy & Security: 256-bit AES Encryption active. Biometric login enabled.')" class="w-full p-4 flex items-center justify-between hover:bg-slate-900/50 transition-colors text-left group">
+          <div class="glass-panel rounded-3xl border border-slate-800 divide-y divide-slate-800/80 overflow-hidden shadow-xl">
+            <button onclick="openSettingsModal()" class="w-full p-4 flex items-center justify-between hover:bg-slate-900/50 transition-colors text-left group">
               <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
-                  <i data-lucide="lock" class="w-5 h-5"></i>
+                <div class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
+                  <i data-lucide="settings" class="w-5 h-5"></i>
                 </div>
-                <h4 class="text-xs font-bold text-white group-hover:text-emerald-300 transition-colors">Privacy & Security</h4>
+                <div>
+                  <h4 class="text-xs font-bold text-white group-hover:text-indigo-300 transition-colors">Settings</h4>
+                  <p class="text-[11px] text-slate-400">Dark Mode, Biometrics, Auto Refills & App Preferences</p>
+                </div>
               </div>
               <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
             </button>
 
-            <button onclick="alert('Notification Preferences: Pill reminders, refills, emergency alerts enabled.')" class="w-full p-4 flex items-center justify-between hover:bg-slate-900/50 transition-colors text-left group">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center">
-                  <i data-lucide="bell" class="w-5 h-5"></i>
-                </div>
-                <h4 class="text-xs font-bold text-white group-hover:text-amber-300 transition-colors">Notifications</h4>
-              </div>
-              <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
-            </button>
-
-            <button onclick="alert('App Language: English (EN). Multi-lingual dictionary active.')" class="w-full p-4 flex items-center justify-between hover:bg-slate-900/50 transition-colors text-left group">
+            <button onclick="openLanguageModal()" class="w-full p-4 flex items-center justify-between hover:bg-slate-900/50 transition-colors text-left group">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center">
                   <i data-lucide="globe" class="w-5 h-5"></i>
                 </div>
-                <h4 class="text-xs font-bold text-white group-hover:text-cyan-300 transition-colors">Language</h4>
+                <div>
+                  <h4 class="text-xs font-bold text-white group-hover:text-cyan-300 transition-colors">Language</h4>
+                  <p class="text-[11px] text-slate-400">Switch App Language (English, Spanish, Hindi, French, German)</p>
+                </div>
               </div>
               <div class="flex items-center gap-2">
-                <span class="text-xs text-slate-400 font-medium">English</span>
+                <span id="profile-current-lang" class="text-xs text-slate-300 font-bold bg-slate-800 px-2 py-0.5 rounded">English 🇺🇸</span>
                 <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
               </div>
             </button>
 
-            <button onclick="openAIAssistantModal()" class="w-full p-4 flex items-center justify-between hover:bg-slate-900/50 transition-colors text-left group">
+            <button onclick="toggleNotifDrawer()" class="w-full p-4 flex items-center justify-between hover:bg-slate-900/50 transition-colors text-left group">
               <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center">
-                  <i data-lucide="help-circle" class="w-5 h-5"></i>
+                <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center">
+                  <i data-lucide="bell" class="w-5 h-5"></i>
                 </div>
-                <h4 class="text-xs font-bold text-white group-hover:text-purple-300 transition-colors">Help & Support</h4>
+                <div>
+                  <h4 class="text-xs font-bold text-white group-hover:text-amber-300 transition-colors">Notifications</h4>
+                  <p class="text-[11px] text-slate-400">Pill Reminders, Order Tracking & Emergency Push Alerts</p>
+                </div>
               </div>
               <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
             </button>
           </div>
         </div>
 
-        <!-- App Info & Logout -->
+        <!-- 4. LOCATIONS & EMERGENCY -->
         <div class="space-y-3">
-          <h3 class="text-sm font-extrabold text-white">App Info & Account</h3>
+          <h3 class="text-sm font-extrabold text-white flex items-center gap-2">
+            <i data-lucide="map-pin" class="w-4 h-4 text-amber-400"></i> Addresses & Emergency Contacts
+          </h3>
 
           <div class="glass-panel rounded-3xl border border-slate-800 divide-y divide-slate-800/80 overflow-hidden shadow-xl">
-            <button onclick="alert('CuraAssist CareHub v2.4.0 • HIPAA Compliant AI Healthcare Platform')" class="w-full p-4 flex items-center justify-between hover:bg-slate-900/50 transition-colors text-left group">
+            <button onclick="openSavedAddressesModal()" class="w-full p-4 flex items-center justify-between hover:bg-slate-900/50 transition-colors text-left group">
               <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-teal-500/20 text-teal-400 flex items-center justify-center">
-                  <i data-lucide="info" class="w-5 h-5"></i>
+                <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center">
+                  <i data-lucide="book-user" class="w-5 h-5"></i>
                 </div>
                 <div>
-                  <h4 class="text-xs font-bold text-white group-hover:text-teal-300 transition-colors">About CuraAssist CareHub</h4>
-                  <p class="text-[11px] text-slate-400">Version 2.4.0 • HIPAA Security Verified</p>
+                  <h4 class="text-xs font-bold text-white group-hover:text-amber-300 transition-colors">Saved Addresses</h4>
+                  <p class="text-[11px] text-slate-400">Medicine Order Deliveries & Home Lab Visit Addresses</p>
+                </div>
+              </div>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
+            </button>
+
+            <button onclick="openEmergencyContactsModal()" class="w-full p-4 flex items-center justify-between hover:bg-slate-900/50 transition-colors text-left group">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center">
+                  <i data-lucide="phone-call" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-white group-hover:text-rose-300 transition-colors">Emergency Contacts</h4>
+                  <p class="text-[11px] text-slate-400">ICE Family Contacts, Doctor Direct Line & Ambulance Hotline</p>
+                </div>
+              </div>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- 5. PRIVACY, SUPPORT & ACCOUNT LOGOUT -->
+        <div class="space-y-3">
+          <h3 class="text-sm font-extrabold text-white flex items-center gap-2">
+            <i data-lucide="shield" class="w-4 h-4 text-emerald-400"></i> Security & Support
+          </h3>
+
+          <div class="glass-panel rounded-3xl border border-slate-800 divide-y divide-slate-800/80 overflow-hidden shadow-xl">
+            <button onclick="openPrivacySecurityModal()" class="w-full p-4 flex items-center justify-between hover:bg-slate-900/50 transition-colors text-left group">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                  <i data-lucide="lock" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-white group-hover:text-emerald-300 transition-colors">Privacy & Security</h4>
+                  <p class="text-[11px] text-slate-400">HIPAA Compliance, 256-Bit AES Encryption & Export My Data</p>
+                </div>
+              </div>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
+            </button>
+
+            <button onclick="openHelpSupportModal()" class="w-full p-4 flex items-center justify-between hover:bg-slate-900/50 transition-colors text-left group">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center">
+                  <i data-lucide="help-circle" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-white group-hover:text-purple-300 transition-colors">Help & Support</h4>
+                  <p class="text-[11px] text-slate-400">FAQ Accordion, 24/7 Helpline & Support Ticket Form</p>
                 </div>
               </div>
               <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
@@ -1004,7 +1063,7 @@
           </div>
         </div>
 
-        <!-- Dedicated Bottom Navigation Clearance Spacer (Ensures 100% visibility above mobile bottom bar) -->
+        <!-- Dedicated Bottom Navigation Clearance Spacer -->
         <div class="h-40 w-full shrink-0"></div>
 
       </section>
@@ -1678,7 +1737,7 @@
   </div>
 
   <!-- ADD REMINDER MODAL -->
-  <div id="modal-add-reminder" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+  <div id="modal-add-reminder" class="hidden fixed inset-0 z-[100001] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
     <div class="glass-panel w-full max-w-md rounded-3xl p-6 border border-teal-500/40 space-y-4">
       <h3 class="text-base font-bold text-white">Add Pill Reminder</h3>
       <input type="text" id="rem-name" placeholder="Medicine Name" class="w-full glass-input rounded-xl px-3.5 py-2 text-xs">
@@ -1692,6 +1751,485 @@
       <div class="flex gap-2 pt-2">
         <button onclick="closeAddReminderModal()" class="flex-1 bg-slate-800 text-xs font-bold py-2 rounded-xl">Cancel</button>
         <button onclick="saveNewReminder()" class="flex-1 bg-teal-600 text-xs font-bold py-2 rounded-xl text-white">Save Reminder</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1. MEDICAL HISTORY MODAL -->
+  <div id="modal-medical-history" class="hidden fixed inset-0 z-[100001] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="glass-panel w-full max-w-xl rounded-3xl p-6 sm:p-7 border border-rose-500/40 space-y-5 relative max-h-[90vh] overflow-y-auto shadow-2xl">
+      <button onclick="closeMedicalHistoryModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-2">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="flex items-center gap-3 border-b border-slate-800 pb-4">
+        <div class="p-3 rounded-2xl bg-rose-500/20 text-rose-400 border border-rose-500/30">
+          <i data-lucide="activity" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h3 class="text-lg font-extrabold text-white">Medical History & Clinical Profile</h3>
+          <p class="text-xs text-slate-400">Allergies, Chronic Conditions, Past Surgeries & Diagnoses</p>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <!-- Allergies -->
+        <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between">
+            <h4 class="text-xs font-extrabold text-rose-300 flex items-center gap-1.5"><i data-lucide="alert-circle" class="w-4 h-4 text-rose-400"></i> Known Allergies & Sensitivities</h4>
+            <button onclick="addNewAllergy()" class="text-[11px] text-teal-400 font-bold hover:underline">+ Add Allergy</button>
+          </div>
+          <div id="med-history-allergies" class="flex flex-wrap gap-2 pt-1">
+            <span class="bg-rose-500/10 text-rose-300 text-xs px-3 py-1 rounded-xl border border-rose-500/20 font-medium">Penicillin (Severe Rash)</span>
+            <span class="bg-rose-500/10 text-rose-300 text-xs px-3 py-1 rounded-xl border border-rose-500/20 font-medium">Dust Mites / Pollen</span>
+            <span class="bg-slate-800 text-slate-300 text-xs px-3 py-1 rounded-xl font-medium">Peanuts (Mild)</span>
+          </div>
+        </div>
+
+        <!-- Chronic Conditions -->
+        <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between">
+            <h4 class="text-xs font-extrabold text-teal-300 flex items-center gap-1.5"><i data-lucide="heart" class="w-4 h-4 text-teal-400"></i> Chronic Conditions</h4>
+            <button onclick="addNewCondition()" class="text-[11px] text-teal-400 font-bold hover:underline">+ Add Condition</button>
+          </div>
+          <div id="med-history-conditions" class="space-y-2 text-xs text-slate-300 pt-1">
+            <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-950 border border-slate-800/80">
+              <div>
+                <strong class="text-white block">Hypertension (High BP)</strong>
+                <span class="text-[11px] text-slate-400">Diagnosed 2021 • Managed with Metoprolol 25mg</span>
+              </div>
+              <span class="bg-emerald-500/20 text-emerald-300 text-[10px] px-2 py-0.5 rounded font-bold">Controlled</span>
+            </div>
+            <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-950 border border-slate-800/80">
+              <div>
+                <strong class="text-white block">Mild Bronchial Asthma</strong>
+                <span class="text-[11px] text-slate-400">Seasonal Triggers • Inhaler as Needed</span>
+              </div>
+              <span class="bg-amber-500/20 text-amber-300 text-[10px] px-2 py-0.5 rounded font-bold">Monitored</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Surgeries -->
+        <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2">
+          <h4 class="text-xs font-extrabold text-cyan-300 flex items-center gap-1.5"><i data-lucide="scissors" class="w-4 h-4 text-cyan-400"></i> Past Surgeries & Procedures</h4>
+          <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800/80 text-xs space-y-1">
+            <strong class="text-white block">Laparoscopic Appendectomy (2022)</strong>
+            <p class="text-[11px] text-slate-400">Apollo Hospitals • Surgeon: Dr. V. Rao • Uncomplicated recovery</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-3 border-t border-slate-800 flex justify-end">
+        <button onclick="closeMedicalHistoryModal()" class="px-5 py-2.5 rounded-xl bg-teal-500 text-slate-950 font-extrabold text-xs shadow-lg">
+          Close Medical History
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. FAMILY MEMBERS MODAL -->
+  <div id="modal-family-members" class="hidden fixed inset-0 z-[100001] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="glass-panel w-full max-w-xl rounded-3xl p-6 sm:p-7 border border-cyan-500/40 space-y-5 relative max-h-[90vh] overflow-y-auto shadow-2xl">
+      <button onclick="closeFamilyMembersModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-2">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+        <div class="flex items-center gap-3">
+          <div class="p-3 rounded-2xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+            <i data-lucide="users" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-extrabold text-white">Family Profiles & Context Switcher</h3>
+            <p class="text-xs text-slate-400">Manage health records for your entire family</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Family Members Grid -->
+      <div id="family-modal-list" class="space-y-3">
+        <!-- Rendered by JS -->
+      </div>
+
+      <!-- Add New Family Member Form -->
+      <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-3">
+        <h4 class="text-xs font-extrabold text-white flex items-center gap-1.5"><i data-lucide="user-plus" class="w-4 h-4 text-teal-400"></i> Add New Family Member</h4>
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <input type="text" id="fam-new-name" placeholder="Full Name" class="glass-input rounded-xl px-3 py-2">
+          <select id="fam-new-relation" class="glass-input rounded-xl px-3 py-2">
+            <option value="Spouse">Spouse</option>
+            <option value="Child">Child</option>
+            <option value="Parent">Parent</option>
+            <option value="Sibling">Sibling</option>
+          </select>
+          <input type="number" id="fam-new-age" placeholder="Age" class="glass-input rounded-xl px-3 py-2">
+          <select id="fam-new-blood" class="glass-input rounded-xl px-3 py-2">
+            <option value="O+">O+</option>
+            <option value="A+">A+</option>
+            <option value="B+">B+</option>
+            <option value="AB+">AB+</option>
+            <option value="O-">O-</option>
+          </select>
+        </div>
+        <button onclick="saveNewFamilyMember()" class="w-full bg-gradient-to-r from-teal-500 to-cyan-500 text-slate-950 font-extrabold py-2.5 rounded-xl text-xs shadow-md">
+          + Save Family Member
+        </button>
+      </div>
+
+      <div class="pt-2 border-t border-slate-800 flex justify-end">
+        <button onclick="closeFamilyMembersModal()" class="px-5 py-2.5 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. SETTINGS MODAL -->
+  <div id="modal-settings" class="hidden fixed inset-0 z-[100001] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="glass-panel w-full max-w-lg rounded-3xl p-6 sm:p-7 border border-indigo-500/40 space-y-5 relative max-h-[90vh] overflow-y-auto shadow-2xl">
+      <button onclick="closeSettingsModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-2">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="flex items-center gap-3 border-b border-slate-800 pb-4">
+        <div class="p-3 rounded-2xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+          <i data-lucide="settings" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h3 class="text-lg font-extrabold text-white">App Settings & Preferences</h3>
+          <p class="text-xs text-slate-400">Configure theme, biometrics, dosage alarms & sync</p>
+        </div>
+      </div>
+
+      <div class="space-y-3 divide-y divide-slate-800/80 text-xs">
+        <div class="flex items-center justify-between pt-2">
+          <div>
+            <strong class="text-white block font-bold">Dark Mode Theme</strong>
+            <span class="text-[11px] text-slate-400">Deep obsidian dark mode interface</span>
+          </div>
+          <input type="checkbox" checked onchange="alert('Theme preferences saved!')" class="toggle-checkbox w-5 h-5 accent-teal-500">
+        </div>
+
+        <div class="flex items-center justify-between pt-3">
+          <div>
+            <strong class="text-white block font-bold">Biometric FaceID / Fingerprint Lock</strong>
+            <span class="text-[11px] text-slate-400">Require biometrics before displaying medical reports</span>
+          </div>
+          <input type="checkbox" checked onchange="alert('Biometric lock updated!')" class="w-5 h-5 accent-teal-500">
+        </div>
+
+        <div class="flex items-center justify-between pt-3">
+          <div>
+            <strong class="text-white block font-bold">Automatic Pill Reminders</strong>
+            <span class="text-[11px] text-slate-400">Trigger audio alerts for scheduled dosages</span>
+          </div>
+          <input type="checkbox" checked onchange="alert('Reminders active!')" class="w-5 h-5 accent-teal-500">
+        </div>
+
+        <div class="flex items-center justify-between pt-3">
+          <div>
+            <strong class="text-white block font-bold">Auto Refill Prescription Orders</strong>
+            <span class="text-[11px] text-slate-400">Auto-order refills when pill count drops below 5</span>
+          </div>
+          <input type="checkbox" checked onchange="alert('Auto refills enabled!')" class="w-5 h-5 accent-teal-500">
+        </div>
+
+        <div class="flex items-center justify-between pt-3">
+          <div>
+            <strong class="text-white block font-bold">Emergency SOS Instant Push Alerts</strong>
+            <span class="text-[11px] text-slate-400">Send instant SMS & location pin to ICE contacts</span>
+          </div>
+          <input type="checkbox" checked onchange="alert('SOS alerts active!')" class="w-5 h-5 accent-teal-500">
+        </div>
+      </div>
+
+      <div class="pt-3 border-t border-slate-800 flex justify-end">
+        <button onclick="closeSettingsModal()" class="px-5 py-2.5 rounded-xl bg-teal-500 text-slate-950 font-extrabold text-xs shadow-lg">
+          Save Settings
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. LANGUAGE SELECTOR MODAL -->
+  <div id="modal-language" class="hidden fixed inset-0 z-[100001] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="glass-panel w-full max-w-md rounded-3xl p-6 border border-cyan-500/40 space-y-5 relative shadow-2xl">
+      <button onclick="closeLanguageModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-2">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="flex items-center gap-3 border-b border-slate-800 pb-4">
+        <div class="p-3 rounded-2xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+          <i data-lucide="globe" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h3 class="text-lg font-extrabold text-white">Select Application Language</h3>
+          <p class="text-xs text-slate-400">Multi-lingual UI translation dictionary</p>
+        </div>
+      </div>
+
+      <div class="space-y-2 text-xs">
+        <button onclick="selectAppLanguage('en')" class="w-full p-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-left flex items-center justify-between group">
+          <span class="font-bold text-white group-hover:text-cyan-300">English (United States) 🇺🇸</span>
+          <i data-lucide="check-circle" class="w-4 h-4 text-teal-400"></i>
+        </button>
+        <button onclick="selectAppLanguage('es')" class="w-full p-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-left flex items-center justify-between group">
+          <span class="font-bold text-white group-hover:text-cyan-300">Spanish (Español) 🇪🇸</span>
+          <i data-lucide="globe" class="w-4 h-4 text-slate-500"></i>
+        </button>
+        <button onclick="selectAppLanguage('hi')" class="w-full p-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-left flex items-center justify-between group">
+          <span class="font-bold text-white group-hover:text-cyan-300">Hindi (हिंदी) 🇮🇳</span>
+          <i data-lucide="globe" class="w-4 h-4 text-slate-500"></i>
+        </button>
+        <button onclick="selectAppLanguage('fr')" class="w-full p-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-left flex items-center justify-between group">
+          <span class="font-bold text-white group-hover:text-cyan-300">French (Français) 🇫🇷</span>
+          <i data-lucide="globe" class="w-4 h-4 text-slate-500"></i>
+        </button>
+        <button onclick="selectAppLanguage('de')" class="w-full p-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-left flex items-center justify-between group">
+          <span class="font-bold text-white group-hover:text-cyan-300">German (Deutsch) 🇩🇪</span>
+          <i data-lucide="globe" class="w-4 h-4 text-slate-500"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. SAVED ADDRESSES MODAL -->
+  <div id="modal-saved-addresses" class="hidden fixed inset-0 z-[100001] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="glass-panel w-full max-w-lg rounded-3xl p-6 sm:p-7 border border-amber-500/40 space-y-5 relative max-h-[90vh] overflow-y-auto shadow-2xl">
+      <button onclick="closeSavedAddressesModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-2">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="flex items-center gap-3 border-b border-slate-800 pb-4">
+        <div class="p-3 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/30">
+          <i data-lucide="book-user" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h3 class="text-lg font-extrabold text-white">Saved Delivery Addresses</h3>
+          <p class="text-xs text-slate-400">For medicine deliveries & home sample collection</p>
+        </div>
+      </div>
+
+      <div id="saved-addresses-list" class="space-y-3 text-xs">
+        <div class="p-3.5 rounded-2xl bg-slate-900 border border-amber-500/40 flex items-start justify-between">
+          <div>
+            <div class="flex items-center gap-2">
+              <strong class="text-white font-bold">Home (Primary)</strong>
+              <span class="bg-amber-500/20 text-amber-300 text-[10px] px-2 py-0.5 rounded font-bold">Default</span>
+            </div>
+            <p class="text-slate-300 mt-1">Flat 402, Hightech Residency, Gachibowli</p>
+            <p class="text-slate-400 text-[11px]">Hyderabad, Telangana - 500032 • Phone: +91 98765 43210</p>
+          </div>
+          <button onclick="alert('Primary address set!')" class="text-amber-400 hover:underline text-[11px] font-bold">Edit</button>
+        </div>
+
+        <div class="p-3.5 rounded-2xl bg-slate-900 border border-slate-800 flex items-start justify-between">
+          <div>
+            <strong class="text-white font-bold">Office / Cyber Towers</strong>
+            <p class="text-slate-300 mt-1">Floor 6, Tower B, Hitec City</p>
+            <p class="text-slate-400 text-[11px]">Hyderabad, Telangana - 500081</p>
+          </div>
+          <button onclick="alert('Set as Primary!')" class="text-teal-400 hover:underline text-[11px] font-bold">Set Default</button>
+        </div>
+      </div>
+
+      <!-- Add Address Form -->
+      <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-3 text-xs">
+        <h4 class="text-xs font-extrabold text-white flex items-center gap-1.5"><i data-lucide="map-pin" class="w-4 h-4 text-amber-400"></i> Add New Address</h4>
+        <input type="text" id="addr-label" placeholder="Label (e.g. Parents House)" class="w-full glass-input rounded-xl px-3 py-2">
+        <input type="text" id="addr-street" placeholder="Street Address & Flat / Door No." class="w-full glass-input rounded-xl px-3 py-2">
+        <div class="grid grid-cols-2 gap-2">
+          <input type="text" id="addr-city" placeholder="City (e.g. Hyderabad)" class="glass-input rounded-xl px-3 py-2">
+          <input type="text" id="addr-pincode" placeholder="Pincode (e.g. 500032)" class="glass-input rounded-xl px-3 py-2">
+        </div>
+        <button onclick="saveNewAddress()" class="w-full bg-amber-500 text-slate-950 font-extrabold py-2.5 rounded-xl shadow-md">
+          + Save Address
+        </button>
+      </div>
+
+      <div class="pt-2 border-t border-slate-800 flex justify-end">
+        <button onclick="closeSavedAddressesModal()" class="px-5 py-2.5 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. EMERGENCY CONTACTS MODAL -->
+  <div id="modal-emergency-contacts" class="hidden fixed inset-0 z-[100001] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="glass-panel w-full max-w-lg rounded-3xl p-6 sm:p-7 border border-rose-500/40 space-y-5 relative max-h-[90vh] overflow-y-auto shadow-2xl">
+      <button onclick="closeEmergencyContactsModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-2">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="flex items-center gap-3 border-b border-slate-800 pb-4">
+        <div class="p-3 rounded-2xl bg-rose-500/20 text-rose-400 border border-rose-500/30">
+          <i data-lucide="phone-call" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h3 class="text-lg font-extrabold text-white">Emergency Contacts & ICE Network</h3>
+          <p class="text-xs text-slate-400">In-Case-of-Emergency contacts & instant speed dials</p>
+        </div>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div class="p-4 rounded-2xl bg-rose-950/40 border border-rose-500/40 flex items-center justify-between">
+          <div>
+            <span class="text-[10px] bg-rose-500/30 text-rose-200 font-extrabold px-2 py-0.5 rounded">Primary ICE Contact</span>
+            <h4 class="text-sm font-extrabold text-white mt-1">Ananya Sharma (Spouse)</h4>
+            <p class="text-[11px] text-rose-300/80">+91 98765 00001 • Instant SOS Recipient</p>
+          </div>
+          <a href="tel:+919876500001" class="px-3 py-2 rounded-xl bg-rose-600 text-white font-extrabold flex items-center gap-1 shadow">
+            <i data-lucide="phone" class="w-3.5 h-3.5"></i> Call
+          </a>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+          <div>
+            <span class="text-[10px] bg-teal-500/20 text-teal-300 font-bold px-2 py-0.5 rounded">Primary Care Physician</span>
+            <h4 class="text-sm font-extrabold text-white mt-1">Dr. Robert Chen (Cardiologist)</h4>
+            <p class="text-[11px] text-slate-400">+91 98765 00002 • Metro Heart Clinic</p>
+          </div>
+          <a href="tel:+919876500002" class="px-3 py-2 rounded-xl bg-teal-500 text-slate-950 font-extrabold flex items-center gap-1 shadow">
+            <i data-lucide="phone" class="w-3.5 h-3.5"></i> Call
+          </a>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+          <div>
+            <span class="text-[10px] bg-amber-500/20 text-amber-300 font-bold px-2 py-0.5 rounded">National Emergency Hotline</span>
+            <h4 class="text-sm font-extrabold text-white mt-1">Ambulance & Trauma Center (108)</h4>
+            <p class="text-[11px] text-slate-400">24/7 Government Medical Dispatch</p>
+          </div>
+          <a href="tel:108" class="px-3 py-2 rounded-xl bg-amber-500 text-slate-950 font-extrabold flex items-center gap-1 shadow">
+            <i data-lucide="phone" class="w-3.5 h-3.5"></i> Dial 108
+          </a>
+        </div>
+      </div>
+
+      <div class="pt-2 border-t border-slate-800 flex justify-between items-center">
+        <button onclick="triggerEmergencySOS()" class="px-4 py-2.5 rounded-xl bg-rose-600 text-white font-extrabold text-xs shadow-lg flex items-center gap-1.5">
+          <i data-lucide="alert-triangle" class="w-4 h-4"></i> Trigger 1-Tap SOS
+        </button>
+        <button onclick="closeEmergencyContactsModal()" class="px-5 py-2.5 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. PRIVACY & SECURITY MODAL -->
+  <div id="modal-privacy-security" class="hidden fixed inset-0 z-[100001] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="glass-panel w-full max-w-lg rounded-3xl p-6 sm:p-7 border border-emerald-500/40 space-y-5 relative max-h-[90vh] overflow-y-auto shadow-2xl">
+      <button onclick="closePrivacySecurityModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-2">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="flex items-center gap-3 border-b border-slate-800 pb-4">
+        <div class="p-3 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+          <i data-lucide="lock" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h3 class="text-lg font-extrabold text-white">Privacy & HIPAA Security Center</h3>
+          <p class="text-xs text-slate-400">Data protection, encryption & privacy controls</p>
+        </div>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div class="p-4 rounded-2xl bg-emerald-950/40 border border-emerald-500/40 flex items-center justify-between">
+          <div>
+            <span class="text-[10px] bg-emerald-500/30 text-emerald-300 font-extrabold px-2 py-0.5 rounded">HIPAA Verified Compliance</span>
+            <h4 class="text-sm font-extrabold text-white mt-1">256-Bit AES End-to-End Encryption</h4>
+            <p class="text-[11px] text-emerald-300/80">All medical records & OCR scans are encrypted at rest</p>
+          </div>
+          <i data-lucide="shield-check" class="w-8 h-8 text-emerald-400 shrink-0"></i>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-2">
+          <h4 class="font-extrabold text-white flex items-center gap-1.5"><i data-lucide="download" class="w-4 h-4 text-teal-400"></i> Export Medical Data</h4>
+          <p class="text-[11px] text-slate-400">Download a complete backup of your prescriptions, vitals, and profile history as a JSON file.</p>
+          <button onclick="exportUserDataJSON()" class="w-full bg-teal-500/20 hover:bg-teal-500/30 text-teal-300 border border-teal-500/40 font-bold py-2 rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5">
+            <i data-lucide="file-text" class="w-4 h-4"></i> Download My Health Data (.JSON)
+          </button>
+        </div>
+      </div>
+
+      <div class="pt-2 border-t border-slate-800 flex justify-end">
+        <button onclick="closePrivacySecurityModal()" class="px-5 py-2.5 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs">
+          Close Center
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. HELP & SUPPORT MODAL -->
+  <div id="modal-help-support" class="hidden fixed inset-0 z-[100001] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="glass-panel w-full max-w-xl rounded-3xl p-6 sm:p-7 border border-purple-500/40 space-y-5 relative max-h-[90vh] overflow-y-auto shadow-2xl">
+      <button onclick="closeHelpSupportModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-2">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="flex items-center gap-3 border-b border-slate-800 pb-4">
+        <div class="p-3 rounded-2xl bg-purple-500/20 text-purple-400 border border-purple-500/30">
+          <i data-lucide="help-circle" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h3 class="text-lg font-extrabold text-white">Help & Support Center</h3>
+          <p class="text-xs text-slate-400">24/7 Clinical support, FAQ & ticket desk</p>
+        </div>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <div class="grid grid-cols-2 gap-3">
+          <button onclick="openAIAssistantModal(); closeHelpSupportModal();" class="p-4 rounded-2xl bg-purple-950/40 border border-purple-500/40 text-left hover:bg-purple-900/50 transition-colors">
+            <i data-lucide="bot" class="w-6 h-6 text-purple-400 mb-2"></i>
+            <h4 class="font-extrabold text-white text-sm">Ask CuraBot AI</h4>
+            <p class="text-[11px] text-slate-400 mt-0.5">24/7 Clinical & medication advice</p>
+          </button>
+
+          <a href="tel:+18005552872" class="p-4 rounded-2xl bg-teal-950/40 border border-teal-500/40 text-left hover:bg-teal-900/50 transition-colors block">
+            <i data-lucide="headphone-off" class="w-6 h-6 text-teal-400 mb-2"></i>
+            <h4 class="font-extrabold text-white text-sm">24/7 Toll-Free Hotline</h4>
+            <p class="text-[11px] text-slate-400 mt-0.5">Call +1 (800) 555-CURA</p>
+          </a>
+        </div>
+
+        <!-- FAQ Accordion -->
+        <div class="space-y-2">
+          <h4 class="font-extrabold text-white text-xs">Frequently Asked Questions (FAQ)</h4>
+          
+          <details class="p-3 rounded-xl bg-slate-900 border border-slate-800">
+            <summary class="font-bold text-slate-200 cursor-pointer">How do I scan a physical prescription?</summary>
+            <p class="text-slate-400 mt-2 text-[11px]">Click "Scan Prescription" in the Home Scanner bar, upload or snap a camera photo, and CuraBot AI OCR will extract all medicines into your reminder schedule!</p>
+          </details>
+
+          <details class="p-3 rounded-xl bg-slate-900 border border-slate-800">
+            <summary class="font-bold text-slate-200 cursor-pointer">How does generic medicine savings calculation work?</summary>
+            <p class="text-slate-400 mt-2 text-[11px]">Our Generic Calculator analyzes active chemical salt compositions and compares brand prices with WHO-GMP generic equivalents to calculate 60-80% price savings.</p>
+          </details>
+
+          <details class="p-3 rounded-xl bg-slate-900 border border-slate-800">
+            <summary class="font-bold text-slate-200 cursor-pointer">Is my medical data kept private?</summary>
+            <p class="text-slate-400 mt-2 text-[11px]">Yes! All records are protected under HIPAA standards using 256-Bit AES encryption. You can export or delete your data at any time in Privacy Settings.</p>
+          </details>
+        </div>
+
+        <!-- Submit Support Ticket Form -->
+        <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2">
+          <h4 class="font-extrabold text-white text-xs">Send Message to Support Team</h4>
+          <input type="text" id="supp-subject" placeholder="Issue Subject (e.g. Order Delivery Query)" class="w-full glass-input rounded-xl px-3 py-2">
+          <textarea id="supp-msg" rows="2" placeholder="Describe your issue or feedback..." class="w-full glass-input rounded-xl px-3 py-2 resize-none"></textarea>
+          <button onclick="submitSupportTicket()" class="w-full bg-purple-600 text-white font-extrabold py-2.5 rounded-xl shadow">
+            Submit Support Ticket
+          </button>
+        </div>
+      </div>
+
+      <div class="pt-2 border-t border-slate-800 flex justify-end">
+        <button onclick="closeHelpSupportModal()" class="px-5 py-2.5 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs">
+          Close Help Center
+        </button>
       </div>
     </div>
   </div>
