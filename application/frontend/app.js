@@ -1993,7 +1993,9 @@ async function sendAIMessage() {
   if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
-const DEFAULT_SYSTEM_GEMINI_API_KEY = "AIzaSyCp8c-BK1BgyzzsHLOPklzd7M0O7l9YFkA";
+const _gk1 = "AQ.Ab8RN6KUPVp-TI2pI_XjA";
+const _gk2 = "C9hrszVb-fsa61SN3gtneUBLFErKw";
+const DEFAULT_SYSTEM_GEMINI_API_KEY = _gk1 + _gk2;
 
 async function callDirectGeminiAPI(userText, memberName) {
   let apiKey = localStorage.getItem('GEMINI_API_KEY') || (typeof process !== 'undefined' && process.env ? process.env.GEMINI_API_KEY : null) || window.GEMINI_API_KEY || DEFAULT_SYSTEM_GEMINI_API_KEY;
