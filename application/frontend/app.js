@@ -1996,12 +1996,26 @@ const _gk1 = "AQ.Ab8RN6KUPVp-TI2pI_XjA";
 const _gk2 = "C9hrszVb-fsa61SN3gtneUBLFErKw";
 const DEFAULT_SYSTEM_GEMINI_API_KEY = _gk1 + _gk2;
 
-async function callDirectGeminiAPI(userText, memberName) {
+async function callDirectGeminiAPI(userText, memberName, imageBase64Data = null, mimeType = "image/jpeg") {
   let apiKey = localStorage.getItem('GEMINI_API_KEY') || (typeof process !== 'undefined' && process.env ? process.env.GEMINI_API_KEY : null) || window.GEMINI_API_KEY || DEFAULT_SYSTEM_GEMINI_API_KEY;
   
   if (!apiKey || !apiKey.trim()) return null;
 
   const systemPrompt = `You are CuraBot AI, an expert, warm, and clear medical AI assistant. The patient is ${memberName}. Provide detailed, accurate, human-readable medical guidance in Markdown with bold headers, bullet points, medicine dosages, salt compositions, and safety precautions.`;
+
+  const parts = [];
+  if (imageBase64Data && typeof imageBase64Data === 'string' && imageBase64Data.startsWith('data:image/')) {
+    const mimeMatch = imageBase64Data.match(/^data:(image\/\w+);base64,/);
+    const mType = mimeMatch ? mimeMatch[1] : mimeType;
+    const cleanB64 = imageBase64Data.replace(/^data:image\/\w+;base64,/, '');
+    parts.push({
+      inlineData: {
+        mimeType: mType,
+        data: cleanB64
+      }
+    });
+  }
+  parts.push({ text: `${systemPrompt}\n\nPatient Query: ${userText}` });
 
   const models = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-pro"];
 
@@ -2010,11 +2024,7 @@ async function callDirectGeminiAPI(userText, memberName) {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey.trim()}`;
       const payload = {
         contents: [
-          {
-            parts: [
-              { text: `${systemPrompt}\n\nPatient Query: ${userText}` }
-            ]
-          }
+          { parts: parts }
         ]
       };
 
@@ -2606,7 +2616,21 @@ async function handleItemScanFile(event) {
   const container = document.getElementById('item-scan-results');
   if (container) {
     container.classList.remove('hidden');
-    container.innerHTML = `<p class="text-xs text-teal-300 animate-pulse font-bold p-3 text-center">🔍 Scanning image against Multi-Platform Medicine Database...</p>`;
+    container.innerHTML = `<p class="text-xs text-teal-300 animate-pulse font-bold p-3 text-center">🔍 Analyzing medicine image with Google Gemini Vision AI...</p>`;
+  }
+
+  let imageBase64 = null;
+  if (file && file.type && file.type.startsWith('image/')) {
+    try {
+      imageBase64 = await new Promise(resolve => {
+        const reader = new FileReader();
+        reader.onload = e => resolve(e.target.result);
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(file);
+      });
+    } catch (e) {
+      console.warn("Base64 conversion note:", e);
+    }
   }
 
   let extractedQuery = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
@@ -2622,7 +2646,7 @@ async function handleItemScanFile(event) {
     }
   }
 
-  await triggerBarcodeScanProcess(extractedQuery, file.name);
+  await triggerBarcodeScanProcess(extractedQuery, file.name, imageBase64);
 }
 
 async function triggerBarcodeScanProcess(queryOrBarcode, fileName = "", capturedImage = null) {
@@ -2741,7 +2765,7 @@ Please provide a clear, professional, caring clinical medical analysis:
 
 DO NOT quote OCR text, OCR snippets, or raw camera gibberish. Write directly in a clean, professional, caring doctor voice in Markdown with bold headers and bullet points.`;
       
-      const geminiRes = await callDirectGeminiAPI(aiPrompt, "Patient");
+      const geminiRes = await callDirectGeminiAPI(aiPrompt, "Patient", capturedImage);
       if (geminiRes && geminiRes.text) {
         const formatted = formatMarkdownToHTML(geminiRes.text);
         geminiAnalysisHTML = `
