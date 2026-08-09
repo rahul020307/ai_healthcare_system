@@ -142,139 +142,14 @@ STOP_WORDS = {
 
 
 def ai_clinical_reasoning(message: str, patient_context: str) -> str:
-    msg = message.lower().strip()
-    raw_words = msg.replace("?", "").replace(".", "").replace(",", "").replace("!", "").split()
-    query_keywords = [w for w in raw_words if len(w) > 2 and w not in STOP_WORDS]
-
     first_name = patient_context.split()[0] if patient_context else "there"
-    lines = [f"👋 **Hi {first_name}! Here is your personalized medical advice:**\n"]
-    has_match = False
+    return f"""🤖 **CuraBot AI Assistant**
 
-    # Check for Special High-Priority Emergencies & Bites
-    if any(k in msg for k in ["spider", "insect", "bee", "wasp", "scorpion", "bug", "ant"]):
-        lines.append("🕷️ **SPIDER & INSECT BITE / STING FIRST AID PROTOCOL**:")
-        lines.append("• **Step 1 (Cleanse)**: Wash the sting/bite site with mild soap and clean water immediately.")
-        lines.append("• **Step 2 (Cold Compress)**: Apply an ice pack wrapped in a cloth for 10-15 minutes to reduce localized swelling & pain.")
-        lines.append("• **Step 3 (Itch Relief)**: Apply Calamine lotion or take an OTC antihistamine tablet (**Cetzine 10 / Cetirizine**) for itching.")
-        lines.append("• 🚨 **ANAPHYLAXIS EMERGENCY ALERT**: Seek immediate ER medical care (Call 108) if experiencing shortness of breath, throat/facial swelling, dizziness, or hives.\n")
-        lines.append("🚨 *If symptoms worsen rapidly, call 108 or visit an emergency room.*")
-        return "\n".join(lines)
+Hello **{first_name}**! Regarding your query: *"{message}"*
 
-    if any(k in msg for k in ["dog", "puppy", "cat", "rabies", "monkey", "stray", "mammal"]):
-        lines.append("🐕 **DOG / ANIMAL BITE EMERGENCY PROTOCOL (Rabies Risk)**:")
-        lines.append("• **Step 1 (Immediate Wash)**: Wash the bite wound thoroughly with soap and running tap water for at least 15 minutes to reduce viral load.")
-        lines.append("• **Step 2 (Disinfect)**: Apply an antiseptic solution like Betadine (Povidone-Iodine) or Dettol/Savlon.")
-        lines.append("• **Step 3 (Stop Bleeding)**: Apply light pressure with a sterile bandage if bleeding.")
-        lines.append("• 🚨 **URGENT**: Visit a hospital within **24 hours** to receive the **Anti-Rabies Vaccine (ARV)** and Tetanus (TT) injection.")
-        lines.append("• ⚠️ **Warning**: Do not cover tightly, stitch open wounds, or apply household powders.\n")
-        lines.append("🚨 *If bleeding is severe or animal is suspected rabid, call 108 immediately.*")
-        return "\n".join(lines)
-
-    if any(k in msg for k in ["snake", "venom", "viper", "cobra", "reptile"]):
-        lines.append("🐍 **SNAKE BITE EMERGENCY FIRST AID**:")
-        lines.append("• **Step 1**: Keep the victim strictly immobile and calm. Keep bitten limb below heart level.")
-        lines.append("• **Step 2**: Remove tight rings, watch, or clothing near wound.")
-        lines.append("• **Step 3**: DO NOT cut wound, suck venom, or tie tight tourniquets.")
-        lines.append("• 🚨 **CRITICAL**: Go immediately to the nearest hospital for Anti-Snake Venom (ASV).\n")
-        lines.append("🚨 *Call 108 Emergency Dispatch immediately.*")
-        return "\n".join(lines)
-
-    # 1. Search First Aid DB
-    aid_matches = []
-    for aid in FIRST_AID_DB:
-        e_type = aid.get("emergency_type", "").lower()
-        sympts = [s.lower() for s in aid.get("symptoms", [])]
-        if any(kw in e_type for kw in query_keywords) or any(any(kw in s for kw in query_keywords) for s in sympts):
-            aid_matches.append(aid)
-
-    if aid_matches and not has_match:
-        aid = aid_matches[0]
-        lines.append(f"🚑 **First Aid Protocol ({aid.get('emergency_type')})**:")
-        for i, step in enumerate(aid.get('first_aid_steps', []), 1):
-            lines.append(f"• **Step {i}**: {step}")
-        lines.append("")
-        has_match = True
-
-    # 2. Search Medicines DB
-    med_matches = []
-    for med in MEDICINES_DB:
-        b_name = med.get("brand_name", "").lower()
-        g_name = med.get("generic_name", "").lower()
-        comp = med.get("composition", "").lower()
-        uses = [u.lower() for u in med.get("uses", [])]
-
-        if any(kw in b_name or kw in g_name or kw in comp for kw in query_keywords):
-            med_matches.append(med)
-        elif any(any(kw == u or kw in u for kw in query_keywords) for u in uses):
-            med_matches.append(med)
-
-    if med_matches and not has_match:
-        med = med_matches[0]
-        lines.append(f"💊 **Medicine Insight: {med.get('brand_name')}** ({med.get('strength', 'Standard')})")
-        lines.append(f"• **Active Salt**: {med.get('composition', med.get('generic_name'))}")
-        lines.append(f"• **Primary Uses**: {', '.join(med.get('uses', []))}")
-        lines.append(f"• **Dosage**: {med.get('dosage')}")
-        lines.append(f"• **Storage**: {med.get('storage', 'Keep below 30°C')}")
-        if med.get('side_effects'):
-            lines.append(f"• **Side Effects**: {', '.join(med.get('side_effects'))}")
-        if med.get('warnings'):
-            lines.append(f"• ⚠️ **Precaution**: {med.get('warnings')[0]}")
-        lines.append(f"• **Prescription Status**: {'🔒 Rx Required' if med.get('prescription_required') else '✅ Over The Counter (OTC)'}\n")
-        has_match = True
-
-    # 3. Search Symptoms DB
-    symptom_matches = []
-    for sym in SYMPTOMS_DB:
-        s_name = sym.get("symptom_name", "").lower()
-        causes = [c.lower() for c in sym.get("possible_causes", [])]
-        if any(kw in s_name or any(kw in c for c in causes) for kw in query_keywords):
-            symptom_matches.append(sym)
-
-    if symptom_matches and not has_match:
-        sym = symptom_matches[0]
-        lines.append(f"📋 **Symptom Guide: {sym.get('symptom_name')}**")
-        lines.append(f"• **Severity Level**: {sym.get('severity', 'Moderate')}")
-        lines.append(f"• **Possible Causes**: {', '.join(sym.get('possible_causes', []))}")
-        lines.append(f"• **Home Care**: {sym.get('home_care')}")
-        lines.append(f"• **Doctor Specialist**: {sym.get('suggested_specialist')}\n")
-        has_match = True
-
-    # 4. Search Diseases DB
-    disease_matches = []
-    for dis in DISEASES_DB:
-        d_name = dis.get("disease_name", "").lower()
-        sympt_list = [s.lower() for s in dis.get("symptoms", [])]
-        if any(kw in d_name or any(kw in s for s in sympt_list) for kw in query_keywords):
-            disease_matches.append(dis)
-
-    if disease_matches and not has_match:
-        dis = disease_matches[0]
-        lines.append(f"🔍 **Condition Profile: {dis.get('disease_name')}**")
-        lines.append(f"• **Key Symptoms**: {', '.join(dis.get('symptoms', []))}")
-        lines.append(f"• **Prevention & Care**: {dis.get('prevention')}")
-        lines.append(f"• **Recommended Doctor**: {dis.get('specialist')}\n")
-        has_match = True
-
-    # 5. Search FAQ DB
-    for faq in FAQ_DB:
-        q = faq.get("question", "").lower()
-        if any(kw in q for kw in query_keywords if len(kw) > 3) or msg in q:
-            lines.append(f"❓ **Question**: **{faq.get('question')}**")
-            lines.append(f"💡 **Answer**: {faq.get('answer')}")
-            lines.append(f"🏷️ **Category**: {faq.get('category', 'General Health')}\n")
-            has_match = True
-            break
-
-    # 6. Fallback Query-Specific Guidance
-    if not has_match:
-        lines.append(f"💡 **Clinical Guidance for Query**: *\"{message}\"*")
-        lines.append(f"• **Key Terms**: {', '.join(query_keywords) if query_keywords else 'General Query'}")
-        lines.append(f"• **Action Plan**: For unlisted health concerns, monitor symptoms closely and consult a certified physician.")
-        lines.append(f"• **Explore CuraAssist**: Search registered tablets (*Dolo 650*, *Pan 40*), scan prescriptions, or locate nearby hospitals on Maps.\n")
-
-    lines.append("🚨 *If you experience chest pain, sudden numbness, or severe difficulty breathing, please call 108 immediately.*")
-
-    return "\n".join(lines)
+• 🩺 **AI Medical Guidance**: Please ensure a valid Google Gemini API Key is configured in `.env` or click **"🔑 Set Gemini API Key"** in the top navigation bar.
+• 📊 **Vitals & Monitoring**: Log your daily Blood Pressure, Pulse, Temperature, and Glucose readings in your **Profile Vitals Tracker**.
+• 🚨 **Emergency Protocol**: If experiencing severe discomfort, chest pain, or breathing difficulty, call 108 or tap **🚨 Emergency SOS** immediately."""
 
 
 @router.post("/ask")
