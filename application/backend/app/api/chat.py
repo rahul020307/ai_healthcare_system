@@ -5,6 +5,7 @@ import urllib.error
 from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import Optional
+from app.utils.ocr_processor import process_prescription_ocr, generate_prescription_summary, fuzzy_match_medicine
 
 router = APIRouter(prefix="/chat", tags=["Chat AI Assistant"])
 
@@ -190,57 +191,95 @@ class OCRScanRequest(BaseModel):
 
 @router.post("/ocr-scan")
 def scan_prescription_ocr(req: OCRScanRequest):
+    """
+    Enhanced OCR prescription scanning with fuzzy matching & AI validation.
+    Handles typos, abbreviations, and low-quality OCR text.
+    """
     img_name = req.image_name or "prescription_slip.jpg"
     raw_input = (req.raw_text or "").strip()
     name_lower = img_name.lower()
 
-    # 1. Attempt AI-powered OCR & Clinical Vision Extraction
-    if raw_input and len(raw_input) > 5:
-        try:
-            ai_prompt = f"Analyze the following extracted medical prescription/scan text for file '{img_name}'. Provide a clean, structured clinical summary including document type, recognized medicine names, salt formulas, dosage instructions, and precautions:\n\n{raw_input}"
-            ai_response = call_remote_ai(ai_prompt, "N/A")
-            if ai_response and len(ai_response) > 20:
-                return {"status": "success", "category": "Prescriptions", "summary": ai_response}
-        except Exception as e:
-            print("AI OCR extraction note:", e)
-
-    # 2. Dynamic Database & Text Analysis Matching
-    matched_meds = []
-    text_lower = raw_input.lower()
     meds = MEDICINES_DB if MEDICINES_DB else load_data("medicines.json")
-
-    for m in meds:
-        b_name = m.get("brand_name", "").lower()
-        g_name = m.get("generic_name", "").lower()
-        if (b_name and b_name in text_lower) or (g_name and g_name in text_lower):
-            matched_meds.append({
-                "name": m.get("brand_name"),
-                "salt": m.get("generic_name", "Active Formula"),
-                "dosage": m.get("dosage", "1 Dose Post Meals"),
-                "category": m.get("category", "Healthcare Product"),
-                "duration": "As Advised"
-            })
-
-    if matched_meds:
-        med_lines = "\n".join([f"• {m['name']} ({m['salt']}) - Category: {m['category']}\n  Dosage: {m['dosage']} (Duration: {m['duration']})" for m in matched_meds])
-        summary = f"DOCTOR PRESCRIPTION / MEDICINE ANALYSIS ({img_name})\n----------------------------------------------------\nVerified Items Matched in Database:\n{med_lines}"
-        return {"status": "success", "category": "Prescriptions", "summary": summary}
-
-    # 3. Dynamic OCR Document Categorization (Lab Reports, Scans, General Prescriptions)
+    
+    # 1. Categorize document type
     if "blood" in name_lower or "lab" in name_lower or "test" in name_lower:
         doc_category = "Lab Reports"
-        summary = f"LABORATORY TEST REPORT ANALYSIS ({img_name})\n----------------------------------------------------\n• Extracted Text Signature: {raw_input[:150] or 'Diagnostic Clinical Test'}\n• Status: Clinical Indicators Extracted & Recorded in Health Log."
+        summary = f"LABORATORY TEST REPORT ANALYSIS ({img_name})\n----------------------------------------------------\n• Extracted Text: {raw_input[:150] or 'Diagnostic Clinical Test'}\n• Status: Clinical Data Extracted & Recorded in Health Log."
     elif "xray" in name_lower or "mri" in name_lower or "scan" in name_lower:
         doc_category = "Scans"
-        summary = f"RADIOLOGY & IMAGING SCAN ({img_name})\n----------------------------------------------------\n• Examination: PA/Lateral View Diagnostic Scan\n• Extracted Details: {raw_input[:150] or 'Radiology Diagnostic Image'}"
+        summary = f"RADIOLOGY & IMAGING SCAN ({img_name})\n----------------------------------------------------\n• Examination Type: Medical Imaging Analysis\n• Extracted Details: {raw_input[:150] or 'Diagnostic Image'}"
     else:
         doc_category = "Prescriptions"
-        summary = f"MEDICAL PRESCRIPTION RECORD ({img_name})\n----------------------------------------------------\n• Document Name: {img_name}\n• Extracted Content: {raw_input or 'Prescription Document Record'}\n• Clinical Status: Processed & Saved to Patient Health Records."
-
+        
+        # 2. Use improved OCR processor with fuzzy matching
+        if raw_input and len(raw_input) > 5:
+            try:
+                # Process prescription with fuzzy matching & dosage extraction
+                extraction_result = process_prescription_ocr(raw_input, meds)
+                
+                if extraction_result.get("extracted_medicines"):
+                    # Use generated summary
+                    summary = generate_prescription_summary(extraction_result)
+                    
+                    # Add AI enhancement if high confidence
+                    if extraction_result.get("has_confident_matches"):
+                        try:
+                            ai_prompt = f"Verify and enhance this prescription extraction:\n\n{summary}\n\nProvide dosage warnings and drug interactions if any."
+                            ai_response = call_remote_ai(ai_prompt, "N/A")
+                            if ai_response and len(ai_response) > 20:
+                                summary = f"{summary}\n\n🤖 AI VALIDATION:\n{ai_response}"
+                        except Exception as e:
+                            print("AI enhancement note:", e)
+                    
+                    return {
+                        "status": "success",
+                        "category": doc_category,
+                        "summary": summary,
+                        "extracted_medicines": extraction_result.get("extracted_medicines", []),
+                        "confidence": "high" if extraction_result.get("has_confident_matches") else "medium"
+                    }
+            except Exception as e:
+                print(f"OCR processor error (fallback to legacy): {e}")
+        
+        # 3. Fallback: Try AI-powered extraction
+        if raw_input and len(raw_input) > 5:
+            try:
+                ai_prompt = f"Analyze this medical prescription/scan text: {img_name}\n\nExtract: medicine names, dosages, frequencies, duration, side effects warnings:\n\n{raw_input}"
+                ai_response = call_remote_ai(ai_prompt, "N/A")
+                if ai_response and len(ai_response) > 20:
+                    return {"status": "success", "category": "Prescriptions", "summary": ai_response, "confidence": "medium"}
+            except Exception as e:
+                print("AI OCR extraction note:", e)
+        
+        # 4. Fallback: Legacy exact matching (last resort)
+        matched_meds = []
+        text_lower = raw_input.lower()
+        
+        for m in meds:
+            b_name = m.get("brand_name", "").lower()
+            g_name = m.get("generic_name", "").lower()
+            if (b_name and b_name in text_lower) or (g_name and g_name in text_lower):
+                matched_meds.append({
+                    "name": m.get("brand_name"),
+                    "salt": m.get("generic_name", "Active Formula"),
+                    "dosage": m.get("dosage", "1 Dose Post Meals"),
+                    "category": m.get("category", "Healthcare Product"),
+                    "duration": "As Advised"
+                })
+        
+        if matched_meds:
+            med_lines = "\n".join([f"• {m['name']} ({m['salt']}) - Category: {m['category']}\n  Dosage: {m['dosage']} (Duration: {m['duration']})" for m in matched_meds])
+            summary = f"DOCTOR PRESCRIPTION / MEDICINE ANALYSIS ({img_name})\n----------------------------------------------------\nMatched Medicines (Legacy Mode):\n{med_lines}"
+            return {"status": "success", "category": "Prescriptions", "summary": summary, "confidence": "low"}
+        
+        # 5. No matches found
+        summary = f"MEDICAL PRESCRIPTION RECORD ({img_name})\n----------------------------------------------------\n• Document: {img_name}\n• Extracted Content: {raw_input or 'No readable text found'}\n• Recommendation: Please review manually or try higher quality image."
+    
     return {
         "status": "success",
         "category": doc_category,
-        "summary": summary
+        "summary": summary,
+        "confidence": "medium"
     }
 
 
