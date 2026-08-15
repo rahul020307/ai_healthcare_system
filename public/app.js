@@ -2395,6 +2395,42 @@ async function performRealOCR(file, fileName) {
   });
 }
 
+async function capturePrescriptionCameraFrameAndScan() {
+  const video = document.getElementById('presc-camera-video');
+  if (!video || video.paused || video.videoWidth === 0) {
+    alert('📷 Please open the camera first, then tap Capture Photo.');
+    return;
+  }
+
+  const canvas = document.createElement('canvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+  const previewBox = document.getElementById('presc-upload-placeholder');
+  const fileName = `prescription_capture_${Date.now()}.jpg`;
+
+  canvas.toBlob(async (blob) => {
+    if (!blob) return;
+
+    const file = new File([blob], fileName, { type: 'image/jpeg' });
+
+    if (previewBox) {
+      previewBox.innerHTML = `
+        <div class="space-y-1">
+          <i data-lucide="camera" class="w-8 h-8 text-cyan-400 mx-auto"></i>
+          <p class="text-xs text-white font-extrabold">${file.name}</p>
+          <p class="text-[10px] text-teal-300 font-bold animate-pulse">📸 Captured from camera • AI OCR starting...</p>
+        </div>
+      `;
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    await performRealOCR(file, file.name);
+  }, 'image/jpeg', 0.92);
+}
+
 async function handlePrescriptionFileSelected(event) {
   const file = event.target.files[0];
   if (!file) return;

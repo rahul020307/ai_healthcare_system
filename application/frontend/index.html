@@ -1395,9 +1395,13 @@
       </div>
 
       <!-- Action Buttons -->
-      <div class="grid grid-cols-2 gap-2 text-xs font-bold">
+      <div class="grid grid-cols-3 gap-2 text-xs font-bold">
         <button onclick="togglePrescriptionCameraStream()" id="btn-toggle-presc-cam" class="py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-teal-300 hover:text-white flex items-center justify-center gap-1.5">
           <i data-lucide="camera" class="w-4 h-4"></i> Use Camera
+        </button>
+
+        <button onclick="capturePrescriptionCameraFrameAndScan()" class="py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-amber-300 hover:text-white flex items-center justify-center gap-1.5">
+          <i data-lucide="circle" class="w-4 h-4"></i> Capture Photo
         </button>
 
         <button onclick="document.getElementById('presc-file-input').click()" class="py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-cyan-300 hover:text-white flex items-center justify-center gap-1.5">
