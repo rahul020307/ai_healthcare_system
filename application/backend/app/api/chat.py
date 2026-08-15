@@ -38,32 +38,26 @@ FIRST_AID_DB = load_data("first_aid.json")
 
 
 def get_env_variable(var_name: str) -> Optional[str]:
-    """Reads environment variable from os.getenv or parses .env file directly."""
+    """Reads only the runtime environment configured by Vercel or the host process."""
     val = os.getenv(var_name)
     if val and val.strip():
         return val.strip()
-
-    env_paths = [
-        os.path.join(os.path.dirname(__file__), "..", "..", ".env"),
-        os.path.join(os.path.dirname(__file__), "..", "..", "..", ".env")
-    ]
-    for env_path in env_paths:
-        if os.path.exists(env_path):
-            try:
-                with open(env_path, "r", encoding="utf-8") as f:
-                    for line in f:
-                        line = line.strip()
-                        if line and not line.startswith("#") and "=" in line:
-                            k, v = line.split("=", 1)
-                            if k.strip() == var_name:
-                                return v.strip().strip("'\"")
-            except Exception as e:
-                print(f"Error reading .env at {env_path}:", e)
     return None
 
 
+def validate_required_env_vars() -> list[str]:
+    """Returns missing required runtime env vars for AI integrations."""
+    required = ["GEMINI_API_KEY", "OPENAI_API_KEY"]
+    return [name for name in required if not get_env_variable(name)]
+
+
 def call_remote_ai(user_prompt: str, patient_context: str) -> Optional[str]:
-    """Attempts calling Google Gemini API or OpenAI API using keys loaded from .env."""
+    """Attempts calling Google Gemini API or OpenAI API using only runtime env vars."""
+    missing = validate_required_env_vars()
+    if missing:
+        print(f"Missing required AI env vars: {', '.join(missing)}")
+        return None
+
     gemini_key = get_env_variable("GEMINI_API_KEY")
     openai_key = get_env_variable("OPENAI_API_KEY")
 
@@ -73,11 +67,7 @@ def call_remote_ai(user_prompt: str, patient_context: str) -> Optional[str]:
         f"Give simple, easy-to-understand advice in bullet points. Use bold text for key medicine names and simple English."
     )
 
-    _k1 = "AQ.Ab8RN6KUPVp-TI2pI_XjA" + "C9hrszVb-fsa61SN3gtneUBLFErKw"
-    _k2 = "AQ.Ab8RN6JREZegbEsHxgOP" + "M48peEQNS0e_rJmcb_ABjplEf-pLgw"
-    _k3 = "AQ.Ab8RN6JD3pMvNDkY2kvW" + "_mYPLvhTUmp886tay2jAK5J2QAkz0Q"
-    _k4 = "AQ.Ab8RN6KBznj2Jj08W7Jx" + "fccXKXSXkEOWMe5pynJd9Iodmxncw"
-    key_pool = [gemini_key, _k1, _k2, _k3, _k4]
+    key_pool = [gemini_key] if gemini_key else []
 
     # 1. Try Google Gemini API first
     for g_key in key_pool:
@@ -156,7 +146,7 @@ def ai_clinical_reasoning(message: str, patient_context: str) -> str:
 
 Hello **{first_name}**! Regarding your query: *"{message}"*
 
-• 🩺 **AI Medical Guidance**: Please ensure a valid Google Gemini API Key is configured in `.env` or click **"🔑 Set Gemini API Key"** in the top navigation bar.
+• 🩺 **AI Medical Guidance**: Please ensure `GEMINI_API_KEY` or `OPENAI_API_KEY` is configured in your Vercel Environment Variables.
 • 📊 **Vitals & Monitoring**: Log your daily Blood Pressure, Pulse, Temperature, and Glucose readings in your **Profile Vitals Tracker**.
 • 🚨 **Emergency Protocol**: If experiencing severe discomfort, chest pain, or breathing difficulty, call 108 or tap **🚨 Emergency SOS** immediately."""
 
