@@ -185,6 +185,34 @@ def extract_duration_info(text: str) -> Optional[str]:
     return None
 
 
+def validate_prescription_text(raw_ocr_text: str) -> bool:
+    """Return True only when the text looks like a medical prescription."""
+    if not raw_ocr_text or not str(raw_ocr_text).strip():
+        return False
+
+    normalized = normalize_medicine_text(raw_ocr_text)
+    if len(normalized) < 20:
+        return False
+
+    prescription_signals = re.search(
+        r"\b(?:rx|prescription|doctor|clinic|patient|medicine|medicines|tablet|capsule|syrup|dosage|frequency|dr|physician)\b",
+        normalized,
+        re.IGNORECASE,
+    )
+    medical_timing = re.search(
+        r"\b(?:od|bd|tid|qid|once|twice|thrice|morning|afternoon|evening|night|before|after|daily|days?|weeks?|months?)\b",
+        normalized,
+        re.IGNORECASE,
+    )
+    dosage_pattern = re.search(
+        r"\b\d+(?:\.\d+)?\s*(?:mg|g|ml|mcg|units?|tablet|capsule|drops?|spray)\b",
+        normalized,
+        re.IGNORECASE,
+    )
+
+    return bool(prescription_signals and (medical_timing or dosage_pattern))
+
+
 def score_medicine_match(medicine_name: str, ocr_text: str, medicines_db: List[Dict]) -> Tuple[Optional[Dict], float]:
     """
     Score and find best matching medicine with confidence level.
@@ -224,6 +252,16 @@ def process_prescription_ocr(raw_ocr_text: str, medicines_db: List[Dict]) -> Dic
     Returns:
         Structured prescription data with medicines, dosages, frequencies, etc.
     """
+    if not validate_prescription_text(raw_ocr_text):
+        return {
+            "status": "invalid",
+            "extracted_medicines": [],
+            "raw_text_length": len(raw_ocr_text or ""),
+            "medicine_count": 0,
+            "has_confident_matches": False,
+            "message": "The uploaded image does not appear to contain a valid medical prescription."
+        }
+
     # Normalize the input text
     normalized_text = normalize_medicine_text(raw_ocr_text)
     

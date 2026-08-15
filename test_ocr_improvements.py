@@ -13,7 +13,8 @@ from app.utils.ocr_processor import (
     extract_dosage_info,
     extract_frequency_info,
     similarity_score,
-    normalize_medicine_text
+    normalize_medicine_text,
+    validate_prescription_text,
 )
 
 # Sample medicine database (minimal for testing)
@@ -184,6 +185,31 @@ def test_case_5():
     for med in result.get('extracted_medicines', []):
         print(f"  ✓ {med['brand_name']} - Confidence: {med['confidence']:.0%}")
 
+
+def test_case_6():
+    """Ensure random images are not accepted as prescriptions."""
+    print("\n" + "="*60)
+    print("TEST 6: Random Image / Non-Prescription Rejection")
+    print("="*60)
+
+    random_photo_text = """
+    a colorful photo of a dog outdoor with blue sky and trees
+    family vacation picture at the beach smiling and waving
+    """
+
+    valid_prescription = """
+    Dr. Sharma Clinic
+    Rx:
+    Paracetamol 500mg twice daily for 5 days
+    Amoxicillin 250mg once daily for 7 days
+    """
+
+    assert validate_prescription_text(random_photo_text) is False
+    assert validate_prescription_text(valid_prescription) is True
+
+    print("Random image-like text correctly rejected.")
+    print("Valid prescription text correctly accepted.")
+
 if __name__ == "__main__":
     print("\n" + "="*60)
     print("OCR PROCESSOR - COMPREHENSIVE TEST SUITE")
@@ -195,6 +221,7 @@ if __name__ == "__main__":
         test_case_3()
         test_case_4()
         test_case_5()
+        test_case_6()
         
         print("\n" + "="*60)
         print("✅ ALL TESTS COMPLETED SUCCESSFULLY")

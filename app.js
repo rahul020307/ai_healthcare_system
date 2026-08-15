@@ -2328,6 +2328,18 @@ async function preprocessImageForOCR(file) {
   }
 }
 
+function validatePrescriptionText(text) {
+  if (!text || typeof text !== 'string') return false;
+
+  const normalized = text.replace(/[^a-zA-Z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim().toLowerCase();
+  if (normalized.length < 20) return false;
+
+  const hasPrescriptionSignal = /(prescription|rx|doctor|clinic|patient|medicine|medicines|tablet|capsule|syrup|dosage|frequency|dr\.|physician)/i.test(normalized);
+  const hasDosagePattern = /(\d+\s*(mg|g|ml|mcg|units?|tablet|capsule|drops?|spray)|\b(?:od|bd|tid|qid|once|twice|thrice|morning|afternoon|evening|night|before|after|daily|days?|weeks?|months?)\b)/i.test(normalized);
+
+  return hasPrescriptionSignal && hasDosagePattern;
+}
+
 async function performRealOCR(file, fileName) {
   const resultBox = document.getElementById('presc-extracted-result');
   const badge = document.getElementById('presc-file-name-badge');
@@ -2362,6 +2374,14 @@ async function performRealOCR(file, fileName) {
 
   // 3. Clean Non-ASCII Noise & Sanitize English Text
   let cleanEnglishText = rawText.replace(/[^\x20-\x7E\n]/g, ' ').replace(/[ \t]+/g, ' ').trim();
+
+  if (!validatePrescriptionText(cleanEnglishText)) {
+    if (body) {
+      body.value = '⚠️ This image does not appear to be a valid prescription or medical document. Please upload a doctor\'s prescription, medicine note, or clinical report.';
+    }
+    return;
+  }
+
   const textLower = cleanEnglishText.toLowerCase();
 
   const foundMeds = [];

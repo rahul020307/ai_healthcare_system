@@ -5,7 +5,12 @@ import urllib.error
 from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import Optional
-from app.utils.ocr_processor import process_prescription_ocr, generate_prescription_summary, fuzzy_match_medicine
+from app.utils.ocr_processor import (
+    process_prescription_ocr,
+    generate_prescription_summary,
+    fuzzy_match_medicine,
+    validate_prescription_text,
+)
 
 router = APIRouter(prefix="/chat", tags=["Chat AI Assistant"])
 
@@ -190,6 +195,15 @@ def scan_prescription_ocr(req: OCRScanRequest):
     name_lower = img_name.lower()
 
     meds = MEDICINES_DB if MEDICINES_DB else load_data("medicines.json")
+
+    if raw_input and not validate_prescription_text(raw_input):
+        return {
+            "status": "success",
+            "category": "Unrecognized Document",
+            "summary": "⚠️ This image does not appear to be a valid prescription or medical document. Please upload a doctor's prescription, medicine note, or clinical report.",
+            "confidence": "low",
+            "is_valid_prescription": False,
+        }
     
     # 1. Categorize document type
     if "blood" in name_lower or "lab" in name_lower or "test" in name_lower:
