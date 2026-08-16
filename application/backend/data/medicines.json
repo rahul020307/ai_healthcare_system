@@ -1052,5 +1052,248 @@
     ],
     "rating": 4.9,
     "reviews_count": 5120
+  },
+  {
+    "medicine_id": "MED-034",
+    "brand_name": "Ecosprin 75",
+    "generic_name": "Aspirin (Acetylsalicylic Acid)",
+    "composition": "Aspirin (75 mg)",
+    "category": "Cardiovascular / Blood Thinner",
+    "dosage_form": "Enteric-Coated Tablet",
+    "strength": "75 mg",
+    "manufacturer": "USV Pvt Ltd",
+    "uses": [
+      "Prevention of heart attack and stroke",
+      "Blood clot prevention",
+      "Mild analgesic"
+    ],
+    "dosage": "1 tablet daily after food as directed by cardiologist.",
+    "age_restriction": "Above 18 years",
+    "side_effects": [
+      "Gastric irritation",
+      "Increased bleeding tendency",
+      "Heartburn"
+    ],
+    "warnings": [
+      "Take strictly after food",
+      "Do not take with other NSAIDs or anticoagulants without medical supervision"
+    ],
+    "contraindications": [
+      "Active peptic ulcer",
+      "Bleeding disorders",
+      "Aspirin-induced asthma"
+    ],
+    "storage": "Store below 25°C in a dry place.",
+    "prescription_required": true,
+    "barcode": "8901118889900",
+    "image_url": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=400",
+    "price": 12.5,
+    "original_price": 15.0,
+    "currency": "₹",
+    "platform_sources": [
+      "Tata 1mg",
+      "Apollo Pharmacy",
+      "PharmEasy"
+    ],
+    "verified_platforms": [
+      "Apollo Certified",
+      "1mg Verified"
+    ],
+    "rating": 4.8,
+    "reviews_count": 3420
+  },
+  {
+    "medicine_id": "MED-035",
+    "brand_name": "Brufen 400",
+    "generic_name": "Ibuprofen",
+    "composition": "Ibuprofen (400 mg)",
+    "category": "Pain Relief & NSAID",
+    "dosage_form": "Film-Coated Tablet",
+    "strength": "400 mg",
+    "manufacturer": "Abbott Healthcare",
+    "uses": [
+      "Dental pain",
+      "Musculoskeletal stiffness",
+      "Joint inflammation",
+      "Headache"
+    ],
+    "dosage": "1 tablet 2-3 times daily strictly post meal.",
+    "age_restriction": "Above 12 years",
+    "side_effects": [
+      "Stomach upset",
+      "Nausea",
+      "Dizziness"
+    ],
+    "warnings": [
+      "Always take with food or milk to prevent gastritis",
+      "Do not use long term without prescription"
+    ],
+    "contraindications": [
+      "Gastric ulcers",
+      "Severe renal impairment",
+      "Third trimester of pregnancy"
+    ],
+    "storage": "Store in original blister pack away from moisture.",
+    "prescription_required": false,
+    "barcode": "8902228889900",
+    "image_url": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=400",
+    "price": 22.0,
+    "original_price": 25.0,
+    "currency": "₹",
+    "platform_sources": [
+      "Tata 1mg",
+      "Apollo Pharmacy",
+      "Netmeds"
+    ],
+    "verified_platforms": [
+      "Abbott Authorized",
+      "1mg Verified"
+    ],
+    "rating": 4.7,
+    "reviews_count": 2890
+  },
+  {
+    "medicine_id": "MED-036",
+    "brand_name": "Warf 5",
+    "generic_name": "Warfarin Sodium",
+    "composition": "Warfarin Sodium (5 mg)",
+    "category": "Cardiovascular / Anticoagulant",
+    "dosage_form": "Tablet",
+    "strength": "5 mg",
+    "manufacturer": "Cipla Ltd",
+    "uses": [
+      "Deep vein thrombosis (DVT)",
+      "Pulmonary embolism",
+      "Atrial fibrillation thromboembolism prevention"
+    ],
+    "dosage": "1 tablet daily at fixed evening time. Dose titrated according to target INR levels.",
+    "age_restriction": "Above 18 years",
+    "side_effects": [
+      "Bleeding risk",
+      "Bruising",
+      "Hematuria"
+    ],
+    "warnings": [
+      "Routine INR blood monitoring is mandatory",
+      "Maintain consistent Vitamin K dietary intake"
+    ],
+    "contraindications": [
+      "Severe active bleeding",
+      "Pregnancy",
+      "Severe hepatic disease"
+    ],
+    "storage": "Protect from light and moisture below 30°C.",
+    "prescription_required": true,
+    "barcode": "8903338889900",
+    "image_url": "https://images.unsplash.com/photo-1471864190281-a93a3070b6de?auto=format&fit=crop&q=80&w=400",
+    "price": 78.5,
+    "original_price": 88.0,
+    "currency": "₹",
+    "platform_sources": [
+      "Tata 1mg",
+      "Apollo Pharmacy"
+    ],
+    "verified_platforms": [
+      "Cipla Official",
+      "Apollo Certified"
+    ],
+    "rating": 4.9,
+    "reviews_count": 1200
+  },
+  {
+    "medicine_id": "MED-037",
+    "brand_name": "Ciplox 500",
+    "generic_name": "Ciprofloxacin",
+    "composition": "Ciprofloxacin Hydrochloride (500 mg)",
+    "category": "Antibiotics / Fluoroquinolone",
+    "dosage_form": "Tablet",
+    "strength": "500 mg",
+    "manufacturer": "Cipla Ltd",
+    "uses": [
+      "Bacterial gastroenteritis",
+      "Urinary tract infection",
+      "Typhoid fever",
+      "Respiratory infection"
+    ],
+    "dosage": "1 tablet twice daily for 5-7 days.",
+    "age_restriction": "Above 18 years",
+    "side_effects": [
+      "Nausea",
+      "Diarrhea",
+      "Tendon pain (rare)"
+    ],
+    "warnings": [
+      "Do not take with dairy products or calcium/antacid supplements simultaneously",
+      "Stay well hydrated"
+    ],
+    "contraindications": [
+      "History of tendon disorders",
+      "Known allergy to fluoroquinolones"
+    ],
+    "storage": "Store below 30°C.",
+    "prescription_required": true,
+    "barcode": "8904448889900",
+    "image_url": "https://images.unsplash.com/photo-1471864190281-a93a3070b6de?auto=format&fit=crop&q=80&w=400",
+    "price": 42.0,
+    "original_price": 48.0,
+    "currency": "₹",
+    "platform_sources": [
+      "Tata 1mg",
+      "Apollo Pharmacy",
+      "PharmEasy"
+    ],
+    "verified_platforms": [
+      "Cipla Authorized",
+      "1mg Verified"
+    ],
+    "rating": 4.8,
+    "reviews_count": 1950
+  },
+  {
+    "medicine_id": "MED-038",
+    "brand_name": "Cetzine 10",
+    "generic_name": "Cetirizine",
+    "composition": "Cetirizine Dihydrochloride (10 mg)",
+    "category": "Allergy & Antihistamines",
+    "dosage_form": "Tablet",
+    "strength": "10 mg",
+    "manufacturer": "Dr. Reddy Laboratories",
+    "uses": [
+      "Allergic rhinitis",
+      "Sneezing & runny nose",
+      "Skin hives & urticaria",
+      "Itching"
+    ],
+    "dosage": "1 tablet once daily at bedtime.",
+    "age_restriction": "Above 6 years",
+    "side_effects": [
+      "Mild drowsiness",
+      "Dry mouth",
+      "Fatigue"
+    ],
+    "warnings": [
+      "May cause mild sedation; avoid driving after taking"
+    ],
+    "contraindications": [
+      "Severe kidney failure"
+    ],
+    "storage": "Store below 25°C.",
+    "prescription_required": false,
+    "barcode": "8905558889900",
+    "image_url": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=400",
+    "price": 25.0,
+    "original_price": 30.0,
+    "currency": "₹",
+    "platform_sources": [
+      "Tata 1mg",
+      "Apollo Pharmacy",
+      "Netmeds"
+    ],
+    "verified_platforms": [
+      "Dr. Reddy Official",
+      "1mg Verified"
+    ],
+    "rating": 4.8,
+    "reviews_count": 4310
   }
 ]

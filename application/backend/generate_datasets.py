@@ -327,22 +327,117 @@ clinics_data = [
 ]
 
 # 9. Symptoms Dataset (symptoms.json)
+# 9. Symptoms Dataset (symptoms.json)
 symptoms_data = [
     {
         "symptom_id": "SYM-001",
         "symptom_name": "High Fever & Chills",
-        "possible_causes": ["Viral infection", "Malaria", "Dengue", "Urinary tract infection", "Pneumonia"],
+        "keywords": ["fever", "pyrexia", "high temp", "chills", "shivering", "burning forehead"],
+        "possible_causes": ["Viral upper respiratory infection", "Malaria", "Dengue fever", "Urinary tract infection", "Typhoid", "Pneumonia"],
         "severity": "Moderate to Severe",
+        "severity_level": "moderate",
         "suggested_specialist": "General Physician / Infectious Disease Specialist",
-        "home_care": ["Drink plenty of warm ORS & fluids", "Tepid sponge bath to lower temp", "Rest adequately", "Monitor temp every 4 hours"]
+        "home_care": ["Drink plenty of warm ORS & fluids (2-3L/day)", "Tepid sponge bath to lower temp", "Take prescribed antipyretic (e.g. Paracetamol 650mg)", "Rest adequately in well-ventilated room", "Monitor temperature every 4 hours"],
+        "red_flags": ["Fever above 103°F not responding to antipyretics", "Severe stiff neck with confusion", "Extreme breathlessness or blue lips", "Convulsions or seizures"]
     },
     {
         "symptom_id": "SYM-002",
-        "symptom_name": "Persistent Dry Cough",
-        "possible_causes": ["Upper respiratory viral infection", "Allergic bronchitis", "Asthma", "GERD Acid reflux"],
+        "symptom_name": "Persistent Dry / Productive Cough",
+        "keywords": ["cough", "dry cough", "wet cough", "phlegm", "mucus", "throat irritation", "wheezing"],
+        "possible_causes": ["Upper respiratory viral infection", "Allergic bronchitis", "Bronchial asthma", "GERD acid reflux", "Bacterial pneumonia"],
         "severity": "Mild to Moderate",
+        "severity_level": "mild",
         "suggested_specialist": "Pulmonologist / ENT Specialist",
-        "home_care": ["Warm saline water gargling", "Steam inhalation with eucalyptus oil", "Honey and warm ginger tea"]
+        "home_care": ["Warm saline water gargling twice daily", "Steam inhalation with eucalyptus oil", "Honey and warm ginger tea", "Keep head elevated while sleeping"],
+        "red_flags": ["Coughing up blood (hemoptysis)", "Severe chest pain while breathing", "Shortness of breath at rest", "Stridor / high-pitched wheezing"]
+    },
+    {
+        "symptom_id": "SYM-003",
+        "symptom_name": "Chest Pain & Pressure",
+        "keywords": ["chest pain", "chest tightness", "angina", "left arm pain", "heart palpitations", "pressure in chest"],
+        "possible_causes": ["Acute Coronary Syndrome / Angina", "Severe GERD / Acid Reflux", "Costochondritis (rib inflammation)", "Panic attack / Anxiety", "Musculoskeletal strain"],
+        "severity": "Severe / Critical Emergency",
+        "severity_level": "critical",
+        "suggested_specialist": "Cardiologist / Emergency Medicine",
+        "home_care": ["Sit upright and remain calm", "Loosen tight clothing", "Do NOT exert physically", "If known cardiac patient, take prescribed Sublingual Nitroglycerin", "Call Emergency SOS (108) immediately"],
+        "red_flags": ["Crushing chest pain radiating to left arm/jaw", "Cold sweating, dizziness, nausea", "Difficulty breathing", "Unconsciousness"]
+    },
+    {
+        "symptom_id": "SYM-004",
+        "symptom_name": "Throbbing Headache & Migraine",
+        "keywords": ["headache", "migraine", "throbbing head", "temple pain", "forehead pain", "light sensitivity"],
+        "possible_causes": ["Tension headache", "Migraine with/without aura", "Sinusitis", "Dehydration", "High blood pressure", "Eye strain"],
+        "severity": "Mild to Moderate",
+        "severity_level": "mild",
+        "suggested_specialist": "Neurologist / General Physician",
+        "home_care": ["Rest in a quiet, dark room", "Apply cold or warm compress to forehead/neck", "Hydrate with electrolyte water", "Avoid loud sounds and bright screens"],
+        "red_flags": ["Sudden explosive 'thunderclap' headache", "Headache accompanied by slurred speech or facial drooping", "High fever with neck rigidity", "Post-head trauma headache"]
+    },
+    {
+        "symptom_id": "SYM-005",
+        "symptom_name": "Acid Reflux, Heartburn & Indigestion",
+        "keywords": ["acidity", "heartburn", "acid reflux", "gerd", "stomach burning", "bloating", "burping", "indigestion"],
+        "possible_causes": ["Gastroesophageal Reflux Disease (GERD)", "Gastritis", "Peptic ulcer", "Spicy/oily food intolerance", "Hiatal hernia"],
+        "severity": "Mild to Moderate",
+        "severity_level": "mild",
+        "suggested_specialist": "Gastroenterologist",
+        "home_care": ["Avoid spicy, oily, acidic, and caffeinated foods", "Take antacid / PPI (e.g. Pantoprazole 40mg before meals)", "Do not lie down for 2 hours after meals", "Drink cold milk or coconut water"],
+        "red_flags": ["Vomiting blood or coffee-ground material", "Black, tarry stools (melena)", "Severe difficulty swallowing (dysphagia)", "Unexplained rapid weight loss"]
+    },
+    {
+        "symptom_id": "SYM-006",
+        "symptom_name": "Skin Rash, Itching & Hives",
+        "keywords": ["rash", "itching", "hives", "urticaria", "red spots", "eczema", "skin allergy", "swelling"],
+        "possible_causes": ["Allergic contact dermatitis", "Urticaria / Drug reaction", "Viral exanthem", "Eczema / Atopic dermatitis", "Fungal infection"],
+        "severity": "Mild to Moderate",
+        "severity_level": "mild",
+        "suggested_specialist": "Dermatologist / Allergist",
+        "home_care": ["Apply soothing calamine lotion or aloe vera gel", "Take OTC antihistamine (e.g. Cetirizine 10mg)", "Use mild fragrance-free soaps and wear loose cotton clothing", "Avoid scratching to prevent secondary bacterial infection"],
+        "red_flags": ["Swelling of lips, tongue, or throat (Angioedema)", "Difficulty breathing or wheezing (Anaphylaxis)", "Blistering peeling skin over large body area (Stevens-Johnson syndrome)", "High fever with rapidly spreading purple spots (Purpura)"]
+    },
+    {
+        "symptom_id": "SYM-007",
+        "symptom_name": "Joint Pain, Stiffness & Swelling",
+        "keywords": ["joint pain", "knee pain", "arthritis", "stiff joints", "swollen knees", "gout", "backache"],
+        "possible_causes": ["Osteoarthritis", "Rheumatoid arthritis", "Gout / Hyperuricemia", "Post-viral reactive arthritis (Chikungunya/Dengue)", "Ligament sprain"],
+        "severity": "Moderate",
+        "severity_level": "moderate",
+        "suggested_specialist": "Rheumatologist / Orthopedic Surgeon",
+        "home_care": ["Apply warm compress for stiffness, ice packs for acute swelling", "Gentle low-impact range-of-motion stretching", "Elevate swollen joints and rest", "Topical pain-relief gel (Diclofenac)"],
+        "red_flags": ["Single hot, red, extremely swollen joint with fever (Septic arthritis)", "Inability to bear any weight on the leg", "Numbness or loss of sensation in limbs"]
+    },
+    {
+        "symptom_id": "SYM-008",
+        "symptom_name": "Dizziness, Vertigo & Lightheadedness",
+        "keywords": ["dizziness", "vertigo", "spinning room", "lightheaded", "feeling faint", "low bp", "unsteady balance"],
+        "possible_causes": ["Benign Paroxysmal Positional Vertigo (BPPV)", "Orthostatic hypotension (low BP)", "Dehydration / Low blood sugar", "Inner ear labyrinthitis", "Anemia"],
+        "severity": "Mild to Moderate",
+        "severity_level": "moderate",
+        "suggested_specialist": "ENT Specialist / Neurologist",
+        "home_care": ["Sit down or lie flat immediately to avoid falls", "Hydrate with electrolyte / glucose water", "Move head and change postures slowly", "Avoid driving or operating heavy machinery"],
+        "red_flags": ["Dizziness accompanied by double vision, facial weakness, or limb paralysis", "Loss of consciousness / syncope", "Sudden severe hearing loss"]
+    },
+    {
+        "symptom_id": "SYM-009",
+        "symptom_name": "Excessive Thirst, Frequent Urination & Fatigue",
+        "keywords": ["frequent urination", "excessive thirst", "high sugar", "diabetes symptoms", "fatigue", "dry mouth", "unexplained weight loss"],
+        "possible_causes": ["Type 1 / Type 2 Diabetes Mellitus", "Urinary tract infection", "Diabetic ketoacidosis", "Electrolyte imbalance"],
+        "severity": "Moderate to High",
+        "severity_level": "moderate",
+        "suggested_specialist": "Endocrinologist / Diabetologist",
+        "home_care": ["Check fasting and postprandial blood sugar levels immediately", "Drink adequate clean water to avoid dehydration", "Avoid sugary beverages, sweets, and refined carbohydrates", "Schedule HbA1c lab test"],
+        "red_flags": ["Fruity-smelling breath with deep rapid breathing", "Confusion, lethargy, vomiting (Diabetic Ketoacidosis)", "Blood glucose > 300 mg/dL with ketones"]
+    },
+    {
+        "symptom_id": "SYM-010",
+        "symptom_name": "Severe Diarrhea, Vomiting & Dehydration",
+        "keywords": ["diarrhea", "loose motion", "vomiting", "food poisoning", "gastroenteritis", "stomach cramps", "dehydration"],
+        "possible_causes": ["Acute bacterial or viral gastroenteritis", "Food poisoning", "Amoebiasis", "Side effect of antibiotics"],
+        "severity": "Moderate to Severe",
+        "severity_level": "moderate",
+        "suggested_specialist": "General Physician / Gastroenterologist",
+        "home_care": ["Sip Oral Rehydration Salt (ORS) solution continuously after every loose stool", "Eat bland BRAT diet (Bananas, Rice, Applesauce, Toast)", "Take probiotics to restore gut flora", "Avoid dairy, caffeine, and fatty foods"],
+        "red_flags": ["Inability to retain any liquids for over 12 hours", "Extreme dry mouth, sunken eyes, zero urine output for >8 hours", "High fever with bloody stools (Dysentery)"]
     }
 ]
 
@@ -351,18 +446,57 @@ diseases_data = [
     {
         "disease_id": "DIS-001",
         "disease_name": "Dengue Fever",
-        "symptoms": ["High fever", "Severe headache", "Retro-orbital pain", "Joint & muscle pain", "Low platelet count"],
+        "category": "Vector-Borne Viral Infection",
+        "symptoms": ["High fever", "Severe headache", "Retro-orbital pain", "Joint & muscle pain", "Low platelet count", "Skin petechiae"],
         "causes": ["Bite of infected Aedes aegypti mosquito carrying Dengue virus"],
         "prevention": ["Prevent mosquito breeding in stagnant water", "Use mosquito repellent creams & nets", "Wear long-sleeved clothing"],
-        "specialist": "Internal Medicine / Infectious Disease Specialist"
+        "specialist": "Internal Medicine / Infectious Disease Specialist",
+        "recommended_tests": ["Dengue NS1 Antigen", "Dengue IgM/IgG Antibody", "Complete Blood Count (Platelets & Hematocrit)"],
+        "home_care": "Adequate hydration with ORS, coconut water, kiwi fruit, papaya leaf extract, paracetamol for fever. Avoid Aspirin and NSAIDs."
     },
     {
         "disease_id": "DIS-002",
         "disease_name": "Type 2 Diabetes Mellitus",
-        "symptoms": ["Increased thirst (polydipsia)", "Frequent urination (polyuria)", "Unexplained weight loss", "Fatigue", "Blurred vision"],
-        "causes": ["Insulin resistance", "Genetics", "Sedentary lifestyle and obesity"],
-        "prevention": ["Maintain healthy BMI", "Low carbohydrate & sugar-controlled diet", "30 minutes daily aerobic exercise"],
-        "specialist": "Endocrinologist / Diabetologist"
+        "category": "Endocrine & Metabolic Disorder",
+        "symptoms": ["Increased thirst (polydipsia)", "Frequent urination (polyuria)", "Unexplained weight loss", "Fatigue", "Blurred vision", "Slow wound healing"],
+        "causes": ["Insulin resistance", "Genetic predisposition", "Sedentary lifestyle and obesity"],
+        "prevention": ["Maintain healthy BMI (<23 for South Asians)", "Low glycemic index, fiber-rich diet", "30-45 minutes daily aerobic exercise"],
+        "specialist": "Endocrinologist / Diabetologist",
+        "recommended_tests": ["Fasting Blood Sugar (FBS)", "Postprandial Blood Sugar (PPBS)", "HbA1c Glycated Hemoglobin", "Lipid Profile", "Serum Creatinine"],
+        "home_care": "Regular daily blood glucose tracking, portion-controlled meals, foot care inspection, regular medication compliance."
+    },
+    {
+        "disease_id": "DIS-003",
+        "disease_name": "Essential Hypertension",
+        "category": "Cardiovascular Disease",
+        "symptoms": ["Occipital morning headache", "Dizziness", "Shortness of breath on exertion", "Nosebleeds (epistaxis)", "Palpitations", "Often asymptomatic ('Silent Killer')"],
+        "causes": ["Arterial stiffness", "High dietary sodium intake", "Chronic stress", "Renal artery vasoconstriction", "Family history"],
+        "prevention": ["DASH diet (low sodium <2g/day, high potassium)", "Weight management", "Stress reduction and yoga", "Smoking cessation"],
+        "specialist": "Cardiologist / General Physician",
+        "recommended_tests": ["24-Hour Ambulatory BP Monitoring", "Electrocardiogram (ECG)", "Echocardiogram", "Lipid Profile", "Kidney Function Test"],
+        "home_care": "Log morning and evening BP in app Vitals Tracker, restrict table salt, avoid NSAID pain relievers."
+    },
+    {
+        "disease_id": "DIS-004",
+        "disease_name": "Gastroesophageal Reflux Disease (GERD)",
+        "category": "Gastrointestinal Disorder",
+        "symptoms": ["Retrosternal heartburn", "Acid regurgitation into throat", "Sour taste in mouth", "Chronic dry cough", "Dysphagia", "Bloating"],
+        "causes": ["Lower esophageal sphincter (LES) relaxation", "Hiatal hernia", "Obesity", "Late-night heavy meals", "Smoking & alcohol"],
+        "prevention": ["Eat smaller, frequent meals", "Do not lie down within 2-3 hours of dinner", "Elevate head of bed by 6 inches"],
+        "specialist": "Gastroenterologist",
+        "recommended_tests": ["Upper GI Endoscopy", "24-hour Esophageal pH Impedance Study"],
+        "home_care": "Take PPIs 30 mins before breakfast, drink cold skim milk, avoid citrus, mint, chocolate, and carbonated beverages."
+    },
+    {
+        "disease_id": "DIS-005",
+        "disease_name": "Bronchial Asthma",
+        "category": "Respiratory Disease",
+        "symptoms": ["Expiratory wheezing", "Shortness of breath", "Chest tightness", "Nocturnal dry cough", "Difficulty speaking full sentences"],
+        "causes": ["Chronic airway inflammation and bronchial hyperresponsiveness triggered by allergens, cold air, dust, pollen, viral infections"],
+        "prevention": ["Identify and avoid allergen triggers", "Use HEPA air purifiers at home", "Cover mouth and nose in cold dry weather"],
+        "specialist": "Pulmonologist / Allergist",
+        "recommended_tests": ["Spirometry / Pulmonary Function Test (PFT)", "Peak Expiratory Flow Rate (PEFR)", "Serum Total IgE", "Chest X-Ray"],
+        "home_care": "Keep rescue inhaler (Salbutamol) always accessible, rinse mouth after steroid inhalers, monitor daily peak flow."
     }
 ]
 
@@ -380,7 +514,7 @@ drug_interactions_data = [
         "interaction_id": "INT-002",
         "medicine_1": "Amoxicillin",
         "medicine_2": "Methotrexate",
-        "severity": "Moderate",
+        "severity": "Moderate to High",
         "description": "Amoxicillin decreases renal clearance of methotrexate, potentially increasing methotrexate serum levels and systemic bone marrow toxicity.",
         "recommendation": "Monitor complete blood counts and liver enzymes closely."
     },
@@ -431,6 +565,38 @@ drug_interactions_data = [
         "severity": "Moderate to High",
         "description": "Combining ARBs with potassium-sparing diuretics increases risk of hyperkalemia (dangerously high blood potassium).",
         "recommendation": "Monitor serum potassium and renal function within 1-2 weeks of initiation."
+    },
+    {
+        "interaction_id": "INT-009",
+        "medicine_1": "Sildenafil",
+        "medicine_2": "Nitroglycerin",
+        "severity": "High / Severe",
+        "description": "Combining PDE5 inhibitors with nitrates produces profound, potentially life-threatening systemic vasodilation and severe hypotension.",
+        "recommendation": "Absolute contraindication. Never take sildenafil or tadalafil within 24-48 hours of nitrate medications."
+    },
+    {
+        "interaction_id": "INT-010",
+        "medicine_1": "Levothyroxine",
+        "medicine_2": "Calcium Carbonate",
+        "severity": "Moderate",
+        "description": "Calcium supplements chelate with levothyroxine in the gastrointestinal tract, significantly reducing thyroid hormone absorption.",
+        "recommendation": "Separate administration by at least 4 hours."
+    },
+    {
+        "interaction_id": "INT-011",
+        "medicine_1": "Fluoxetine",
+        "medicine_2": "Tramadol",
+        "severity": "High / Severe",
+        "description": "Combining SSRIs with tramadol markedly increases risk of Serotonin Syndrome (hyperthermia, agitation, muscle rigidity) and lowers seizure threshold.",
+        "recommendation": "Avoid concurrent use or use non-serotonergic analgesics."
+    },
+    {
+        "interaction_id": "INT-012",
+        "medicine_1": "Enalapril",
+        "medicine_2": "Potassium Chloride",
+        "severity": "Moderate to High",
+        "description": "ACE inhibitors reduce aldosterone secretion, causing potassium retention. Adding potassium supplements can trigger dangerous hyperkalemia and arrhythmias.",
+        "recommendation": "Avoid routine potassium supplementation unless prescribed and monitored by a cardiologist."
     }
 ]
 
@@ -603,6 +769,154 @@ offers_data = [
     }
 ]
 
+# 21. Lab Biomarkers Reference Dataset (lab_biomarkers.json)
+lab_biomarkers_data = [
+    {
+        "biomarker_id": "BIO-001",
+        "name": "Hemoglobin (Hb)",
+        "category": "Complete Blood Count (CBC)",
+        "unit": "g/dL",
+        "normal_range_min": 13.0,
+        "normal_range_max": 17.5,
+        "description": "Oxygen-carrying protein in red blood cells.",
+        "low_implication": "Microcytic / normocytic anemia, fatigue, weakness, iron deficiency, or blood loss.",
+        "high_implication": "Polycythemia, severe dehydration, COPD, or high altitude adaptation.",
+        "diet_advice": "For low Hb: Consume iron-rich foods like spinach, lentils, beetroot, pomegranate, eggs, and Vitamin C for absorption."
+    },
+    {
+        "biomarker_id": "BIO-002",
+        "name": "Total White Blood Cells (WBC / TLC)",
+        "category": "Complete Blood Count (CBC)",
+        "unit": "/µL",
+        "normal_range_min": 4000,
+        "normal_range_max": 11000,
+        "description": "Immune defense cells fighting infections and inflammation.",
+        "low_implication": "Leukopenia, viral infections (Dengue), bone marrow suppression, or autoimmune conditions.",
+        "high_implication": "Leukocytosis, acute bacterial infection, systemic inflammation, severe tissue damage, or leukemia.",
+        "diet_advice": "Eat zinc-rich foods, citrus fruits, yogurt with probiotics, and stay well hydrated."
+    },
+    {
+        "biomarker_id": "BIO-003",
+        "name": "Platelet Count",
+        "category": "Complete Blood Count (CBC)",
+        "unit": "x10^3/µL",
+        "normal_range_min": 150,
+        "normal_range_max": 450,
+        "description": "Cell fragments essential for normal blood clotting.",
+        "low_implication": "Thrombocytopenia, Dengue infection, ITP, risk of petechiae/bruising and spontaneous bleeding.",
+        "high_implication": "Thrombocytosis, reactive inflammation, iron deficiency, or myeloproliferative disorder.",
+        "diet_advice": "For low platelets: Papaya leaf extract, kiwi fruit, pomegranate, pumpkin seeds, and leafy greens."
+    },
+    {
+        "biomarker_id": "BIO-004",
+        "name": "Fasting Blood Sugar (FBS)",
+        "category": "Diabetes / Glucose Profile",
+        "unit": "mg/dL",
+        "normal_range_min": 70,
+        "normal_range_max": 100,
+        "description": "Blood glucose level measured after minimum 8 hours of overnight fasting.",
+        "low_implication": "Hypoglycemia (<70 mg/dL): dizziness, sweating, tremors, hunger, risk of fainting.",
+        "high_implication": "Impaired Fasting Glucose / Pre-diabetes (100-125 mg/dL), Diabetes Mellitus (>=126 mg/dL).",
+        "diet_advice": "High fiber diet, whole grains, avoid refined sugars, sweet beverages, and practice intermittent fasting or 30 min daily brisk walking."
+    },
+    {
+        "biomarker_id": "BIO-005",
+        "name": "Glycated Hemoglobin (HbA1c)",
+        "category": "Diabetes / Glucose Profile",
+        "unit": "%",
+        "normal_range_min": 4.0,
+        "normal_range_max": 5.6,
+        "description": "Average blood sugar control over the past 90-120 days.",
+        "low_implication": "Hemolytic anemia or frequent hypoglycemic episodes.",
+        "high_implication": "Pre-diabetes (5.7 - 6.4%), Diabetes Mellitus (>= 6.5%). High risk of diabetic microvascular complications.",
+        "diet_advice": "Low glycemic index foods (millets, oats, legumes), portion control, eliminate added sugars, monitor quarterly."
+    },
+    {
+        "biomarker_id": "BIO-006",
+        "name": "Total Cholesterol",
+        "category": "Lipid Profile",
+        "unit": "mg/dL",
+        "normal_range_min": 125,
+        "normal_range_max": 200,
+        "description": "Total amount of cholesterol circulating in bloodstream.",
+        "low_implication": "Severe malnutrition, malabsorption, or hyperthyroidism.",
+        "high_implication": "Hypercholesterolemia (>200 mg/dL): Atherosclerosis, coronary artery disease, and stroke risk.",
+        "diet_advice": "Reduce saturated and trans-fats, incorporate olive oil, walnuts, almonds, flaxseeds, and soluble fiber (psyllium husk, oats)."
+    },
+    {
+        "biomarker_id": "BIO-007",
+        "name": "LDL Bad Cholesterol",
+        "category": "Lipid Profile",
+        "unit": "mg/dL",
+        "normal_range_min": 50,
+        "normal_range_max": 100,
+        "description": "Low-Density Lipoprotein that deposits plaque in arterial walls.",
+        "low_implication": "Hypobetalipoproteinemia or extreme statin response.",
+        "high_implication": "Atherogenic plaque buildup in arteries. Optimal: <100 mg/dL (or <70 mg/dL for cardiac patients).",
+        "diet_advice": "Strictly eliminate fried fast foods, butter, palm oil; consume garlic, green tea, and plant sterols."
+    },
+    {
+        "biomarker_id": "BIO-008",
+        "name": "HDL Good Cholesterol",
+        "category": "Lipid Profile",
+        "unit": "mg/dL",
+        "normal_range_min": 40,
+        "normal_range_max": 80,
+        "description": "High-Density Lipoprotein that scavenges excess cholesterol back to liver.",
+        "low_implication": "Increased risk of coronary heart disease (<40 mg/dL in men, <50 mg/dL in women).",
+        "high_implication": "Cardio-protective (>60 mg/dL).",
+        "diet_advice": "Regular aerobic cardio exercise, omega-3 fatty acids (fatty fish, chia seeds, walnuts), quit smoking."
+    },
+    {
+        "biomarker_id": "BIO-009",
+        "name": "Serum Creatinine",
+        "category": "Kidney Function Test (KFT)",
+        "unit": "mg/dL",
+        "normal_range_min": 0.6,
+        "normal_range_max": 1.2,
+        "description": "Waste byproduct of muscle metabolism filtered by kidneys.",
+        "low_implication": "Low muscle mass, severe liver disease, or malnutrition.",
+        "high_implication": "Impaired renal glomerular filtration, acute kidney injury (AKI), chronic kidney disease (CKD), or severe dehydration.",
+        "diet_advice": "Adequate daily hydration (2.5-3L water), moderate protein intake, limit sodium, avoid NSAID painkillers."
+    },
+    {
+        "biomarker_id": "BIO-010",
+        "name": "Serum Bilirubin (Total)",
+        "category": "Liver Function Test (LFT)",
+        "unit": "mg/dL",
+        "normal_range_min": 0.2,
+        "normal_range_max": 1.2,
+        "description": "Yellow pigment produced during breakdown of red blood cells.",
+        "low_implication": "Generally no clinical significance.",
+        "high_implication": "Jaundice, viral hepatitis, bile duct obstruction (gallstones), hemolytic anemia, or Gilbert's syndrome.",
+        "diet_advice": "Bland, easily digestible diet (khichdi, boiled vegetables), cane sugar juice, avoid alcohol and oily foods."
+    },
+    {
+        "biomarker_id": "BIO-011",
+        "name": "SGPT / ALT (Alanine Aminotransferase)",
+        "category": "Liver Function Test (LFT)",
+        "unit": "U/L",
+        "normal_range_min": 7,
+        "normal_range_max": 56,
+        "description": "Enzyme primarily found inside liver hepatocytes.",
+        "low_implication": "Normal clinical finding.",
+        "high_implication": "Hepatocellular injury, Non-Alcoholic Fatty Liver Disease (NAFLD), viral hepatitis, alcohol toxicity, or drug-induced liver injury.",
+        "diet_advice": "Eliminate alcohol completely, reduce refined fructose and sugars, drink black coffee (liver-protective), lose excess visceral fat."
+    },
+    {
+        "biomarker_id": "BIO-012",
+        "name": "Thyroid Stimulating Hormone (TSH)",
+        "category": "Thyroid Profile",
+        "unit": "mIU/L",
+        "normal_range_min": 0.4,
+        "normal_range_max": 4.5,
+        "description": "Pituitary hormone regulating thyroid gland secretion of T3 and T4.",
+        "low_implication": "Hyperthyroidism: weight loss, rapid heartbeat, heat intolerance, anxiety, tremors.",
+        "high_implication": "Hypothyroidism (>4.5 mIU/L): weight gain, fatigue, dry skin, cold intolerance, constipation, hair loss.",
+        "diet_advice": "For high TSH: Take prescribed Levothyroxine on empty stomach with water, avoid soy and cruciferous raw vegetables in excess, ensure adequate iodine and selenium."
+    }
+]
+
 # Save all datasets
 datasets = {
     "medicines.json": medicines_data,
@@ -624,8 +938,20 @@ datasets = {
     "reviews.json": reviews_data,
     "faq.json": faq_data,
     "ambulance_services.json": ambulance_services_data,
-    "offers.json": offers_data
+    "offers.json": offers_data,
+    "lab_biomarkers.json": lab_biomarkers_data
 }
+
+# Preserve existing rich medicines data if present
+med_file = os.path.join(DATA_DIR, "medicines.json")
+if os.path.exists(med_file):
+    try:
+        with open(med_file, "r", encoding="utf-8") as f:
+            existing_meds = json.load(f)
+            if len(existing_meds) > len(medicines_data):
+                datasets["medicines.json"] = existing_meds
+    except Exception:
+        pass
 
 for filename, content in datasets.items():
     filepath = os.path.join(DATA_DIR, filename)
@@ -633,4 +959,5 @@ for filename, content in datasets.items():
         json.dump(content, f, indent=2, ensure_ascii=False)
     print(f"Successfully generated dataset: {filename} ({len(content)} records)")
 
-print("\nAll 20 Datasets generated successfully in data/ directory!")
+print("\nAll 21 Datasets generated successfully in data/ directory!")
+

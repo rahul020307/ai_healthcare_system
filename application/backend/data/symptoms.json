@@ -2,37 +2,348 @@
   {
     "symptom_id": "SYM-001",
     "symptom_name": "High Fever & Chills",
+    "keywords": [
+      "fever",
+      "pyrexia",
+      "high temp",
+      "chills",
+      "shivering",
+      "burning forehead"
+    ],
     "possible_causes": [
-      "Viral infection",
+      "Viral upper respiratory infection",
       "Malaria",
-      "Dengue",
+      "Dengue fever",
       "Urinary tract infection",
+      "Typhoid",
       "Pneumonia"
     ],
     "severity": "Moderate to Severe",
+    "severity_level": "moderate",
     "suggested_specialist": "General Physician / Infectious Disease Specialist",
     "home_care": [
-      "Drink plenty of warm ORS & fluids",
+      "Drink plenty of warm ORS & fluids (2-3L/day)",
       "Tepid sponge bath to lower temp",
-      "Rest adequately",
-      "Monitor temp every 4 hours"
+      "Take prescribed antipyretic (e.g. Paracetamol 650mg)",
+      "Rest adequately in well-ventilated room",
+      "Monitor temperature every 4 hours"
+    ],
+    "red_flags": [
+      "Fever above 103°F not responding to antipyretics",
+      "Severe stiff neck with confusion",
+      "Extreme breathlessness or blue lips",
+      "Convulsions or seizures"
     ]
   },
   {
     "symptom_id": "SYM-002",
-    "symptom_name": "Persistent Dry Cough",
+    "symptom_name": "Persistent Dry / Productive Cough",
+    "keywords": [
+      "cough",
+      "dry cough",
+      "wet cough",
+      "phlegm",
+      "mucus",
+      "throat irritation",
+      "wheezing"
+    ],
     "possible_causes": [
       "Upper respiratory viral infection",
       "Allergic bronchitis",
-      "Asthma",
-      "GERD Acid reflux"
+      "Bronchial asthma",
+      "GERD acid reflux",
+      "Bacterial pneumonia"
     ],
     "severity": "Mild to Moderate",
+    "severity_level": "mild",
     "suggested_specialist": "Pulmonologist / ENT Specialist",
     "home_care": [
-      "Warm saline water gargling",
+      "Warm saline water gargling twice daily",
       "Steam inhalation with eucalyptus oil",
-      "Honey and warm ginger tea"
+      "Honey and warm ginger tea",
+      "Keep head elevated while sleeping"
+    ],
+    "red_flags": [
+      "Coughing up blood (hemoptysis)",
+      "Severe chest pain while breathing",
+      "Shortness of breath at rest",
+      "Stridor / high-pitched wheezing"
+    ]
+  },
+  {
+    "symptom_id": "SYM-003",
+    "symptom_name": "Chest Pain & Pressure",
+    "keywords": [
+      "chest pain",
+      "chest tightness",
+      "angina",
+      "left arm pain",
+      "heart palpitations",
+      "pressure in chest"
+    ],
+    "possible_causes": [
+      "Acute Coronary Syndrome / Angina",
+      "Severe GERD / Acid Reflux",
+      "Costochondritis (rib inflammation)",
+      "Panic attack / Anxiety",
+      "Musculoskeletal strain"
+    ],
+    "severity": "Severe / Critical Emergency",
+    "severity_level": "critical",
+    "suggested_specialist": "Cardiologist / Emergency Medicine",
+    "home_care": [
+      "Sit upright and remain calm",
+      "Loosen tight clothing",
+      "Do NOT exert physically",
+      "If known cardiac patient, take prescribed Sublingual Nitroglycerin",
+      "Call Emergency SOS (108) immediately"
+    ],
+    "red_flags": [
+      "Crushing chest pain radiating to left arm/jaw",
+      "Cold sweating, dizziness, nausea",
+      "Difficulty breathing",
+      "Unconsciousness"
+    ]
+  },
+  {
+    "symptom_id": "SYM-004",
+    "symptom_name": "Throbbing Headache & Migraine",
+    "keywords": [
+      "headache",
+      "migraine",
+      "throbbing head",
+      "temple pain",
+      "forehead pain",
+      "light sensitivity"
+    ],
+    "possible_causes": [
+      "Tension headache",
+      "Migraine with/without aura",
+      "Sinusitis",
+      "Dehydration",
+      "High blood pressure",
+      "Eye strain"
+    ],
+    "severity": "Mild to Moderate",
+    "severity_level": "mild",
+    "suggested_specialist": "Neurologist / General Physician",
+    "home_care": [
+      "Rest in a quiet, dark room",
+      "Apply cold or warm compress to forehead/neck",
+      "Hydrate with electrolyte water",
+      "Avoid loud sounds and bright screens"
+    ],
+    "red_flags": [
+      "Sudden explosive 'thunderclap' headache",
+      "Headache accompanied by slurred speech or facial drooping",
+      "High fever with neck rigidity",
+      "Post-head trauma headache"
+    ]
+  },
+  {
+    "symptom_id": "SYM-005",
+    "symptom_name": "Acid Reflux, Heartburn & Indigestion",
+    "keywords": [
+      "acidity",
+      "heartburn",
+      "acid reflux",
+      "gerd",
+      "stomach burning",
+      "bloating",
+      "burping",
+      "indigestion"
+    ],
+    "possible_causes": [
+      "Gastroesophageal Reflux Disease (GERD)",
+      "Gastritis",
+      "Peptic ulcer",
+      "Spicy/oily food intolerance",
+      "Hiatal hernia"
+    ],
+    "severity": "Mild to Moderate",
+    "severity_level": "mild",
+    "suggested_specialist": "Gastroenterologist",
+    "home_care": [
+      "Avoid spicy, oily, acidic, and caffeinated foods",
+      "Take antacid / PPI (e.g. Pantoprazole 40mg before meals)",
+      "Do not lie down for 2 hours after meals",
+      "Drink cold milk or coconut water"
+    ],
+    "red_flags": [
+      "Vomiting blood or coffee-ground material",
+      "Black, tarry stools (melena)",
+      "Severe difficulty swallowing (dysphagia)",
+      "Unexplained rapid weight loss"
+    ]
+  },
+  {
+    "symptom_id": "SYM-006",
+    "symptom_name": "Skin Rash, Itching & Hives",
+    "keywords": [
+      "rash",
+      "itching",
+      "hives",
+      "urticaria",
+      "red spots",
+      "eczema",
+      "skin allergy",
+      "swelling"
+    ],
+    "possible_causes": [
+      "Allergic contact dermatitis",
+      "Urticaria / Drug reaction",
+      "Viral exanthem",
+      "Eczema / Atopic dermatitis",
+      "Fungal infection"
+    ],
+    "severity": "Mild to Moderate",
+    "severity_level": "mild",
+    "suggested_specialist": "Dermatologist / Allergist",
+    "home_care": [
+      "Apply soothing calamine lotion or aloe vera gel",
+      "Take OTC antihistamine (e.g. Cetirizine 10mg)",
+      "Use mild fragrance-free soaps and wear loose cotton clothing",
+      "Avoid scratching to prevent secondary bacterial infection"
+    ],
+    "red_flags": [
+      "Swelling of lips, tongue, or throat (Angioedema)",
+      "Difficulty breathing or wheezing (Anaphylaxis)",
+      "Blistering peeling skin over large body area (Stevens-Johnson syndrome)",
+      "High fever with rapidly spreading purple spots (Purpura)"
+    ]
+  },
+  {
+    "symptom_id": "SYM-007",
+    "symptom_name": "Joint Pain, Stiffness & Swelling",
+    "keywords": [
+      "joint pain",
+      "knee pain",
+      "arthritis",
+      "stiff joints",
+      "swollen knees",
+      "gout",
+      "backache"
+    ],
+    "possible_causes": [
+      "Osteoarthritis",
+      "Rheumatoid arthritis",
+      "Gout / Hyperuricemia",
+      "Post-viral reactive arthritis (Chikungunya/Dengue)",
+      "Ligament sprain"
+    ],
+    "severity": "Moderate",
+    "severity_level": "moderate",
+    "suggested_specialist": "Rheumatologist / Orthopedic Surgeon",
+    "home_care": [
+      "Apply warm compress for stiffness, ice packs for acute swelling",
+      "Gentle low-impact range-of-motion stretching",
+      "Elevate swollen joints and rest",
+      "Topical pain-relief gel (Diclofenac)"
+    ],
+    "red_flags": [
+      "Single hot, red, extremely swollen joint with fever (Septic arthritis)",
+      "Inability to bear any weight on the leg",
+      "Numbness or loss of sensation in limbs"
+    ]
+  },
+  {
+    "symptom_id": "SYM-008",
+    "symptom_name": "Dizziness, Vertigo & Lightheadedness",
+    "keywords": [
+      "dizziness",
+      "vertigo",
+      "spinning room",
+      "lightheaded",
+      "feeling faint",
+      "low bp",
+      "unsteady balance"
+    ],
+    "possible_causes": [
+      "Benign Paroxysmal Positional Vertigo (BPPV)",
+      "Orthostatic hypotension (low BP)",
+      "Dehydration / Low blood sugar",
+      "Inner ear labyrinthitis",
+      "Anemia"
+    ],
+    "severity": "Mild to Moderate",
+    "severity_level": "moderate",
+    "suggested_specialist": "ENT Specialist / Neurologist",
+    "home_care": [
+      "Sit down or lie flat immediately to avoid falls",
+      "Hydrate with electrolyte / glucose water",
+      "Move head and change postures slowly",
+      "Avoid driving or operating heavy machinery"
+    ],
+    "red_flags": [
+      "Dizziness accompanied by double vision, facial weakness, or limb paralysis",
+      "Loss of consciousness / syncope",
+      "Sudden severe hearing loss"
+    ]
+  },
+  {
+    "symptom_id": "SYM-009",
+    "symptom_name": "Excessive Thirst, Frequent Urination & Fatigue",
+    "keywords": [
+      "frequent urination",
+      "excessive thirst",
+      "high sugar",
+      "diabetes symptoms",
+      "fatigue",
+      "dry mouth",
+      "unexplained weight loss"
+    ],
+    "possible_causes": [
+      "Type 1 / Type 2 Diabetes Mellitus",
+      "Urinary tract infection",
+      "Diabetic ketoacidosis",
+      "Electrolyte imbalance"
+    ],
+    "severity": "Moderate to High",
+    "severity_level": "moderate",
+    "suggested_specialist": "Endocrinologist / Diabetologist",
+    "home_care": [
+      "Check fasting and postprandial blood sugar levels immediately",
+      "Drink adequate clean water to avoid dehydration",
+      "Avoid sugary beverages, sweets, and refined carbohydrates",
+      "Schedule HbA1c lab test"
+    ],
+    "red_flags": [
+      "Fruity-smelling breath with deep rapid breathing",
+      "Confusion, lethargy, vomiting (Diabetic Ketoacidosis)",
+      "Blood glucose > 300 mg/dL with ketones"
+    ]
+  },
+  {
+    "symptom_id": "SYM-010",
+    "symptom_name": "Severe Diarrhea, Vomiting & Dehydration",
+    "keywords": [
+      "diarrhea",
+      "loose motion",
+      "vomiting",
+      "food poisoning",
+      "gastroenteritis",
+      "stomach cramps",
+      "dehydration"
+    ],
+    "possible_causes": [
+      "Acute bacterial or viral gastroenteritis",
+      "Food poisoning",
+      "Amoebiasis",
+      "Side effect of antibiotics"
+    ],
+    "severity": "Moderate to Severe",
+    "severity_level": "moderate",
+    "suggested_specialist": "General Physician / Gastroenterologist",
+    "home_care": [
+      "Sip Oral Rehydration Salt (ORS) solution continuously after every loose stool",
+      "Eat bland BRAT diet (Bananas, Rice, Applesauce, Toast)",
+      "Take probiotics to restore gut flora",
+      "Avoid dairy, caffeine, and fatty foods"
+    ],
+    "red_flags": [
+      "Inability to retain any liquids for over 12 hours",
+      "Extreme dry mouth, sunken eyes, zero urine output for >8 hours",
+      "High fever with bloody stools (Dysentery)"
     ]
   }
 ]

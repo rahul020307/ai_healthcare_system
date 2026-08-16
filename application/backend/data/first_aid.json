@@ -30,57 +30,5 @@
       "Seek immediate emergency medical care for electrical, chemical, or face/joint burns."
     ],
     "emergency_number": "108"
-  },
-  {
-    "emergency_id": "EMG-003",
-    "emergency_type": "Dog & Mammal Bites (Rabies Risk)",
-    "symptoms": [
-      "Puncture wounds",
-      "Lacerations",
-      "Bleeding",
-      "Dog bite or cat scratch"
-    ],
-    "first_aid_steps": [
-      "Immediately wash the wound thoroughly with mild soap and running tap water for at least 15 minutes to reduce viral load.",
-      "Apply a clean antiseptic solution (like Povidone-Iodine or Dettol/Savlon) to disinfect the wound.",
-      "Press a clean cloth over the wound to stop minor bleeding.",
-      "🚨 URGENT: Visit a hospital or clinic IMMEDIATELY (within 24 hours) for Anti-Rabies Vaccine (ARV) and Tetanus Toxoid (TT) shot.",
-      "Do not stitch open animal bite wounds or apply household powders."
-    ],
-    "emergency_number": "108"
-  },
-  {
-    "emergency_id": "EMG-004",
-    "emergency_type": "Spider & Insect Stings (Local Reaction vs Anaphylaxis)",
-    "symptoms": [
-      "Redness & localized swelling",
-      "Itching & burning pain",
-      "Small bump or blister"
-    ],
-    "first_aid_steps": [
-      "Wash the sting area with mild soap and water.",
-      "Apply a cold compress or ice pack wrapped in a clean cloth for 10-15 minutes to reduce localized pain and swelling.",
-      "Apply Calamine lotion or hydrocortisone cream to relieve itching.",
-      "Take an OTC antihistamine (e.g., Cetirizine 10mg) for severe itching.",
-      "🚨 EMERGENCY ALERT: Seek immediate ER care (Call 108) if experiencing difficulty breathing, facial swelling, dizziness, or hives (signs of allergic Anaphylaxis)."
-    ],
-    "emergency_number": "108"
-  },
-  {
-    "emergency_id": "EMG-005",
-    "emergency_type": "Snake Bite & Venomous Stings",
-    "symptoms": [
-      "Fang mark punctures",
-      "Severe swelling",
-      "Nausea",
-      "Blurred vision"
-    ],
-    "first_aid_steps": [
-      "Keep the victim calm and strictly immobile. Immobilize the bitten limb below heart level.",
-      "Remove tight rings, watches, or clothing around the bitten area before swelling starts.",
-      "DO NOT cut the wound, suck out venom, or apply tight tourniquets.",
-      "Transport the patient immediately to the nearest hospital with Anti-Snake Venom (ASV) availability."
-    ],
-    "emergency_number": "108"
   }
 ]

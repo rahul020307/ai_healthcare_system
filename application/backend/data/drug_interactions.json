@@ -11,7 +11,7 @@
     "interaction_id": "INT-002",
     "medicine_1": "Amoxicillin",
     "medicine_2": "Methotrexate",
-    "severity": "Moderate",
+    "severity": "Moderate to High",
     "description": "Amoxicillin decreases renal clearance of methotrexate, potentially increasing methotrexate serum levels and systemic bone marrow toxicity.",
     "recommendation": "Monitor complete blood counts and liver enzymes closely."
   },
@@ -62,5 +62,37 @@
     "severity": "Moderate to High",
     "description": "Combining ARBs with potassium-sparing diuretics increases risk of hyperkalemia (dangerously high blood potassium).",
     "recommendation": "Monitor serum potassium and renal function within 1-2 weeks of initiation."
+  },
+  {
+    "interaction_id": "INT-009",
+    "medicine_1": "Sildenafil",
+    "medicine_2": "Nitroglycerin",
+    "severity": "High / Severe",
+    "description": "Combining PDE5 inhibitors with nitrates produces profound, potentially life-threatening systemic vasodilation and severe hypotension.",
+    "recommendation": "Absolute contraindication. Never take sildenafil or tadalafil within 24-48 hours of nitrate medications."
+  },
+  {
+    "interaction_id": "INT-010",
+    "medicine_1": "Levothyroxine",
+    "medicine_2": "Calcium Carbonate",
+    "severity": "Moderate",
+    "description": "Calcium supplements chelate with levothyroxine in the gastrointestinal tract, significantly reducing thyroid hormone absorption.",
+    "recommendation": "Separate administration by at least 4 hours."
+  },
+  {
+    "interaction_id": "INT-011",
+    "medicine_1": "Fluoxetine",
+    "medicine_2": "Tramadol",
+    "severity": "High / Severe",
+    "description": "Combining SSRIs with tramadol markedly increases risk of Serotonin Syndrome (hyperthermia, agitation, muscle rigidity) and lowers seizure threshold.",
+    "recommendation": "Avoid concurrent use or use non-serotonergic analgesics."
+  },
+  {
+    "interaction_id": "INT-012",
+    "medicine_1": "Enalapril",
+    "medicine_2": "Potassium Chloride",
+    "severity": "Moderate to High",
+    "description": "ACE inhibitors reduce aldosterone secretion, causing potassium retention. Adding potassium supplements can trigger dangerous hyperkalemia and arrhythmias.",
+    "recommendation": "Avoid routine potassium supplementation unless prescribed and monitored by a cardiologist."
   }
 ]

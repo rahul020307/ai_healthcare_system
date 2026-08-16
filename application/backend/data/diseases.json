@@ -2,12 +2,14 @@
   {
     "disease_id": "DIS-001",
     "disease_name": "Dengue Fever",
+    "category": "Vector-Borne Viral Infection",
     "symptoms": [
       "High fever",
       "Severe headache",
       "Retro-orbital pain",
       "Joint & muscle pain",
-      "Low platelet count"
+      "Low platelet count",
+      "Skin petechiae"
     ],
     "causes": [
       "Bite of infected Aedes aegypti mosquito carrying Dengue virus"
@@ -17,28 +19,138 @@
       "Use mosquito repellent creams & nets",
       "Wear long-sleeved clothing"
     ],
-    "specialist": "Internal Medicine / Infectious Disease Specialist"
+    "specialist": "Internal Medicine / Infectious Disease Specialist",
+    "recommended_tests": [
+      "Dengue NS1 Antigen",
+      "Dengue IgM/IgG Antibody",
+      "Complete Blood Count (Platelets & Hematocrit)"
+    ],
+    "home_care": "Adequate hydration with ORS, coconut water, kiwi fruit, papaya leaf extract, paracetamol for fever. Avoid Aspirin and NSAIDs."
   },
   {
     "disease_id": "DIS-002",
     "disease_name": "Type 2 Diabetes Mellitus",
+    "category": "Endocrine & Metabolic Disorder",
     "symptoms": [
       "Increased thirst (polydipsia)",
       "Frequent urination (polyuria)",
       "Unexplained weight loss",
       "Fatigue",
-      "Blurred vision"
+      "Blurred vision",
+      "Slow wound healing"
     ],
     "causes": [
       "Insulin resistance",
-      "Genetics",
+      "Genetic predisposition",
       "Sedentary lifestyle and obesity"
     ],
     "prevention": [
-      "Maintain healthy BMI",
-      "Low carbohydrate & sugar-controlled diet",
-      "30 minutes daily aerobic exercise"
+      "Maintain healthy BMI (<23 for South Asians)",
+      "Low glycemic index, fiber-rich diet",
+      "30-45 minutes daily aerobic exercise"
     ],
-    "specialist": "Endocrinologist / Diabetologist"
+    "specialist": "Endocrinologist / Diabetologist",
+    "recommended_tests": [
+      "Fasting Blood Sugar (FBS)",
+      "Postprandial Blood Sugar (PPBS)",
+      "HbA1c Glycated Hemoglobin",
+      "Lipid Profile",
+      "Serum Creatinine"
+    ],
+    "home_care": "Regular daily blood glucose tracking, portion-controlled meals, foot care inspection, regular medication compliance."
+  },
+  {
+    "disease_id": "DIS-003",
+    "disease_name": "Essential Hypertension",
+    "category": "Cardiovascular Disease",
+    "symptoms": [
+      "Occipital morning headache",
+      "Dizziness",
+      "Shortness of breath on exertion",
+      "Nosebleeds (epistaxis)",
+      "Palpitations",
+      "Often asymptomatic ('Silent Killer')"
+    ],
+    "causes": [
+      "Arterial stiffness",
+      "High dietary sodium intake",
+      "Chronic stress",
+      "Renal artery vasoconstriction",
+      "Family history"
+    ],
+    "prevention": [
+      "DASH diet (low sodium <2g/day, high potassium)",
+      "Weight management",
+      "Stress reduction and yoga",
+      "Smoking cessation"
+    ],
+    "specialist": "Cardiologist / General Physician",
+    "recommended_tests": [
+      "24-Hour Ambulatory BP Monitoring",
+      "Electrocardiogram (ECG)",
+      "Echocardiogram",
+      "Lipid Profile",
+      "Kidney Function Test"
+    ],
+    "home_care": "Log morning and evening BP in app Vitals Tracker, restrict table salt, avoid NSAID pain relievers."
+  },
+  {
+    "disease_id": "DIS-004",
+    "disease_name": "Gastroesophageal Reflux Disease (GERD)",
+    "category": "Gastrointestinal Disorder",
+    "symptoms": [
+      "Retrosternal heartburn",
+      "Acid regurgitation into throat",
+      "Sour taste in mouth",
+      "Chronic dry cough",
+      "Dysphagia",
+      "Bloating"
+    ],
+    "causes": [
+      "Lower esophageal sphincter (LES) relaxation",
+      "Hiatal hernia",
+      "Obesity",
+      "Late-night heavy meals",
+      "Smoking & alcohol"
+    ],
+    "prevention": [
+      "Eat smaller, frequent meals",
+      "Do not lie down within 2-3 hours of dinner",
+      "Elevate head of bed by 6 inches"
+    ],
+    "specialist": "Gastroenterologist",
+    "recommended_tests": [
+      "Upper GI Endoscopy",
+      "24-hour Esophageal pH Impedance Study"
+    ],
+    "home_care": "Take PPIs 30 mins before breakfast, drink cold skim milk, avoid citrus, mint, chocolate, and carbonated beverages."
+  },
+  {
+    "disease_id": "DIS-005",
+    "disease_name": "Bronchial Asthma",
+    "category": "Respiratory Disease",
+    "symptoms": [
+      "Expiratory wheezing",
+      "Shortness of breath",
+      "Chest tightness",
+      "Nocturnal dry cough",
+      "Difficulty speaking full sentences"
+    ],
+    "causes": [
+      "Chronic airway inflammation and bronchial hyperresponsiveness triggered by allergens, cold air, dust, pollen, viral infections"
+    ],
+    "prevention": [
+      "Identify and avoid allergen triggers",
+      "Use HEPA air purifiers at home",
+      "Cover mouth and nose in cold dry weather"
+    ],
+    "specialist": "Pulmonologist / Allergist",
+    "recommended_tests": [
+      "Spirometry / Pulmonary Function Test (PFT)",
+      "Peak Expiratory Flow Rate (PEFR)",
+      "Serum Total IgE",
+      "Chest X-Ray"
+    ],
+    "home_care": "Keep rescue inhaler (Salbutamol) always accessible, rinse mouth after steroid inhalers, monitor daily peak flow."
   }
 ]
