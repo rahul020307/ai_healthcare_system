@@ -42,29 +42,38 @@ INTERACTIONS_DB = load_data("drug_interactions.json")
 FIRST_AID_DB = load_data("first_aid.json")
 
 
-def get_env_variable(var_name: str) -> Optional[str]:
-    """Reads only the runtime environment configured by Vercel or the host process."""
-    val = os.getenv(var_name)
-    if val and val.strip():
-        return val.strip()
+def get_env_variable(*var_names: str) -> Optional[str]:
+    """Reads the runtime environment configured by Vercel or host process, checking aliases."""
+    for name in var_names:
+        val = os.getenv(name)
+        if val and val.strip():
+            return val.strip()
     return None
 
 
-def validate_required_env_vars() -> list[str]:
-    """Returns missing required runtime env vars for AI integrations."""
-    required = ["GEMINI_API_KEY", "OPENAI_API_KEY"]
-    return [name for name in required if not get_env_variable(name)]
+def get_gemini_key() -> Optional[str]:
+    """Retrieve Gemini API key from common environment variable names."""
+    return get_env_variable(
+        "GEMINI_API_KEY",
+        "GOOGLE_GEMINI_API_KEY",
+        "GOOGLE_API_KEY",
+        "VITE_GEMINI_API_KEY"
+    )
+
+
+def get_openai_key() -> Optional[str]:
+    """Retrieve OpenAI API key from common environment variable names."""
+    return get_env_variable("OPENAI_API_KEY")
 
 
 def call_remote_ai(user_prompt: str, patient_context: str) -> Optional[str]:
-    """Attempts calling Google Gemini API or OpenAI API using only runtime env vars."""
-    missing = validate_required_env_vars()
-    if missing:
-        print(f"Missing required AI env vars: {', '.join(missing)}")
-        return None
+    """Attempts calling Google Gemini API or OpenAI API using runtime env vars."""
+    gemini_key = get_gemini_key()
+    openai_key = get_openai_key()
 
-    gemini_key = get_env_variable("GEMINI_API_KEY")
-    openai_key = get_env_variable("OPENAI_API_KEY")
+    if not gemini_key and not openai_key:
+        print("Note: No AI API keys (GEMINI_API_KEY or OPENAI_API_KEY) found in environment.")
+        return None
 
     system_prompt = (
         f"You are CuraBot AI, a warm, clear, and friendly medical AI assistant. "
@@ -72,15 +81,11 @@ def call_remote_ai(user_prompt: str, patient_context: str) -> Optional[str]:
         f"Give simple, easy-to-understand advice in bullet points. Use bold text for key medicine names and simple English."
     )
 
-    key_pool = [gemini_key] if gemini_key else []
-
-    # 1. Try Google Gemini API first
-    for g_key in key_pool:
-        if not g_key:
-            continue
+    # 1. Try Google Gemini API first if key exists
+    if gemini_key:
         for model in ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-pro"]:
             try:
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={g_key.strip()}"
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={gemini_key}"
                 payload = json.dumps({
                     "contents": [
                         {
@@ -102,9 +107,9 @@ def call_remote_ai(user_prompt: str, patient_context: str) -> Optional[str]:
             except Exception as e:
                 print(f"Gemini API ({model}) call note:", e)
 
-    # 2. Try OpenAI API
+    # 2. Try OpenAI API if key exists
     if openai_key:
-        for model in ["gpt-3.5-turbo", "gpt-4o-mini"]:
+        for model in ["gpt-4o-mini", "gpt-3.5-turbo"]:
             try:
                 url = "https://api.openai.com/v1/chat/completions"
                 payload = json.dumps({

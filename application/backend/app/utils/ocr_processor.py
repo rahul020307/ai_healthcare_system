@@ -79,45 +79,53 @@ def similarity_score(str1: str, str2: str) -> float:
     return SequenceMatcher(None, str1.lower(), str2.lower()).ratio()
 
 
-def fuzzy_match_medicine(medicine_name: str, medicines_db: List[Dict], threshold: float = 0.75) -> Optional[Dict]:
+def fuzzy_match_medicine(medicine_name: str, medicines_db: List[Dict], threshold: float = 0.70) -> Optional[Dict]:
     """
-    Find best matching medicine using fuzzy matching.
-    
-    Args:
-        medicine_name: User-provided medicine name (potentially with typos)
-        medicines_db: List of medicine records from database
-        threshold: Minimum similarity score (0-1)
-    
-    Returns:
-        Best matching medicine dict or None if no good match found
+    Find best matching medicine using fuzzy matching against brand names,
+    generic names, and individual salt / composition ingredients.
     """
     normalized_input = normalize_medicine_text(medicine_name)
+    if not normalized_input or len(normalized_input) < 3:
+        return None
+
     best_match = None
     best_score = 0
-    
+
     for med in medicines_db:
-        # Check against brand name
         brand_name = med.get("brand_name", "") or med.get("name", "")
         generic_name = med.get("generic_name", "")
-        
+        composition = med.get("composition", "")
+
         normalized_brand = normalize_medicine_text(brand_name)
         normalized_generic = normalize_medicine_text(generic_name)
-        
-        # Calculate similarity scores
+
         brand_score = similarity_score(normalized_input, normalized_brand)
         generic_score = similarity_score(normalized_input, normalized_generic)
-        
-        # Take the maximum score
-        current_score = max(brand_score, generic_score)
-        
+
+        # Check sub-components/salts in generic_name and composition (split by +, &, ,, /)
+        salt_scores = []
+        for raw_field in [generic_name, composition]:
+            if not raw_field:
+                continue
+            parts = re.split(r"[\+\&\,/]|(?:\band\b)", raw_field)
+            for part in parts:
+                clean_part = normalize_medicine_text(re.sub(r"\d+.*", "", part))
+                if len(clean_part) >= 3:
+                    salt_scores.append(similarity_score(normalized_input, clean_part))
+                    # If input is a prefix or word in the salt name
+                    if normalized_input in clean_part or clean_part in normalized_input:
+                        salt_scores.append(0.88)
+
+        max_salt_score = max(salt_scores) if salt_scores else 0
+        current_score = max(brand_score, generic_score, max_salt_score)
+
         if current_score > best_score:
             best_score = current_score
             best_match = med
-    
-    # Return only if score exceeds threshold
+
     if best_score >= threshold:
         return best_match
-    
+
     return None
 
 
@@ -262,85 +270,120 @@ def process_prescription_ocr(raw_ocr_text: str, medicines_db: List[Dict]) -> Dic
             "message": "The uploaded image does not appear to contain a valid medical prescription."
         }
 
-    # Normalize the input text
-    normalized_text = normalize_medicine_text(raw_ocr_text)
-    
     extracted_medicines = []
-    
-    # Split text into lines for better medicine detection
-    lines = raw_ocr_text.split('\n')
-    
-    # Try to detect medicine mentions in each line
-    for line in lines:
-        line_clean = line.strip()
-        
-        # Skip very short lines (likely not medicine names)
+    seen_medicine_ids = set()
+    seen_medicine_names = set()
+
+    def add_medicine_match(med_dict, dosage_list, freq_list, dur_val, line_text, conf):
+        med_id = med_dict.get("medicine_id") or med_dict.get("id") or med_dict.get("brand_name")
+        brand = med_dict.get("brand_name") or med_dict.get("name", "")
+        generic = med_dict.get("generic_name", "")
+        key = (brand or generic or "").lower().strip()
+
+        if med_id and med_id in seen_medicine_ids:
+            return
+        if key and key in seen_medicine_names:
+            return
+
+        if med_id:
+            seen_medicine_ids.add(med_id)
+        if key:
+            seen_medicine_names.add(key)
+
+        extracted_medicines.append({
+            "medicine_id": med_id,
+            "brand_name": brand,
+            "generic_name": generic,
+            "dosage": dosage_list[0].get("full") if dosage_list else med_dict.get("dosage", "1 tablet"),
+            "frequency": freq_list if freq_list else ["as prescribed"],
+            "duration": dur_val or "as advised",
+            "line": line_text,
+            "confidence": round(conf, 2)
+        })
+
+    # Split text into lines for line-by-line analysis
+    lines = [line.strip() for line in raw_ocr_text.split('\n') if line.strip()]
+
+    for line_clean in lines:
         if len(line_clean) < 3:
             continue
-        
-        # Skip lines with low alphanumeric content
-        if sum(c.isalnum() for c in line_clean) / len(line_clean) < 0.5:
+        if sum(c.isalnum() for c in line_clean) / len(line_clean) < 0.4:
             continue
-        
-        # Look for medicine names in this line
+
+        normalized_line = normalize_medicine_text(line_clean)
+        line_dosages = extract_dosage_info(line_clean)
+        line_freqs = extract_frequency_info(normalized_line)
+        line_duration = extract_duration_info(line_clean)
+
+        line_matched = False
+
+        # 1. Exact match check in line
         for medicine in medicines_db:
             brand_name = medicine.get("brand_name") or medicine.get("name", "")
             generic_name = medicine.get("generic_name", "")
-            
-            if not brand_name:
-                continue
-            
-            # Check if medicine appears in line (case-insensitive)
-            if brand_name.lower() in line_clean.lower() or generic_name.lower() in line_clean.lower():
-                # Extract dosage and frequency for this specific line
-                dosages = extract_dosage_info(line_clean)
-                frequencies = extract_frequency_info(line_clean)
-                duration = extract_duration_info(line_clean)
-                
-                extracted_medicines.append({
-                    "medicine_id": medicine.get("medicine_id"),
-                    "brand_name": brand_name,
-                    "generic_name": generic_name,
-                    "dosage": dosages[0].get("full") if dosages else medicine.get("dosage", "1 tablet"),
-                    "frequency": frequencies if frequencies else ["as prescribed"],
-                    "duration": duration or "as advised",
-                    "line": line_clean,
-                    "confidence": 0.85
-                })
+
+            if brand_name and brand_name.lower() in line_clean.lower():
+                add_medicine_match(medicine, line_dosages, line_freqs, line_duration, line_clean, 0.95)
+                line_matched = True
                 break
-    
-    # If no exact matches found, try fuzzy matching
-    if not extracted_medicines:
-        medicine_name_candidates = []
-        # Extract potential medicine names (words that appear before dosage patterns)
-        for match in re.finditer(r"([A-Za-z\s]{3,30}?)\s+\d+\s*(?:mg|g|ml|tablet|capsule)", raw_ocr_text):
-            candidate = match.group(1).strip()
-            if len(candidate) > 2:
-                medicine_name_candidates.append(candidate)
-        
-        for candidate in medicine_name_candidates:
-            matched_med, confidence = score_medicine_match(candidate, raw_ocr_text, medicines_db)
-            if matched_med and confidence > 0.7:
-                dosages = extract_dosage_info(raw_ocr_text)
-                frequencies = extract_frequency_info(raw_ocr_text)
-                duration = extract_duration_info(raw_ocr_text)
-                
-                extracted_medicines.append({
-                    "medicine_id": matched_med.get("medicine_id"),
-                    "brand_name": matched_med.get("brand_name") or matched_med.get("name"),
-                    "generic_name": matched_med.get("generic_name", ""),
-                    "dosage": dosages[0].get("full") if dosages else matched_med.get("dosage", "1 tablet"),
-                    "frequency": frequencies if frequencies else ["as prescribed"],
-                    "duration": duration or "as advised",
-                    "confidence": confidence
-                })
-    
+            elif generic_name and generic_name.lower() in line_clean.lower():
+                add_medicine_match(medicine, line_dosages, line_freqs, line_duration, line_clean, 0.90)
+                line_matched = True
+                break
+
+        # 2. If no exact match on this line, try fuzzy matching on candidate tokens/words
+        if not line_matched:
+            # Extract candidate medicine names from words before dosage or individual words
+            line_tokens = []
+            # Match word sequence before dosage pattern if present
+            dosage_match = re.search(r"([A-Za-z\s]{3,30}?)\s+\d+\s*(?:mg|g|ml|mcg|tablet|capsule|cap|tab)", line_clean, re.IGNORECASE)
+            if dosage_match:
+                candidate = dosage_match.group(1).strip()
+                # strip list numbering like "1. ", "2) "
+                candidate = re.sub(r"^\d+[\.\)\-]?\s*", "", candidate).strip()
+                if len(candidate) >= 3:
+                    line_tokens.append(candidate)
+
+            # Also consider individual words of sufficient length
+            words = [re.sub(r"[^\w]", "", w) for w in line_clean.split()]
+            for w in words:
+                if len(w) >= 4 and not w.isdigit():
+                    if w.lower() not in {"tablet", "tablets", "capsule", "capsules", "syrup", "daily", "twice", "thrice", "morning", "night", "food", "clinic", "patient", "doctor"}:
+                        line_tokens.append(w)
+
+            for token in line_tokens:
+                matched_med = fuzzy_match_medicine(token, medicines_db, threshold=0.65)
+                if matched_med:
+                    brand = matched_med.get("brand_name") or matched_med.get("name", "")
+                    sim = similarity_score(token.lower(), brand.lower())
+                    conf = max(0.75, sim)
+                    add_medicine_match(matched_med, line_dosages, line_freqs, line_duration, line_clean, conf)
+                    line_matched = True
+                    break
+
+    # 3. Global Regex Fallback across entire document for any missed items
+    for match in re.finditer(r"([A-Za-z\s]{3,30}?)\s+(\d+\s*(?:mg|g|ml|mcg|tablet|capsule))", raw_ocr_text, re.IGNORECASE):
+        candidate = match.group(1).strip()
+        candidate = re.sub(r"^\d+[\.\)\-]?\s*", "", candidate).strip()
+        if len(candidate) >= 3:
+            matched_med = fuzzy_match_medicine(candidate, medicines_db, threshold=0.65)
+            if matched_med:
+                med_id = matched_med.get("medicine_id") or matched_med.get("id") or matched_med.get("brand_name")
+                if med_id not in seen_medicine_ids:
+                    brand = matched_med.get("brand_name") or matched_med.get("name", "")
+                    sim = similarity_score(candidate.lower(), brand.lower())
+                    full_context = raw_ocr_text[max(0, match.start() - 20):min(len(raw_ocr_text), match.end() + 40)]
+                    ctx_dosages = extract_dosage_info(match.group(2))
+                    ctx_freqs = extract_frequency_info(full_context)
+                    ctx_dur = extract_duration_info(full_context)
+                    add_medicine_match(matched_med, ctx_dosages, ctx_freqs, ctx_dur, candidate, max(0.75, sim))
+
     return {
         "status": "success",
         "extracted_medicines": extracted_medicines,
         "raw_text_length": len(raw_ocr_text),
         "medicine_count": len(extracted_medicines),
-        "has_confident_matches": any(m.get("confidence", 0) > 0.8 for m in extracted_medicines)
+        "has_confident_matches": any(m.get("confidence", 0) >= 0.8 for m in extracted_medicines)
     }
 
 

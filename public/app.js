@@ -2240,40 +2240,104 @@ function closeItemScanModal() {
 let uploadedDocumentData = null;
 
 async function preprocessImageForOCR(file) {
-  return new Promise((resolve) => {
+  try {
     if (!file || !file.type || !file.type.startsWith('image/')) {
-      resolve(file);
-      return;
+      return file;
     }
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      ctx.drawImage(img, 0, 0);
+    
+    // Use enhanced OCR image processor if available
+    if (typeof OCRImageProcessor !== 'undefined') {
+      const processedBlob = await OCRImageProcessor.preprocessImage(file);
+      console.log('✓ Enhanced image preprocessing applied');
+      return processedBlob;
+    }
+    
+    // Fallback to basic preprocessing if module not loaded
+    return new Promise((resolve) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
 
-      // Contrast enhancement & binarization pass for handwritten & low-light images
-      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const data = imgData.data;
-      for (let i = 0; i < data.length; i += 4) {
-        const avg = (data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114);
-        const v = avg < 140 ? Math.max(0, avg * 0.5) : Math.min(255, avg * 1.3);
-        data[i] = v;
-        data[i + 1] = v;
-        data[i + 2] = v;
-      }
-      ctx.putImageData(imgData, 0, 0);
+        // Enhanced contrast enhancement & thresholding for handwritten & low-light images
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imgData.data;
+        
+        // Step 1: Grayscale conversion with contrast boost
+        for (let i = 0; i < data.length; i += 4) {
+          const gray = (data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114);
+          // Adaptive contrast based on brightness
+          let enhanced = gray < 140 ? Math.max(0, gray * 0.7) : Math.min(255, gray * 1.4);
+          // Boost mid-tones for medical text visibility
+          if (gray > 80 && gray < 200) {
+            enhanced = Math.min(255, enhanced * 1.2);
+          }
+          data[i] = enhanced;
+          data[i + 1] = enhanced;
+          data[i + 2] = enhanced;
+        }
+        
+        // Step 2: Otsu-like thresholding for better text/background separation
+        let histogram = new Array(256).fill(0);
+        for (let i = 0; i < data.length; i += 4) {
+          histogram[Math.floor(data[i])]++;
+        }
+        
+        let sum = 0;
+        for (let i = 0; i < 256; i++) sum += i * histogram[i];
+        
+        let sumB = 0, wB = 0, maxVar = 0, threshold = 127;
+        for (let i = 0; i < 256; i++) {
+          wB += histogram[i];
+          if (wB === 0) continue;
+          sumB += i * histogram[i];
+          let mB = sumB / wB;
+          let mF = (sum - sumB) / (data.length / 4 - wB);
+          let variance = wB * (data.length / 4 - wB) * (mB - mF) * (mB - mF);
+          if (variance > maxVar) {
+            maxVar = variance;
+            threshold = i;
+          }
+        }
+        
+        // Apply threshold
+        for (let i = 0; i < data.length; i += 4) {
+          const v = data[i] > threshold ? 255 : 0;
+          data[i] = v;
+          data[i + 1] = v;
+          data[i + 2] = v;
+        }
+        
+        ctx.putImageData(imgData, 0, 0);
 
-      canvas.toBlob(blob => {
-        resolve(blob || file);
-      }, 'image/png');
-    };
-    img.onerror = () => resolve(file);
-    img.src = url;
-  });
+        canvas.toBlob(blob => {
+          resolve(blob || file);
+        }, 'image/jpeg', 0.95);
+      };
+      img.onerror = () => resolve(file);
+      img.src = url;
+    });
+  } catch (error) {
+    console.error('Image preprocessing error:', error);
+    return file;
+  }
+}
+
+function validatePrescriptionText(text) {
+  if (!text || typeof text !== 'string') return false;
+
+  const normalized = text.replace(/[^a-zA-Z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim().toLowerCase();
+  if (normalized.length < 20) return false;
+
+  const hasPrescriptionSignal = /(prescription|rx|doctor|clinic|patient|medicine|medicines|tablet|capsule|syrup|dosage|frequency|dr\.|physician)/i.test(normalized);
+  const hasDosagePattern = /(\d+\s*(mg|g|ml|mcg|units?|tablet|capsule|drops?|spray)|\b(?:od|bd|tid|qid|once|twice|thrice|morning|afternoon|evening|night|before|after|daily|days?|weeks?|months?)\b)/i.test(normalized);
+
+  return hasPrescriptionSignal && hasDosagePattern;
 }
 
 async function performRealOCR(file, fileName) {
@@ -2310,6 +2374,14 @@ async function performRealOCR(file, fileName) {
 
   // 3. Clean Non-ASCII Noise & Sanitize English Text
   let cleanEnglishText = rawText.replace(/[^\x20-\x7E\n]/g, ' ').replace(/[ \t]+/g, ' ').trim();
+
+  if (!validatePrescriptionText(cleanEnglishText)) {
+    if (body) {
+      body.value = '⚠️ This image does not appear to be a valid prescription or medical document. Please upload a doctor\'s prescription, medicine note, or clinical report.';
+    }
+    return;
+  }
+
   const textLower = cleanEnglishText.toLowerCase();
 
   const foundMeds = [];
