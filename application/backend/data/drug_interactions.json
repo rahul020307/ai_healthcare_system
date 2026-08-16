@@ -4,13 +4,63 @@
     "medicine_1": "Warfarin",
     "medicine_2": "Aspirin",
     "severity": "High / Severe",
-    "description": "Concurrent use significantly increases risk of severe internal bleeding and hemorrhaging due to additive antiplatelet & anticoagulant effects."
+    "description": "Concurrent use significantly increases risk of severe internal gastrointestinal bleeding and hemorrhaging due to combined anticoagulant and antiplatelet actions.",
+    "recommendation": "Avoid combination unless closely monitored with regular INR tests and gastric mucosal protection."
   },
   {
     "interaction_id": "INT-002",
     "medicine_1": "Amoxicillin",
     "medicine_2": "Methotrexate",
     "severity": "Moderate",
-    "description": "Amoxicillin decreases renal clearance of methotrexate, potentially increasing methotrexate blood levels and systemic toxicity."
+    "description": "Amoxicillin decreases renal clearance of methotrexate, potentially increasing methotrexate serum levels and systemic bone marrow toxicity.",
+    "recommendation": "Monitor complete blood counts and liver enzymes closely."
+  },
+  {
+    "interaction_id": "INT-003",
+    "medicine_1": "Ibuprofen",
+    "medicine_2": "Aspirin",
+    "severity": "Moderate to High",
+    "description": "Ibuprofen interferes with the antiplatelet cardio-protective effect of low-dose aspirin and increases risk of stomach ulceration.",
+    "recommendation": "Take aspirin at least 30 minutes before or 8 hours after ibuprofen."
+  },
+  {
+    "interaction_id": "INT-004",
+    "medicine_1": "Omeprazole",
+    "medicine_2": "Clopidogrel",
+    "severity": "Moderate",
+    "description": "Omeprazole inhibits CYP2C19 enzyme, reducing conversion of clopidogrel to its active antiplatelet metabolite, potentially lowering cardioprotective efficacy.",
+    "recommendation": "Consider pantoprazole or H2 blockers as alternatives if gastroprotection is needed."
+  },
+  {
+    "interaction_id": "INT-005",
+    "medicine_1": "Metformin",
+    "medicine_2": "Ciprofloxacin",
+    "severity": "Moderate",
+    "description": "Fluoroquinolones may alter blood glucose regulation when taken with metformin, causing severe hypoglycemia or hyperglycemia.",
+    "recommendation": "Perform frequent blood glucose monitoring during antibiotic therapy."
+  },
+  {
+    "interaction_id": "INT-006",
+    "medicine_1": "Paracetamol",
+    "medicine_2": "Isoniazid",
+    "severity": "Moderate",
+    "description": "Concurrent use may increase the risk of hepatotoxicity (liver damage).",
+    "recommendation": "Limit paracetamol dosage to maximum 2g/day and monitor liver function tests."
+  },
+  {
+    "interaction_id": "INT-007",
+    "medicine_1": "Atorvastatin",
+    "medicine_2": "Clarithromycin",
+    "severity": "High / Severe",
+    "description": "Clarithromycin strongly inhibits CYP3A4 metabolism of atorvastatin, dramatically increasing statin levels and risking rhabdomyolysis / muscle breakdown.",
+    "recommendation": "Temporarily suspend atorvastatin during the course of clarithromycin or use azithromycin."
+  },
+  {
+    "interaction_id": "INT-008",
+    "medicine_1": "Telmisartan",
+    "medicine_2": "Spironolactone",
+    "severity": "Moderate to High",
+    "description": "Combining ARBs with potassium-sparing diuretics increases risk of hyperkalemia (dangerously high blood potassium).",
+    "recommendation": "Monitor serum potassium and renal function within 1-2 weeks of initiation."
   }
 ]

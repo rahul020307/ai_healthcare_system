@@ -126,19 +126,75 @@ def get_medicines(
     }
 
 
+from app.database.sql_db import get_db_session, OrderModel
+import datetime
+
+
+@router.get("/orders")
+def get_user_orders(email: Optional[str] = "rahul.sharma@email.com"):
+    session = get_db_session()
+    try:
+        orders = session.query(OrderModel).order_by(OrderModel.created_at.desc()).all()
+        res = []
+        for o in orders:
+            try:
+                items_data = json.loads(o.items_json)
+            except Exception:
+                items_data = []
+            res.append({
+                "orderId": o.id,
+                "userEmail": o.user_email,
+                "patientName": o.patient_name,
+                "items": items_data,
+                "totalAmount": o.total_amount,
+                "address": o.delivery_address,
+                "paymentMethod": o.payment_method,
+                "status": o.status,
+                "createdAt": o.created_at.isoformat() if o.created_at else datetime.datetime.utcnow().isoformat()
+            })
+        return {"status": "success", "source": "SQL Database", "count": len(res), "orders": res}
+    finally:
+        session.close()
+
+
 @router.post("/orders")
 def place_order(order: OrderRequest):
     if not order.items:
         raise HTTPException(status_code=400, detail="Cart is empty")
 
-    return {
-        "status": "success",
-        "orderId": "ORD-982415",
-        "message": f"Order placed successfully! Delivery scheduled to {order.address} within 25-30 mins.",
-        "summary": {
-            "totalAmount": order.totalAmount,
-            "itemCount": len(order.items),
-            "deliveryAddress": order.address,
-            "paymentMethod": order.paymentMethod
+    order_id = f"ORD-{int(datetime.datetime.utcnow().timestamp() * 1000) % 1000000:06d}"
+    items_list = [{"id": it.id, "name": it.name, "price": it.price, "quantity": it.quantity} for it in order.items]
+
+    session = get_db_session()
+    try:
+        order_record = OrderModel(
+            id=order_id,
+            user_email="rahul.sharma@email.com",
+            patient_name=order.userId or "Rahul Sharma",
+            items_json=json.dumps(items_list),
+            total_amount=order.totalAmount,
+            delivery_address=order.address,
+            payment_method=order.paymentMethod,
+            status="Confirmed - Preparing for Delivery"
+        )
+        session.add(order_record)
+        session.commit()
+
+        return {
+            "status": "success",
+            "orderId": order_id,
+            "message": f"Order #{order_id} placed and recorded in SQL database! Delivery scheduled within 20-30 mins.",
+            "summary": {
+                "orderId": order_id,
+                "totalAmount": order.totalAmount,
+                "itemCount": len(order.items),
+                "deliveryAddress": order.address,
+                "paymentMethod": order.paymentMethod,
+                "status": "Confirmed"
+            }
         }
-    }
+    except Exception as e:
+        session.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        session.close()

@@ -1,121 +1,380 @@
 import json
+import datetime
 from pathlib import Path
-from fastapi import APIRouter, Body
+from typing import Optional, List, Dict, Any
+from fastapi import APIRouter, Body, HTTPException
+
+from app.database.sql_db import (
+    get_db_session,
+    UserModel,
+    HealthRecordModel,
+    AppointmentModel,
+    VitalRecordModel
+)
 
 router = APIRouter(prefix="/profile", tags=["Profile"])
 DATA_DIR = Path(__file__).parent.parent.parent / "data"
 
 
-def load_records():
-    file_path = DATA_DIR / "health_records.json"
-    if file_path.exists():
-        try:
-            with open(file_path, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception:
-            return []
-    return []
-
-
-def save_records(records):
-    file_path = DATA_DIR / "health_records.json"
-    try:
-        with open(file_path, "w", encoding="utf-8") as f:
-            json.dump(records, f, indent=2)
-            return True
-    except Exception as e:
-        print("Error saving health_records.json:", e)
-        return False
-
+# --- USER PROFILE ENDPOINTS (SQL BACKED) ---
 
 @router.get("/user")
-def get_user_profile():
-    return {
-        "status": "success",
-        "user": {
-            "name": "Rahul Sharma",
-            "verified": True,
-            "phone": "+91 98765 43210",
-            "email": "rahul.sharma@email.com",
-            "location": "Hyderabad, Telangana",
-            "age": 34,
-            "gender": "Male",
-            "bloodGroup": "O+",
-            "familyMembers": [
-                {"id": "fam1", "name": "Rahul Sharma", "relation": "Self"},
-                {"id": "fam2", "name": "Eleanor Sharma", "relation": "Mother"},
-                {"id": "fam3", "name": "Sarah Sharma", "relation": "Wife"},
-                {"id": "fam4", "name": "Leo Sharma", "relation": "Son"}
-            ]
-        }
-    }
+def get_user_profile(email: Optional[str] = "rahul.sharma@email.com"):
+    session = get_db_session()
+    try:
+        user = session.query(UserModel).filter_by(email=email).first()
+        if not user:
+            user = UserModel(
+                id="usr-01",
+                name="Rahul Sharma",
+                email=email,
+                phone="+91 98765 43210",
+                location="Hyderabad, Telangana",
+                age=34,
+                gender="Male",
+                blood_group="O+",
+                role="Patient"
+            )
+            session.add(user)
+            session.commit()
 
+        return {
+            "status": "success",
+            "source": "SQL Database",
+            "user": {
+                "id": user.id,
+                "name": user.name,
+                "verified": True,
+                "phone": user.phone,
+                "email": user.email,
+                "location": user.location,
+                "age": user.age,
+                "gender": user.gender,
+                "bloodGroup": user.blood_group,
+                "role": user.role,
+                "familyMembers": [
+                    {"id": "fam1", "name": user.name, "relation": "Self"},
+                    {"id": "fam2", "name": "Eleanor Sharma", "relation": "Mother"},
+                    {"id": "fam3", "name": "Sarah Sharma", "relation": "Wife"},
+                    {"id": "fam4", "name": "Leo Sharma", "relation": "Son"}
+                ]
+            }
+        }
+    finally:
+        session.close()
+
+
+@router.put("/user")
+def update_user_profile(payload: dict = Body(...)):
+    session = get_db_session()
+    try:
+        email = payload.get("email", "rahul.sharma@email.com")
+        user = session.query(UserModel).filter_by(email=email).first()
+        if not user:
+            user = UserModel(id=f"usr-{int(datetime.datetime.utcnow().timestamp())}", email=email, name=payload.get("name", "User"))
+            session.add(user)
+
+        if "name" in payload: user.name = payload["name"]
+        if "phone" in payload: user.phone = payload["phone"]
+        if "location" in payload: user.location = payload["location"]
+        if "age" in payload: user.age = int(payload["age"])
+        if "gender" in payload: user.gender = payload["gender"]
+        if "bloodGroup" in payload: user.blood_group = payload["bloodGroup"]
+
+        session.commit()
+        return {"status": "success", "message": "Profile updated in SQL database", "user": payload}
+    except Exception as e:
+        session.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        session.close()
+
+
+# --- HEALTH RECORDS ENDPOINTS (SQL BACKED) ---
 
 @router.get("/health-records")
-def get_health_records():
-    return {
-        "status": "success",
-        "records": load_records()
-    }
+def get_health_records(email: Optional[str] = "rahul.sharma@email.com"):
+    session = get_db_session()
+    try:
+        records = session.query(HealthRecordModel).order_by(HealthRecordModel.created_at.desc()).all()
+        res = []
+        for r in records:
+            res.append({
+                "id": r.id,
+                "memberId": r.member_id,
+                "title": r.title,
+                "category": r.category,
+                "date": r.date,
+                "doctor": r.doctor,
+                "facility": r.facility,
+                "summary": r.summary,
+                "tags": [t.strip() for t in r.tags.split(",") if t.strip()] if r.tags else ["Health Record"]
+            })
+        return {
+            "status": "success",
+            "source": "SQL Database",
+            "count": len(res),
+            "records": res
+        }
+    finally:
+        session.close()
 
 
 @router.post("/upload-record")
 def upload_health_record(payload: dict = Body(...)):
-    records = load_records()
-    new_record = {
-        "id": payload.get("id") or f"rec-{int(Path(__file__).stat().st_mtime * 1000)}",
-        "memberId": payload.get("memberId", "mem-1"),
-        "title": payload.get("title", "Uploaded Health Document"),
-        "category": payload.get("category", "Medical Reports"),
-        "date": payload.get("date") or "2026-08-07",
-        "doctor": payload.get("doctor", "Self Upload / Clinic"),
-        "facility": payload.get("facility", "CuraAssist Digital Hub"),
-        "tags": payload.get("tags", ["Uploaded", "Health Record"]),
-        "summary": payload.get("summary", "Uploaded medical document saved successfully.")
-    }
-    records.insert(0, new_record)
-    saved = save_records(records)
-    return {
-        "status": "success" if saved else "error",
-        "message": "Health record permanently saved to dataset",
-        "record": new_record
-    }
+    session = get_db_session()
+    try:
+        rec_id = payload.get("id") or f"rec-{int(datetime.datetime.utcnow().timestamp() * 1000)}"
+        tags_raw = payload.get("tags", ["Uploaded", "Health Record"])
+        tags_str = ",".join(tags_raw) if isinstance(tags_raw, list) else str(tags_raw)
 
+        new_rec = HealthRecordModel(
+            id=rec_id,
+            member_id=payload.get("memberId", "fam1"),
+            user_email=payload.get("userEmail", "rahul.sharma@email.com"),
+            title=payload.get("title", "Uploaded Health Document"),
+            category=payload.get("category", "Medical Reports"),
+            date=payload.get("date") or datetime.date.today().isoformat(),
+            doctor=payload.get("doctor", "Self Upload / Clinic"),
+            facility=payload.get("facility", "CuraAssist Digital Hub"),
+            tags=tags_str,
+            summary=payload.get("summary", "Medical record uploaded and saved to SQL database.")
+        )
+        session.add(new_rec)
+        session.commit()
+
+        return {
+            "status": "success",
+            "message": "Health record permanently stored in SQL database",
+            "record": {
+                "id": new_rec.id,
+                "memberId": new_rec.member_id,
+                "title": new_rec.title,
+                "category": new_rec.category,
+                "date": new_rec.date,
+                "doctor": new_rec.doctor,
+                "facility": new_rec.facility,
+                "tags": tags_raw,
+                "summary": new_rec.summary
+            }
+        }
+    except Exception as e:
+        session.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        session.close()
+
+
+# --- APPOINTMENTS ENDPOINTS (SQL BACKED) ---
+
+@router.get("/appointments")
+def get_appointments(email: Optional[str] = "rahul.sharma@email.com"):
+    session = get_db_session()
+    try:
+        appts = session.query(AppointmentModel).order_by(AppointmentModel.created_at.desc()).all()
+        res = []
+        for a in appts:
+            res.append({
+                "id": a.id,
+                "doctorId": a.doctor_id,
+                "doctorName": a.doctor_name,
+                "specialty": a.specialty,
+                "patientName": a.patient_name,
+                "date": a.appointment_date,
+                "time": a.appointment_time,
+                "status": a.status,
+                "type": a.consultation_type,
+                "hospitalName": a.hospital_name,
+                "notes": a.notes
+            })
+        return {"status": "success", "source": "SQL Database", "count": len(res), "appointments": res}
+    finally:
+        session.close()
+
+
+@router.post("/appointments")
+def book_appointment(payload: dict = Body(...)):
+    session = get_db_session()
+    try:
+        appt_id = payload.get("id") or f"apt-{int(datetime.datetime.utcnow().timestamp() * 1000)}"
+        appt = AppointmentModel(
+            id=appt_id,
+            user_email=payload.get("userEmail", "rahul.sharma@email.com"),
+            doctor_id=payload.get("doctorId", "doc-01"),
+            doctor_name=payload.get("doctorName", "Dr. Priya Sharma"),
+            specialty=payload.get("specialty", "Cardiologist"),
+            patient_name=payload.get("patientName", "Rahul Sharma"),
+            appointment_date=payload.get("date", datetime.date.today().isoformat()),
+            appointment_time=payload.get("time", "10:30 AM"),
+            status=payload.get("status", "Confirmed"),
+            consultation_type=payload.get("type", "In-Person"),
+            hospital_name=payload.get("hospitalName", "Apollo Hospitals"),
+            notes=payload.get("notes", "Regular Consultation")
+        )
+        session.add(appt)
+        session.commit()
+
+        return {
+            "status": "success",
+            "message": "Appointment booked and stored in SQL database",
+            "appointment": {
+                "id": appt.id,
+                "doctorName": appt.doctor_name,
+                "specialty": appt.specialty,
+                "patientName": appt.patient_name,
+                "date": appt.appointment_date,
+                "time": appt.appointment_time,
+                "status": appt.status,
+                "hospitalName": appt.hospital_name
+            }
+        }
+    except Exception as e:
+        session.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        session.close()
+
+
+@router.delete("/appointments/{appt_id}")
+def cancel_appointment(appt_id: str):
+    session = get_db_session()
+    try:
+        appt = session.query(AppointmentModel).filter_by(id=appt_id).first()
+        if appt:
+            session.delete(appt)
+            session.commit()
+            return {"status": "success", "message": f"Appointment {appt_id} cancelled"}
+        return {"status": "success", "message": "Appointment not found or already cancelled"}
+    finally:
+        session.close()
+
+
+# --- VITALS LOGGING ENDPOINTS (SQL BACKED) ---
+
+@router.get("/vitals")
+def get_user_vitals(email: Optional[str] = "rahul.sharma@email.com"):
+    session = get_db_session()
+    try:
+        vitals = session.query(VitalRecordModel).order_by(VitalRecordModel.recorded_at.desc()).limit(30).all()
+        res = []
+        for v in vitals:
+            res.append({
+                "id": v.id,
+                "systolic": v.systolic,
+                "diastolic": v.diastolic,
+                "pulse": v.pulse,
+                "temperature": v.temperature,
+                "glucose": v.glucose,
+                "recordedAt": v.recorded_at.isoformat() if v.recorded_at else datetime.datetime.utcnow().isoformat()
+            })
+        return {"status": "success", "source": "SQL Database", "count": len(res), "vitals": res}
+    finally:
+        session.close()
+
+
+@router.post("/vitals")
+def log_vital_reading(payload: dict = Body(...)):
+    session = get_db_session()
+    try:
+        vital_id = payload.get("id") or f"vit-{int(datetime.datetime.utcnow().timestamp() * 1000)}"
+        vital = VitalRecordModel(
+            id=vital_id,
+            user_email=payload.get("userEmail", "rahul.sharma@email.com"),
+            systolic=int(payload.get("systolic", 120)),
+            diastolic=int(payload.get("diastolic", 80)),
+            pulse=int(payload.get("pulse", 72)),
+            temperature=float(payload.get("temperature", 98.6)),
+            glucose=float(payload.get("glucose", 95.0))
+        )
+        session.add(vital)
+        session.commit()
+        return {"status": "success", "message": "Vitals logged into SQL database", "vital": payload}
+    except Exception as e:
+        session.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        session.close()
+
+
+# --- AUTH & USER REGISTRATION ---
 
 @router.post("/login")
 def login_user(payload: dict = Body(...)):
     identity = payload.get("identity") or payload.get("email") or "User"
+    email = payload.get("email") or f"{identity.replace(' ', '.').lower()}@curaassist.health"
     name = identity.split("@")[0].capitalize()
-    return {
-        "status": "success",
-        "message": "Login successful! JWT Session Active.",
-        "token": "jwt-token-active-88219",
-        "user": {
-            "name": name,
-            "email": payload.get("email") or f"{name.lower()}@curaassist.health",
-            "role": payload.get("role", "Patient")
+
+    session = get_db_session()
+    try:
+        user = session.query(UserModel).filter_by(email=email).first()
+        if not user:
+            user = UserModel(
+                id=f"usr-{int(datetime.datetime.utcnow().timestamp())}",
+                name=name,
+                email=email,
+                role=payload.get("role", "Patient")
+            )
+            session.add(user)
+            session.commit()
+
+        return {
+            "status": "success",
+            "message": "Login successful! SQL Session Active.",
+            "token": f"jwt-session-{user.id}",
+            "user": {
+                "id": user.id,
+                "name": user.name,
+                "email": user.email,
+                "phone": user.phone,
+                "role": user.role,
+                "bloodGroup": user.blood_group
+            }
         }
-    }
+    finally:
+        session.close()
 
 
 @router.post("/register")
 def register_user(payload: dict = Body(...)):
     name = payload.get("name") or "New User"
     email = payload.get("email") or "user@curaassist.health"
-    return {
-        "status": "success",
-        "message": f"Registration Complete! Welcome {name} to CuraAssist.",
-        "token": "jwt-token-active-99102",
-        "user": {
-            "name": name,
-            "email": email,
-            "role": "Patient"
-        }
-    }
 
+    session = get_db_session()
+    try:
+        user = session.query(UserModel).filter_by(email=email).first()
+        if not user:
+            user = UserModel(
+                id=f"usr-{int(datetime.datetime.utcnow().timestamp())}",
+                name=name,
+                email=email,
+                phone=payload.get("phone", "+91 98765 43210"),
+                location=payload.get("location", "Hyderabad, Telangana"),
+                blood_group=payload.get("bloodGroup", "O+"),
+                role=payload.get("role", "Patient")
+            )
+            session.add(user)
+            session.commit()
+
+        return {
+            "status": "success",
+            "message": f"Registration Complete! Welcome {name} to CuraAssist.",
+            "token": f"jwt-session-{user.id}",
+            "user": {
+                "id": user.id,
+                "name": user.name,
+                "email": user.email,
+                "phone": user.phone,
+                "role": user.role,
+                "bloodGroup": user.blood_group
+            }
+        }
+    finally:
+        session.close()
+
+
+# --- UPLOADS STORAGE & SCAN LOGS ---
 
 UPLOADS_FILE = DATA_DIR / "user_scanned_uploads.json"
-
 
 def load_uploads():
     if UPLOADS_FILE.exists():
@@ -126,7 +385,6 @@ def load_uploads():
             return []
     return []
 
-
 def save_uploads(uploads):
     try:
         with open(UPLOADS_FILE, "w", encoding="utf-8") as f:
@@ -136,20 +394,18 @@ def save_uploads(uploads):
         print("Error saving user_scanned_uploads.json:", e)
         return False
 
-
 @router.get("/uploads")
 def get_user_uploads():
     return {"status": "success", "uploads": load_uploads()}
-
 
 @router.post("/uploads")
 def save_user_upload(payload: dict = Body(...)):
     uploads = load_uploads()
     item = {
-        "id": payload.get("id") or f"up-{int(Path(__file__).stat().st_mtime * 1000)}",
+        "id": payload.get("id") or f"up-{int(datetime.datetime.utcnow().timestamp() * 1000)}",
         "fileName": payload.get("fileName", "scanned_doc.png"),
         "fileType": payload.get("fileType", "image/png"),
-        "uploadDate": payload.get("uploadDate", "2026-08-08"),
+        "uploadDate": payload.get("uploadDate", datetime.date.today().isoformat()),
         "category": payload.get("category", "Prescription Scan"),
         "previewUrl": payload.get("previewUrl") or payload.get("fileBase64") or "",
         "extractedText": payload.get("extractedText", ""),
@@ -160,11 +416,9 @@ def save_user_upload(payload: dict = Body(...)):
     save_uploads(uploads)
     return {"status": "success", "message": "Upload stored in backend database", "upload": item}
 
-
 @router.delete("/uploads/{upload_id}")
 def delete_user_upload(upload_id: str):
     uploads = load_uploads()
     updated = [u for u in uploads if u.get("id") != upload_id]
     save_uploads(updated)
     return {"status": "success", "message": f"Upload {upload_id} deleted"}
-

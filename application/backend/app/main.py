@@ -8,12 +8,21 @@ from .api.chat import router as chat_router
 from .api.profile import router as profile_router
 from .api.medicine import router as medicine_router
 from .api.db import router as db_router
+from .database.sql_db import init_db
 
 app = FastAPI(
     title="CuraAssist CareHub API",
     description="HIPAA Compliant AI Healthcare Backend Platform",
     version="2.4.0"
 )
+
+@app.on_event("startup")
+def on_startup():
+    try:
+        init_db()
+        print("[Startup] SQL Database initialized and ready.")
+    except Exception as e:
+        print("[Startup] SQL Database init note:", e)
 
 app.add_middleware(
     CORSMiddleware,
