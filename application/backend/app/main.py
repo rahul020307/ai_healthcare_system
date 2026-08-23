@@ -66,22 +66,14 @@ def serve_index():
 
 @app.get("/app.js")
 def serve_app_js():
-    f = public_dir / "app.js"
-    if not f.exists():
-        f = root_dir / "app.js"
-    if not f.exists():
-        f = frontend_dir / "app.js"
+    f = frontend_dir / "app.js"
     if f.exists():
         return FileResponse(f, media_type="application/javascript")
     return {"detail": "Not Found"}
 
 @app.get("/data.js")
 def serve_data_js():
-    f = public_dir / "data.js"
-    if not f.exists():
-        f = root_dir / "data.js"
-    if not f.exists():
-        f = frontend_dir / "data.js"
+    f = frontend_dir / "data.js"
     if f.exists():
         return FileResponse(f, media_type="application/javascript")
     return {"detail": "Not Found"}
