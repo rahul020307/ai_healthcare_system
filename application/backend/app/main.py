@@ -8,6 +8,7 @@ from .api.chat import router as chat_router
 from .api.profile import router as profile_router
 from .api.medicine import router as medicine_router
 from .api.db import router as db_router
+from .api.auth import router as auth_router
 from .database.sql_db import init_db
 
 app = FastAPI(
@@ -29,7 +30,7 @@ app.add_middleware(
     allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["*"] ,
 )
 
 app.include_router(home_router)
@@ -39,6 +40,7 @@ app.include_router(chat_router)
 app.include_router(profile_router)
 app.include_router(medicine_router)
 app.include_router(db_router)
+app.include_router(auth_router)
 
 
 from fastapi.responses import FileResponse
