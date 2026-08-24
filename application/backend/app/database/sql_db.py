@@ -44,6 +44,7 @@ class UserModel(Base):
     id = Column(String, primary_key=True, index=True)
     name = Column(String, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
+    password_hash = Column(String, nullable=True)
     phone = Column(String, default="+91 98765 43210")
     location = Column(String, default="Hyderabad, Telangana")
     age = Column(Integer, default=34)
@@ -51,6 +52,16 @@ class UserModel(Base):
     blood_group = Column(String, default="O+")
     role = Column(String, default="Patient")
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+
+class AuthSessionModel(Base):
+    __tablename__ = "auth_sessions"
+    id = Column(String, primary_key=True, index=True)
+    user_id = Column(String, index=True, nullable=False)
+    token_hash = Column(String, unique=True, index=True, nullable=False)
+    expires_at = Column(DateTime, nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
+    revoked_at = Column(DateTime, nullable=True)
 
 
 class HealthRecordModel(Base):
