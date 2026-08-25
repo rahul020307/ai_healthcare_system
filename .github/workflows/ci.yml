@@ -35,7 +35,7 @@ jobs:
       - name: Run Phase 1A Authentication Tests
         run: |
           cd application/backend
-          pytest tests/test_auth_supabase.py
+          python -m pytest tests/test_auth_supabase.py
 
       - name: Verify Frontend Application Files
         run: |
