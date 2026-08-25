@@ -2,7 +2,7 @@ import json
 import datetime
 from pathlib import Path
 from typing import Optional, List, Dict, Any
-from fastapi import APIRouter, Body, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException
 
 from app.database.sql_db import (
     get_db_session,
@@ -11,6 +11,7 @@ from app.database.sql_db import (
     AppointmentModel,
     VitalRecordModel
 )
+from app.api.auth import get_current_user
 
 router = APIRouter(prefix="/profile", tags=["Profile"])
 DATA_DIR = Path(__file__).parent.parent.parent / "data"
@@ -19,24 +20,12 @@ DATA_DIR = Path(__file__).parent.parent.parent / "data"
 # --- USER PROFILE ENDPOINTS (SQL BACKED) ---
 
 @router.get("/user")
-def get_user_profile(email: Optional[str] = "rahul.sharma@email.com"):
+def get_user_profile(current_user: UserModel = Depends(get_current_user)):
     session = get_db_session()
     try:
-        user = session.query(UserModel).filter_by(email=email).first()
+        user = session.query(UserModel).filter_by(id=current_user.id).first()
         if not user:
-            user = UserModel(
-                id="usr-01",
-                name="Rahul Sharma",
-                email=email,
-                phone="+91 98765 43210",
-                location="Hyderabad, Telangana",
-                age=34,
-                gender="Male",
-                blood_group="O+",
-                role="Patient"
-            )
-            session.add(user)
-            session.commit()
+            raise HTTPException(status_code=401, detail="Authenticated user profile not found")
 
         return {
             "status": "success",
@@ -65,14 +54,15 @@ def get_user_profile(email: Optional[str] = "rahul.sharma@email.com"):
 
 
 @router.put("/user")
-def update_user_profile(payload: dict = Body(...)):
+def update_user_profile(
+    payload: dict = Body(...),
+    current_user: UserModel = Depends(get_current_user),
+):
     session = get_db_session()
     try:
-        email = payload.get("email", "rahul.sharma@email.com")
-        user = session.query(UserModel).filter_by(email=email).first()
+        user = session.query(UserModel).filter_by(id=current_user.id).first()
         if not user:
-            user = UserModel(id=f"usr-{int(datetime.datetime.utcnow().timestamp())}", email=email, name=payload.get("name", "User"))
-            session.add(user)
+            raise HTTPException(status_code=401, detail="Authenticated user profile not found")
 
         if "name" in payload: user.name = payload["name"]
         if "phone" in payload: user.phone = payload["phone"]
@@ -82,7 +72,24 @@ def update_user_profile(payload: dict = Body(...)):
         if "bloodGroup" in payload: user.blood_group = payload["bloodGroup"]
 
         session.commit()
-        return {"status": "success", "message": "Profile updated in SQL database", "user": payload}
+        return {
+            "status": "success",
+            "message": "Profile updated in SQL database",
+            "user": {
+                "id": user.id,
+                "name": user.name,
+                "email": user.email,
+                "phone": user.phone,
+                "location": user.location,
+                "age": user.age,
+                "gender": user.gender,
+                "bloodGroup": user.blood_group,
+                "role": user.role,
+            },
+        }
+    except HTTPException:
+        session.rollback()
+        raise
     except Exception as e:
         session.rollback()
         raise HTTPException(status_code=500, detail=str(e))
@@ -93,10 +100,15 @@ def update_user_profile(payload: dict = Body(...)):
 # --- HEALTH RECORDS ENDPOINTS (SQL BACKED) ---
 
 @router.get("/health-records")
-def get_health_records(email: Optional[str] = "rahul.sharma@email.com"):
+def get_health_records(current_user: UserModel = Depends(get_current_user)):
     session = get_db_session()
     try:
-        records = session.query(HealthRecordModel).order_by(HealthRecordModel.created_at.desc()).all()
+        records = (
+            session.query(HealthRecordModel)
+            .filter(HealthRecordModel.owner_user_id == current_user.id)
+            .order_by(HealthRecordModel.created_at.desc())
+            .all()
+        )
         res = []
         for r in records:
             res.append({
@@ -121,7 +133,10 @@ def get_health_records(email: Optional[str] = "rahul.sharma@email.com"):
 
 
 @router.post("/upload-record")
-def upload_health_record(payload: dict = Body(...)):
+def upload_health_record(
+    payload: dict = Body(...),
+    current_user: UserModel = Depends(get_current_user),
+):
     session = get_db_session()
     try:
         rec_id = payload.get("id") or f"rec-{int(datetime.datetime.utcnow().timestamp() * 1000)}"
@@ -130,8 +145,9 @@ def upload_health_record(payload: dict = Body(...)):
 
         new_rec = HealthRecordModel(
             id=rec_id,
+            owner_user_id=current_user.id,
             member_id=payload.get("memberId", "fam1"),
-            user_email=payload.get("userEmail", "rahul.sharma@email.com"),
+            user_email=current_user.email,
             title=payload.get("title", "Uploaded Health Document"),
             category=payload.get("category", "Medical Reports"),
             date=payload.get("date") or datetime.date.today().isoformat(),
@@ -168,10 +184,15 @@ def upload_health_record(payload: dict = Body(...)):
 # --- APPOINTMENTS ENDPOINTS (SQL BACKED) ---
 
 @router.get("/appointments")
-def get_appointments(email: Optional[str] = "rahul.sharma@email.com"):
+def get_appointments(current_user: UserModel = Depends(get_current_user)):
     session = get_db_session()
     try:
-        appts = session.query(AppointmentModel).order_by(AppointmentModel.created_at.desc()).all()
+        appts = (
+            session.query(AppointmentModel)
+            .filter(AppointmentModel.owner_user_id == current_user.id)
+            .order_by(AppointmentModel.created_at.desc())
+            .all()
+        )
         res = []
         for a in appts:
             res.append({
@@ -193,17 +214,21 @@ def get_appointments(email: Optional[str] = "rahul.sharma@email.com"):
 
 
 @router.post("/appointments")
-def book_appointment(payload: dict = Body(...)):
+def book_appointment(
+    payload: dict = Body(...),
+    current_user: UserModel = Depends(get_current_user),
+):
     session = get_db_session()
     try:
         appt_id = payload.get("id") or f"apt-{int(datetime.datetime.utcnow().timestamp() * 1000)}"
         appt = AppointmentModel(
             id=appt_id,
-            user_email=payload.get("userEmail", "rahul.sharma@email.com"),
+            owner_user_id=current_user.id,
+            user_email=current_user.email,
             doctor_id=payload.get("doctorId", "doc-01"),
             doctor_name=payload.get("doctorName", "Dr. Priya Sharma"),
             specialty=payload.get("specialty", "Cardiologist"),
-            patient_name=payload.get("patientName", "Rahul Sharma"),
+            patient_name=current_user.name,
             appointment_date=payload.get("date", datetime.date.today().isoformat()),
             appointment_time=payload.get("time", "10:30 AM"),
             status=payload.get("status", "Confirmed"),
@@ -236,10 +261,20 @@ def book_appointment(payload: dict = Body(...)):
 
 
 @router.delete("/appointments/{appt_id}")
-def cancel_appointment(appt_id: str):
+def cancel_appointment(
+    appt_id: str,
+    current_user: UserModel = Depends(get_current_user),
+):
     session = get_db_session()
     try:
-        appt = session.query(AppointmentModel).filter_by(id=appt_id).first()
+        appt = (
+            session.query(AppointmentModel)
+            .filter(
+                AppointmentModel.id == appt_id,
+                AppointmentModel.owner_user_id == current_user.id,
+            )
+            .first()
+        )
         if appt:
             session.delete(appt)
             session.commit()
@@ -252,10 +287,16 @@ def cancel_appointment(appt_id: str):
 # --- VITALS LOGGING ENDPOINTS (SQL BACKED) ---
 
 @router.get("/vitals")
-def get_user_vitals(email: Optional[str] = "rahul.sharma@email.com"):
+def get_user_vitals(current_user: UserModel = Depends(get_current_user)):
     session = get_db_session()
     try:
-        vitals = session.query(VitalRecordModel).order_by(VitalRecordModel.recorded_at.desc()).limit(30).all()
+        vitals = (
+            session.query(VitalRecordModel)
+            .filter(VitalRecordModel.owner_user_id == current_user.id)
+            .order_by(VitalRecordModel.recorded_at.desc())
+            .limit(30)
+            .all()
+        )
         res = []
         for v in vitals:
             res.append({
@@ -273,13 +314,17 @@ def get_user_vitals(email: Optional[str] = "rahul.sharma@email.com"):
 
 
 @router.post("/vitals")
-def log_vital_reading(payload: dict = Body(...)):
+def log_vital_reading(
+    payload: dict = Body(...),
+    current_user: UserModel = Depends(get_current_user),
+):
     session = get_db_session()
     try:
         vital_id = payload.get("id") or f"vit-{int(datetime.datetime.utcnow().timestamp() * 1000)}"
         vital = VitalRecordModel(
             id=vital_id,
-            user_email=payload.get("userEmail", "rahul.sharma@email.com"),
+            owner_user_id=current_user.id,
+            user_email=current_user.email,
             systolic=int(payload.get("systolic", 120)),
             diastolic=int(payload.get("diastolic", 80)),
             pulse=int(payload.get("pulse", 72)),
@@ -297,6 +342,8 @@ def log_vital_reading(payload: dict = Body(...)):
 
 
 # --- AUTH & USER REGISTRATION ---
+# These legacy endpoints remain for compatibility during the migration. They are not
+# used by the new authenticated ownership path.
 
 @router.post("/login")
 def login_user(payload: dict = Body(...)):
@@ -395,14 +442,19 @@ def save_uploads(uploads):
         return False
 
 @router.get("/uploads")
-def get_user_uploads():
-    return {"status": "success", "uploads": load_uploads()}
+def get_user_uploads(current_user: UserModel = Depends(get_current_user)):
+    uploads = [u for u in load_uploads() if u.get("ownerUserId") == current_user.id]
+    return {"status": "success", "uploads": uploads}
 
 @router.post("/uploads")
-def save_user_upload(payload: dict = Body(...)):
+def save_user_upload(
+    payload: dict = Body(...),
+    current_user: UserModel = Depends(get_current_user),
+):
     uploads = load_uploads()
     item = {
         "id": payload.get("id") or f"up-{int(datetime.datetime.utcnow().timestamp() * 1000)}",
+        "ownerUserId": current_user.id,
         "fileName": payload.get("fileName", "scanned_doc.png"),
         "fileType": payload.get("fileType", "image/png"),
         "uploadDate": payload.get("uploadDate", datetime.date.today().isoformat()),
@@ -417,8 +469,14 @@ def save_user_upload(payload: dict = Body(...)):
     return {"status": "success", "message": "Upload stored in backend database", "upload": item}
 
 @router.delete("/uploads/{upload_id}")
-def delete_user_upload(upload_id: str):
+def delete_user_upload(
+    upload_id: str,
+    current_user: UserModel = Depends(get_current_user),
+):
     uploads = load_uploads()
-    updated = [u for u in uploads if u.get("id") != upload_id]
+    updated = [
+        u for u in uploads
+        if not (u.get("id") == upload_id and u.get("ownerUserId") == current_user.id)
+    ]
     save_uploads(updated)
     return {"status": "success", "message": f"Upload {upload_id} deleted"}
