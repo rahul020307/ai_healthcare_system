@@ -19,6 +19,7 @@ from sqlalchemy import (
     Text,
     Boolean,
     DateTime,
+    ForeignKey,
     select
 )
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
@@ -56,6 +57,7 @@ class UserModel(Base):
 class HealthRecordModel(Base):
     __tablename__ = "health_records"
     id = Column(String, primary_key=True, index=True)
+    owner_user_id = Column(String, ForeignKey("users.id"), index=True, nullable=True)
     member_id = Column(String, index=True, default="fam1")
     user_email = Column(String, index=True, default="rahul.sharma@email.com")
     title = Column(String, nullable=False)
@@ -72,6 +74,7 @@ class HealthRecordModel(Base):
 class AppointmentModel(Base):
     __tablename__ = "appointments"
     id = Column(String, primary_key=True, index=True)
+    owner_user_id = Column(String, ForeignKey("users.id"), index=True, nullable=True)
     user_email = Column(String, index=True, default="rahul.sharma@email.com")
     doctor_id = Column(String, index=True)
     doctor_name = Column(String, nullable=False)
@@ -89,6 +92,7 @@ class AppointmentModel(Base):
 class OrderModel(Base):
     __tablename__ = "orders"
     id = Column(String, primary_key=True, index=True)
+    owner_user_id = Column(String, ForeignKey("users.id"), index=True, nullable=True)
     user_email = Column(String, index=True, default="rahul.sharma@email.com")
     patient_name = Column(String, default="Rahul Sharma")
     items_json = Column(Text, nullable=False)
@@ -102,6 +106,7 @@ class OrderModel(Base):
 class VitalRecordModel(Base):
     __tablename__ = "vitals"
     id = Column(String, primary_key=True, index=True)
+    owner_user_id = Column(String, ForeignKey("users.id"), index=True, nullable=True)
     user_email = Column(String, index=True, default="rahul.sharma@email.com")
     systolic = Column(Integer, default=120)
     diastolic = Column(Integer, default=80)
