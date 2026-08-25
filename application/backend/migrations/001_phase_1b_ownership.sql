@@ -21,6 +21,29 @@ CREATE INDEX IF NOT EXISTS ix_orders_owner_user_id
 CREATE INDEX IF NOT EXISTS ix_vitals_owner_user_id
     ON vitals (owner_user_id);
 
+-- Preflight identity-integrity check: the backfill matches emails
+-- case-insensitively, so duplicate lower(email) identities would make the
+-- mapping nondeterministic. Abort before changing any ownership data.
+DO $$
+DECLARE
+    duplicate_count integer;
+BEGIN
+    SELECT count(*) INTO duplicate_count
+    FROM (
+        SELECT lower(email) AS normalized_email
+        FROM users
+        WHERE email IS NOT NULL
+        GROUP BY lower(email)
+        HAVING count(*) > 1
+    ) AS duplicate_identities;
+
+    IF duplicate_count > 0 THEN
+        RAISE EXCEPTION
+            'Phase 1B ownership preflight failed: duplicate case-insensitive user email identities detected (%)',
+            duplicate_count;
+    END IF;
+END $$;
+
 -- Deterministic legacy backfill: only rows whose stored email matches an
 -- existing application profile are associated. No request-supplied identity
 -- participates in this migration.
