@@ -1,7 +1,7 @@
 -- Phase 1B: durable application ownership for Supabase-authenticated users.
 -- Target: PostgreSQL / Supabase.
 -- Existing email/member_id fields are intentionally retained for compatibility.
--- owner_user_id is nullable during migration so legacy rows can be backfilled safely.
+-- owner_user_id is nullable only during deterministic legacy backfill.
 
 ALTER TABLE health_records
     ADD COLUMN IF NOT EXISTS owner_user_id TEXT;
@@ -51,6 +51,44 @@ FROM users AS u
 WHERE v.owner_user_id IS NULL
   AND v.user_email IS NOT NULL
   AND lower(v.user_email) = lower(u.email);
+
+-- Explicit remediation/report path: do not silently assign ambiguous or
+-- unmatched rows. Migration must stop before enforcing NOT NULL and FKs if
+-- any user-owned row cannot be deterministically mapped.
+DO $$
+DECLARE
+    unmatched_health integer;
+    unmatched_appointments integer;
+    unmatched_orders integer;
+    unmatched_vitals integer;
+BEGIN
+    SELECT count(*) INTO unmatched_health
+    FROM health_records
+    WHERE owner_user_id IS NULL;
+
+    SELECT count(*) INTO unmatched_appointments
+    FROM appointments
+    WHERE owner_user_id IS NULL;
+
+    SELECT count(*) INTO unmatched_orders
+    FROM orders
+    WHERE owner_user_id IS NULL;
+
+    SELECT count(*) INTO unmatched_vitals
+    FROM vitals
+    WHERE owner_user_id IS NULL;
+
+    IF unmatched_health > 0 OR unmatched_appointments > 0 OR unmatched_orders > 0 OR unmatched_vitals > 0 THEN
+        RAISE EXCEPTION
+            'Phase 1B ownership backfill incomplete: health_records=%, appointments=%, orders=%, vitals=%',
+            unmatched_health, unmatched_appointments, unmatched_orders, unmatched_vitals;
+    END IF;
+END $$;
+
+ALTER TABLE health_records ALTER COLUMN owner_user_id SET NOT NULL;
+ALTER TABLE appointments ALTER COLUMN owner_user_id SET NOT NULL;
+ALTER TABLE orders ALTER COLUMN owner_user_id SET NOT NULL;
+ALTER TABLE vitals ALTER COLUMN owner_user_id SET NOT NULL;
 
 DO $$
 BEGIN
