@@ -1,8 +1,12 @@
 import json
 import os
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import List, Optional
+
+from app.api.auth import get_current_user
+from app.database.sql_db import get_db_session, OrderModel, UserModel
+import datetime
 
 router = APIRouter(prefix="/store", tags=["Store"])
 
@@ -26,7 +30,7 @@ class OrderItem(BaseModel):
 
 
 class OrderRequest(BaseModel):
-    userId: str
+    userId: Optional[str] = None
     items: List[OrderItem]
     totalAmount: float
     address: str
@@ -126,15 +130,16 @@ def get_medicines(
     }
 
 
-from app.database.sql_db import get_db_session, OrderModel
-import datetime
-
-
 @router.get("/orders")
-def get_user_orders(email: Optional[str] = "rahul.sharma@email.com"):
+def get_user_orders(current_user: UserModel = Depends(get_current_user)):
     session = get_db_session()
     try:
-        orders = session.query(OrderModel).order_by(OrderModel.created_at.desc()).all()
+        orders = (
+            session.query(OrderModel)
+            .filter(OrderModel.owner_user_id == current_user.id)
+            .order_by(OrderModel.created_at.desc())
+            .all()
+        )
         res = []
         for o in orders:
             try:
@@ -158,7 +163,10 @@ def get_user_orders(email: Optional[str] = "rahul.sharma@email.com"):
 
 
 @router.post("/orders")
-def place_order(order: OrderRequest):
+def place_order(
+    order: OrderRequest,
+    current_user: UserModel = Depends(get_current_user),
+):
     if not order.items:
         raise HTTPException(status_code=400, detail="Cart is empty")
 
@@ -169,8 +177,9 @@ def place_order(order: OrderRequest):
     try:
         order_record = OrderModel(
             id=order_id,
-            user_email="rahul.sharma@email.com",
-            patient_name=order.userId or "Rahul Sharma",
+            owner_user_id=current_user.id,
+            user_email=current_user.email,
+            patient_name=current_user.name,
             items_json=json.dumps(items_list),
             total_amount=order.totalAmount,
             delivery_address=order.address,
