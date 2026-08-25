@@ -1,6 +1,6 @@
 """
 Universal SQL Database Engine - CuraAssist CareHub
-Supports SQLite (zero-config local/serverless persistence) & PostgreSQL / Supabase / Neon.
+Supports SQLite for local/test use and PostgreSQL / Supabase / Neon for deployed environments.
 """
 
 import os
@@ -27,10 +27,8 @@ from sqlalchemy.orm import declarative_base, sessionmaker, Session
 DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data"
 SQLITE_DB_PATH = DATA_DIR / "curaassist.db"
 
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    os.getenv("POSTGRES_URL", f"sqlite:///{SQLITE_DB_PATH}")
-)
+EXPLICIT_DATABASE_URL = os.getenv("DATABASE_URL") or os.getenv("POSTGRES_URL")
+DATABASE_URL = EXPLICIT_DATABASE_URL or f"sqlite:///{SQLITE_DB_PATH}"
 
 # Fix postgres:// -> postgresql:// for SQLAlchemy 2.0+
 if DATABASE_URL.startswith("postgres://"):
@@ -150,6 +148,7 @@ class FacilityModel(Base):
 _engine = None
 _SessionFactory = None
 
+
 def get_engine():
     global _engine
     if _engine is None:
@@ -159,8 +158,19 @@ def get_engine():
         try:
             _engine = create_engine(DATABASE_URL, connect_args=connect_args, pool_pre_ping=True)
         except Exception as e:
-            print(f"[SQL DB] Primary engine error ({DATABASE_URL}), fallback to SQLite:", e)
-            _engine = create_engine(f"sqlite:///{SQLITE_DB_PATH}", connect_args={"check_same_thread": False})
+            # An explicitly configured database must never silently fall back to
+            # SQLite. In production, that could make the API appear healthy while
+            # writing data to the wrong persistence layer.
+            if EXPLICIT_DATABASE_URL:
+                raise RuntimeError(
+                    "Configured database could not be initialized; refusing SQLite fallback"
+                ) from e
+
+            print("[SQL DB] Local database initialization failed; using SQLite:", e)
+            _engine = create_engine(
+                f"sqlite:///{SQLITE_DB_PATH}",
+                connect_args={"check_same_thread": False},
+            )
     return _engine
 
 
