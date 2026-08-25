@@ -341,82 +341,24 @@ def log_vital_reading(
         session.close()
 
 
-# --- AUTH & USER REGISTRATION ---
-# These legacy endpoints remain for compatibility during the migration. They are not
-# used by the new authenticated ownership path.
+# --- LEGACY AUTH COMPATIBILITY ---
+# These endpoints remain as explicit migration-only stubs. Production authentication
+# is provided exclusively by Supabase Auth + /auth/* and get_current_user().
 
 @router.post("/login")
-def login_user(payload: dict = Body(...)):
-    identity = payload.get("identity") or payload.get("email") or "User"
-    email = payload.get("email") or f"{identity.replace(' ', '.').lower()}@curaassist.health"
-    name = identity.split("@")[0].capitalize()
-
-    session = get_db_session()
-    try:
-        user = session.query(UserModel).filter_by(email=email).first()
-        if not user:
-            user = UserModel(
-                id=f"usr-{int(datetime.datetime.utcnow().timestamp())}",
-                name=name,
-                email=email,
-                role=payload.get("role", "Patient")
-            )
-            session.add(user)
-            session.commit()
-
-        return {
-            "status": "success",
-            "message": "Login successful! SQL Session Active.",
-            "token": f"jwt-session-{user.id}",
-            "user": {
-                "id": user.id,
-                "name": user.name,
-                "email": user.email,
-                "phone": user.phone,
-                "role": user.role,
-                "bloodGroup": user.blood_group
-            }
-        }
-    finally:
-        session.close()
+def login_user():
+    raise HTTPException(
+        status_code=410,
+        detail="Legacy profile login retired; use Supabase authentication via /auth/*",
+    )
 
 
 @router.post("/register")
-def register_user(payload: dict = Body(...)):
-    name = payload.get("name") or "New User"
-    email = payload.get("email") or "user@curaassist.health"
-
-    session = get_db_session()
-    try:
-        user = session.query(UserModel).filter_by(email=email).first()
-        if not user:
-            user = UserModel(
-                id=f"usr-{int(datetime.datetime.utcnow().timestamp())}",
-                name=name,
-                email=email,
-                phone=payload.get("phone", "+91 98765 43210"),
-                location=payload.get("location", "Hyderabad, Telangana"),
-                blood_group=payload.get("bloodGroup", "O+"),
-                role=payload.get("role", "Patient")
-            )
-            session.add(user)
-            session.commit()
-
-        return {
-            "status": "success",
-            "message": f"Registration Complete! Welcome {name} to CuraAssist.",
-            "token": f"jwt-session-{user.id}",
-            "user": {
-                "id": user.id,
-                "name": user.name,
-                "email": user.email,
-                "phone": user.phone,
-                "role": user.role,
-                "bloodGroup": user.blood_group
-            }
-        }
-    finally:
-        session.close()
+def register_user():
+    raise HTTPException(
+        status_code=410,
+        detail="Legacy profile registration retired; use Supabase authentication via /auth/*",
+    )
 
 
 # --- UPLOADS STORAGE & SCAN LOGS ---
