@@ -1,6 +1,9 @@
+import json
 import os
-from datetime import datetime, timezone
+from functools import lru_cache
 from typing import Any
+from urllib.error import URLError
+from urllib.request import urlopen
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -12,8 +15,10 @@ from app.database.sql_db import UserModel, get_db_session
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 BEARER = HTTPBearer(auto_error=False)
-SUPABASE_JWT_SECRET = os.getenv("SUPABASE_JWT_SECRET")
-SUPABASE_JWT_ALGORITHM = os.getenv("SUPABASE_JWT_ALGORITHM", "HS256")
+SUPABASE_AUTH_ISSUER = os.getenv("SUPABASE_AUTH_ISSUER", "").rstrip("/")
+SUPABASE_JWKS_URL = os.getenv("SUPABASE_JWKS_URL", "").strip()
+SUPABASE_JWT_ALGORITHM = "ES256"
+SUPABASE_JWT_AUDIENCE = "authenticated"
 
 
 class UserResponse(BaseModel):
@@ -28,24 +33,71 @@ class UserResponse(BaseModel):
     bloodGroup: str | None = None
 
 
-def _require_supabase_jwt_secret() -> str:
-    if not SUPABASE_JWT_SECRET:
+def _require_supabase_auth_config() -> tuple[str, str]:
+    if not SUPABASE_AUTH_ISSUER or not SUPABASE_JWKS_URL:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Supabase authentication is not configured",
         )
-    return SUPABASE_JWT_SECRET
+    return SUPABASE_AUTH_ISSUER, SUPABASE_JWKS_URL
+
+
+@lru_cache(maxsize=1)
+def _load_supabase_jwks() -> dict[str, Any]:
+    _, jwks_url = _require_supabase_auth_config()
+    try:
+        with urlopen(jwks_url, timeout=5) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except (OSError, URLError, ValueError) as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Supabase signing keys are unavailable",
+        ) from exc
+
+    keys = payload.get("keys")
+    if not isinstance(keys, list):
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Supabase signing keys response is invalid",
+        )
+    return payload
 
 
 def _decode_supabase_access_token(token: str) -> dict[str, Any]:
-    secret = _require_supabase_jwt_secret()
+    issuer, _ = _require_supabase_auth_config()
     try:
-        return jwt.decode(token, secret, algorithms=[SUPABASE_JWT_ALGORITHM])
-    except JWTError:
+        header = jwt.get_unverified_header(token)
+        if header.get("alg") != SUPABASE_JWT_ALGORITHM:
+            raise JWTError("Unsupported signing algorithm")
+        kid = header.get("kid")
+        if not kid:
+            raise JWTError("Missing signing key id")
+
+        jwks = _load_supabase_jwks()
+        matching_key = next(
+            (
+                key
+                for key in jwks.get("keys", [])
+                if isinstance(key, dict) and key.get("kid") == kid
+            ),
+            None,
+        )
+        if matching_key is None:
+            raise JWTError("Unknown signing key id")
+
+        return jwt.decode(
+            token,
+            matching_key,
+            algorithms=[SUPABASE_JWT_ALGORITHM],
+            audience=SUPABASE_JWT_AUDIENCE,
+            issuer=issuer,
+            options={"verify_aud": True, "verify_iss": True},
+        )
+    except JWTError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired access token",
-        )
+        ) from exc
 
 
 def get_current_user(
@@ -59,7 +111,7 @@ def get_current_user(
 
     payload = _decode_supabase_access_token(credentials.credentials)
     user_id = payload.get("sub")
-    if not user_id:
+    if not user_id or not isinstance(user_id, str):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authenticated user id missing from access token",
