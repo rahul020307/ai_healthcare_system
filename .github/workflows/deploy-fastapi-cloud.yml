@@ -1,0 +1,28 @@
+name: Deploy Phase 1B Backend to FastAPI Cloud
+
+on:
+  push:
+    branches:
+      - phase-1b-ownership-migration
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy FastAPI Backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Deploy to FastAPI Cloud
+        working-directory: application/backend
+        run: uv run fastapi deploy
+        env:
+          FASTAPI_CLOUD_TOKEN: ${{ secrets.FASTAPI_CLOUD_API_TOKEN }}
+          FASTAPI_CLOUD_APP_ID: ${{ secrets.FASTAPI_CLOUD_APP_ID }}
