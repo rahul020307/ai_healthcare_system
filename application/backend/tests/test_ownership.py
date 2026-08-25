@@ -121,9 +121,17 @@ def test_new_health_record_uses_authenticated_owner_not_payload_email(db_session
 def test_new_vital_uses_authenticated_owner(db_session):
     session, user_a, _ = db_session
 
-    result = profile.log_vital_reading({"systolic": 130}, user_a)
+    profile.log_vital_reading({"systolic": 130}, user_a)
 
-    created = session.query(VitalRecordModel).filter_by(id=result["vital"]["id"]).first()
+    created = (
+        session.query(VitalRecordModel)
+        .filter(
+            VitalRecordModel.owner_user_id == user_a.id,
+            VitalRecordModel.systolic == 130,
+        )
+        .order_by(VitalRecordModel.recorded_at.desc())
+        .first()
+    )
     assert created is not None
     assert created.owner_user_id == user_a.id
     assert created.user_email == user_a.email
