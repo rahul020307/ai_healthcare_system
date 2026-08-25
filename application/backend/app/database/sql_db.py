@@ -44,7 +44,6 @@ class UserModel(Base):
     id = Column(String, primary_key=True, index=True)
     name = Column(String, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
-    password_hash = Column(String, nullable=True)
     phone = Column(String, default="+91 98765 43210")
     location = Column(String, default="Hyderabad, Telangana")
     age = Column(Integer, default=34)
@@ -52,16 +51,6 @@ class UserModel(Base):
     blood_group = Column(String, default="O+")
     role = Column(String, default="Patient")
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
-
-
-class AuthSessionModel(Base):
-    __tablename__ = "auth_sessions"
-    id = Column(String, primary_key=True, index=True)
-    user_id = Column(String, index=True, nullable=False)
-    token_hash = Column(String, unique=True, index=True, nullable=False)
-    expires_at = Column(DateTime, nullable=False)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
-    revoked_at = Column(DateTime, nullable=True)
 
 
 class HealthRecordModel(Base):
@@ -255,7 +244,7 @@ def seed_initial_sql_data():
         if fac_count == 0:
             facility_files = [
                 ("hospitals.json", "Hospitals", "hospital_id", "hospital_name"),
-                ("pharmacies.json", "Pharmacies", "pharmacy_id", "pharmacy_name"),
+                ("pharmacies.json", "Pharmacies", "Pharmacies", "pharmacy_name"),
                 ("clinics.json", "Clinics", "clinic_id", "clinic_name"),
                 ("laboratories.json", "Labs", "lab_id", "lab_name"),
                 ("bloodbanks.json", "Emergency", "bloodbank_id", "bloodbank_name"),
