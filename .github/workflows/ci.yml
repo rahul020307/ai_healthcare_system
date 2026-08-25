@@ -2,7 +2,7 @@ name: CuraAssist CI Build & Verification
 
 on:
   push:
-    branches: [ "main", "phase-1a-auth-foundation" ]
+    branches: [ "main", "phase-1a-auth-foundation", "phase-1b-ownership-migration" ]
   pull_request:
     branches: [ "main" ]
 
@@ -32,10 +32,10 @@ jobs:
           python generate_datasets.py
           python -c "import app.main; print('FastAPI Engine loaded successfully!')"
 
-      - name: Run Phase 1A Authentication Tests
+      - name: Run Phase 1A Authentication and Phase 1B Ownership Tests
         run: |
           cd application/backend
-          python -m pytest tests/test_auth_supabase.py
+          python -m pytest tests/test_auth_supabase.py tests/test_ownership.py
 
       - name: Verify Frontend Application Files
         run: |
