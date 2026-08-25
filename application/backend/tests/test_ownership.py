@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 
 import pytest
 from sqlalchemy import create_engine
@@ -188,3 +189,24 @@ def test_demo_seed_is_disabled_by_default(monkeypatch, tmp_path):
         assert session.query(HealthRecordModel).count() == 0
     finally:
         session.close()
+
+
+def test_owner_user_id_is_non_nullable_in_all_migrated_models():
+    assert HealthRecordModel.__table__.c.owner_user_id.nullable is False
+    assert AppointmentModel.__table__.c.owner_user_id.nullable is False
+    assert OrderModel.__table__.c.owner_user_id.nullable is False
+    assert VitalRecordModel.__table__.c.owner_user_id.nullable is False
+
+
+def test_ownership_migration_rejects_duplicate_case_insensitive_identities():
+    migration_path = Path(__file__).resolve().parents[1] / "migrations" / "001_phase_1b_ownership.sql"
+    sql = migration_path.read_text(encoding="utf-8").lower()
+
+    preflight = sql.index("duplicate case-insensitive user email identities")
+    first_backfill = sql.index("update health_records")
+    preflight_sql = sql[:first_backfill]
+
+    assert "group by lower(email)" in preflight_sql
+    assert "having count(*) > 1" in preflight_sql
+    assert "raise exception" in preflight_sql
+    assert preflight < first_backfill
