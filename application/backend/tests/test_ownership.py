@@ -6,6 +6,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from app.api import profile, store
+from app.database import sql_db
 from app.database.sql_db import (
     Base,
     UserModel,
@@ -27,41 +28,16 @@ def db_session(monkeypatch, tmp_path):
     user_b = UserModel(id="user-b", name="User B", email="b@example.com", role="Patient")
     session.add_all([user_a, user_b])
     session.add_all([
-        HealthRecordModel(
-            id="rec-a",
-            owner_user_id="user-a",
-            user_email="a@example.com",
-            title="A record",
-        ),
-        HealthRecordModel(
-            id="rec-b",
-            owner_user_id="user-b",
-            user_email="b@example.com",
-            title="B record",
-        ),
+        HealthRecordModel(id="rec-a", owner_user_id="user-a", user_email="a@example.com", title="A record"),
+        HealthRecordModel(id="rec-b", owner_user_id="user-b", user_email="b@example.com", title="B record"),
         AppointmentModel(
-            id="appt-a",
-            owner_user_id="user-a",
-            user_email="a@example.com",
-            doctor_name="Doctor A",
-            patient_name="User A",
-            appointment_date="2026-08-25",
-            appointment_time="10:00 AM",
+            id="appt-a", owner_user_id="user-a", user_email="a@example.com", doctor_name="Doctor A",
+            patient_name="User A", appointment_date="2026-08-25", appointment_time="10:00 AM",
         ),
-        VitalRecordModel(
-            id="vital-a",
-            owner_user_id="user-a",
-            user_email="a@example.com",
-        ),
+        VitalRecordModel(id="vital-a", owner_user_id="user-a", user_email="a@example.com"),
         OrderModel(
-            id="order-a",
-            owner_user_id="user-a",
-            user_email="a@example.com",
-            patient_name="User A",
-            items_json=json.dumps([]),
-            total_amount=100.0,
-            delivery_address="A address",
-            payment_method="UPI",
+            id="order-a", owner_user_id="user-a", user_email="a@example.com", patient_name="User A",
+            items_json=json.dumps([]), total_amount=100.0, delivery_address="A address", payment_method="UPI",
         ),
     ])
     session.commit()
@@ -77,21 +53,16 @@ def db_session(monkeypatch, tmp_path):
 
 def test_health_records_are_isolated_by_owner(db_session):
     _, user_a, user_b = db_session
-
     a_records = profile.get_health_records(user_a)["records"]
     b_records = profile.get_health_records(user_b)["records"]
-
     assert [record["id"] for record in a_records] == ["rec-a"]
     assert [record["id"] for record in b_records] == ["rec-b"]
 
 
 def test_cross_user_appointment_cannot_be_cancelled(db_session):
     _, user_a, user_b = db_session
-
     result = profile.cancel_appointment("appt-a", user_b)
-
     assert result["message"] == "Appointment not found or already cancelled"
-
     session = profile.get_db_session()
     try:
         appointment = session.query(AppointmentModel).filter_by(id="appt-a").first()
@@ -103,16 +74,7 @@ def test_cross_user_appointment_cannot_be_cancelled(db_session):
 
 def test_new_health_record_uses_authenticated_owner_not_payload_email(db_session):
     session, user_a, _ = db_session
-
-    result = profile.upload_health_record(
-        {
-            "title": "New record",
-            "userEmail": "b@example.com",
-            "memberId": "fam2",
-        },
-        user_a,
-    )
-
+    result = profile.upload_health_record({"title": "New record", "userEmail": "b@example.com", "memberId": "fam2"}, user_a)
     created = session.query(HealthRecordModel).filter_by(id=result["record"]["id"]).first()
     assert created is not None
     assert created.owner_user_id == user_a.id
@@ -121,15 +83,10 @@ def test_new_health_record_uses_authenticated_owner_not_payload_email(db_session
 
 def test_new_vital_uses_authenticated_owner(db_session):
     session, user_a, _ = db_session
-
     profile.log_vital_reading({"systolic": 130}, user_a)
-
     created = (
         session.query(VitalRecordModel)
-        .filter(
-            VitalRecordModel.owner_user_id == user_a.id,
-            VitalRecordModel.systolic == 130,
-        )
+        .filter(VitalRecordModel.owner_user_id == user_a.id, VitalRecordModel.systolic == 130)
         .order_by(VitalRecordModel.recorded_at.desc())
         .first()
     )
@@ -140,12 +97,10 @@ def test_new_vital_uses_authenticated_owner(db_session):
 
 def test_orders_are_isolated_and_new_order_uses_authenticated_owner(db_session):
     session, user_a, user_b = db_session
-
     a_orders = store.get_user_orders(user_a)["orders"]
     b_orders = store.get_user_orders(user_b)["orders"]
     assert [order["orderId"] for order in a_orders] == ["order-a"]
     assert b_orders == []
-
     request = store.OrderRequest(
         userId="user-b",
         items=[{"id": "med-1", "name": "Medicine", "price": 25.0, "quantity": 1}],
@@ -154,7 +109,6 @@ def test_orders_are_isolated_and_new_order_uses_authenticated_owner(db_session):
         paymentMethod="UPI",
     )
     result = store.place_order(request, user_a)
-
     created = session.query(OrderModel).filter_by(id=result["orderId"]).first()
     assert created is not None
     assert created.owner_user_id == user_a.id
@@ -166,7 +120,6 @@ def test_legacy_profile_login_and_register_are_retired():
     with pytest.raises(Exception) as exc:
         profile.login_user()
     assert getattr(exc.value, "status_code", None) == 410
-
     with pytest.raises(Exception) as exc:
         profile.register_user()
     assert getattr(exc.value, "status_code", None) == 410
@@ -174,14 +127,11 @@ def test_legacy_profile_login_and_register_are_retired():
 
 def test_demo_seed_is_disabled_by_default(monkeypatch, tmp_path):
     monkeypatch.delenv("CURAASSIST_DEMO_MODE", raising=False)
-    from app.database import sql_db
-
     engine = create_engine(f"sqlite:///{tmp_path / 'seed.db'}", connect_args={"check_same_thread": False})
     session_factory = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     monkeypatch.setattr(sql_db, "_engine", engine)
     monkeypatch.setattr(sql_db, "_SessionFactory", session_factory)
     sql_db.Base.metadata.create_all(bind=engine)
-
     sql_db.seed_initial_sql_data()
     session = session_factory()
     try:
@@ -201,12 +151,23 @@ def test_owner_user_id_is_non_nullable_in_all_migrated_models():
 def test_ownership_migration_rejects_duplicate_case_insensitive_identities():
     migration_path = Path(__file__).resolve().parents[1] / "migrations" / "001_phase_1b_ownership.sql"
     sql = migration_path.read_text(encoding="utf-8").lower()
-
     preflight = sql.index("duplicate case-insensitive user email identities")
     first_backfill = sql.index("update health_records")
     preflight_sql = sql[:first_backfill]
-
     assert "group by lower(email)" in preflight_sql
     assert "having count(*) > 1" in preflight_sql
     assert "raise exception" in preflight_sql
     assert preflight < first_backfill
+
+
+def test_explicit_database_failure_never_falls_back_to_sqlite(monkeypatch):
+    monkeypatch.setattr(sql_db, "_engine", None)
+    monkeypatch.setattr(sql_db, "EXPLICIT_DATABASE_URL", "postgresql://example.invalid/db")
+    monkeypatch.setattr(sql_db, "DATABASE_URL", "postgresql://example.invalid/db")
+
+    def fail_create_engine(*args, **kwargs):
+        raise OSError("simulated PostgreSQL engine failure")
+
+    monkeypatch.setattr(sql_db, "create_engine", fail_create_engine)
+    with pytest.raises(RuntimeError, match="refusing SQLite fallback"):
+        sql_db.get_engine()
