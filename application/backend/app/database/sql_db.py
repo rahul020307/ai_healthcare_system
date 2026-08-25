@@ -180,24 +180,27 @@ def init_db():
 
 
 def seed_initial_sql_data():
-    """Seeds JSON dataset entries into SQL tables on first run."""
+    """Seeds reference/demo dataset entries into SQL only outside production."""
     session = get_db_session()
     try:
-        # 1. Seed Default User
-        existing_user = session.query(UserModel).filter_by(email="rahul.sharma@email.com").first()
-        if not existing_user:
-            user = UserModel(
-                id="usr-default-01",
-                name="Rahul Sharma",
-                email="rahul.sharma@email.com",
-                phone="+91 98765 43210",
-                location="Hyderabad, Telangana",
-                age=34,
-                gender="Male",
-                blood_group="O+",
-                role="Patient"
-            )
-            session.add(user)
+        allow_demo_seed = os.getenv("CURAASSIST_DEMO_MODE", "false").strip().lower() == "true"
+
+        # 1. Seed Default User and synthetic patient data only in explicit demo mode.
+        if allow_demo_seed:
+            existing_user = session.query(UserModel).filter_by(email="rahul.sharma@email.com").first()
+            if not existing_user:
+                user = UserModel(
+                    id="usr-default-01",
+                    name="Rahul Sharma",
+                    email="rahul.sharma@email.com",
+                    phone="+91 98765 43210",
+                    location="Hyderabad, Telangana",
+                    age=34,
+                    gender="Male",
+                    blood_group="O+",
+                    role="Patient"
+                )
+                session.add(user)
 
         # 2. Seed Medicines
         med_count = session.query(MedicineModel).count()
@@ -222,27 +225,29 @@ def seed_initial_sql_data():
                         )
                         session.merge(med_obj)
 
-        # 3. Seed Health Records
-        rec_count = session.query(HealthRecordModel).count()
-        if rec_count == 0:
-            rec_json_path = DATA_DIR / "health_records.json"
-            if rec_json_path.exists():
-                with open(rec_json_path, "r", encoding="utf-8") as f:
-                    recs = json.load(f)
-                    for r in recs:
-                        rec_obj = HealthRecordModel(
-                            id=r.get("id", f"rec-{r.get('title', '001')}"),
-                            member_id=r.get("memberId", "fam1"),
-                            user_email="rahul.sharma@email.com",
-                            title=r.get("title", "Medical Report"),
-                            category=r.get("category", "Reports"),
-                            date=r.get("date", "2026-08-01"),
-                            doctor=r.get("doctor", "Clinic Specialist"),
-                            facility=r.get("facility", "CareHub Center"),
-                            summary=r.get("summary", ""),
-                            tags=",".join(r.get("tags", ["Health", "Record"])) if isinstance(r.get("tags"), list) else str(r.get("tags", ""))
-                        )
-                        session.merge(rec_obj)
+        # 3. Seed Health Records only in explicit demo mode so production cannot create demo patients.
+        if allow_demo_seed:
+            rec_count = session.query(HealthRecordModel).count()
+            if rec_count == 0:
+                rec_json_path = DATA_DIR / "health_records.json"
+                if rec_json_path.exists():
+                    with open(rec_json_path, "r", encoding="utf-8") as f:
+                        recs = json.load(f)
+                        for r in recs:
+                            rec_obj = HealthRecordModel(
+                                id=r.get("id", f"rec-{r.get('title', '001')}"),
+                                owner_user_id="usr-default-01",
+                                member_id=r.get("memberId", "fam1"),
+                                user_email="rahul.sharma@email.com",
+                                title=r.get("title", "Medical Report"),
+                                category=r.get("category", "Reports"),
+                                date=r.get("date", "2026-08-01"),
+                                doctor=r.get("doctor", "Clinic Specialist"),
+                                facility=r.get("facility", "CareHub Center"),
+                                summary=r.get("summary", ""),
+                                tags=",".join(r.get("tags", ["Health", "Record"])) if isinstance(r.get("tags"), list) else str(r.get("tags", ""))
+                            )
+                            session.merge(rec_obj)
 
         # 4. Seed Facilities from hospitals, pharmacies, clinics, laboratories
         fac_count = session.query(FacilityModel).count()
