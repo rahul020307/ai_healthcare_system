@@ -160,7 +160,7 @@ def test_missing_sub_rejected(auth_test_setup):
     assert exc.value.status_code == 401
 
 
-def test_missing_or_malformed_bearer_rejected():
+def test_missing_or_malformed_bearer_rejected(auth_test_setup):
     from app.api.auth import get_current_user
 
     with pytest.raises(HTTPException) as exc:
