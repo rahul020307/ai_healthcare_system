@@ -159,3 +159,32 @@ def test_orders_are_isolated_and_new_order_uses_authenticated_owner(db_session):
     assert created.owner_user_id == user_a.id
     assert created.user_email == user_a.email
     assert created.patient_name == user_a.name
+
+
+def test_legacy_profile_login_and_register_are_retired():
+    with pytest.raises(Exception) as exc:
+        profile.login_user()
+    assert getattr(exc.value, "status_code", None) == 410
+
+    with pytest.raises(Exception) as exc:
+        profile.register_user()
+    assert getattr(exc.value, "status_code", None) == 410
+
+
+def test_demo_seed_is_disabled_by_default(monkeypatch, tmp_path):
+    monkeypatch.delenv("CURAASSIST_DEMO_MODE", raising=False)
+    from app.database import sql_db
+
+    engine = create_engine(f"sqlite:///{tmp_path / 'seed.db'}", connect_args={"check_same_thread": False})
+    session_factory = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    monkeypatch.setattr(sql_db, "_engine", engine)
+    monkeypatch.setattr(sql_db, "_SessionFactory", session_factory)
+    sql_db.Base.metadata.create_all(bind=engine)
+
+    sql_db.seed_initial_sql_data()
+    session = session_factory()
+    try:
+        assert session.query(UserModel).filter_by(id="usr-default-01").first() is None
+        assert session.query(HealthRecordModel).count() == 0
+    finally:
+        session.close()
