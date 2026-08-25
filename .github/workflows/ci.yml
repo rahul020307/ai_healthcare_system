@@ -2,7 +2,7 @@ name: CuraAssist CI Build & Verification
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "phase-1a-auth-foundation" ]
   pull_request:
     branches: [ "main" ]
 
@@ -24,12 +24,18 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          pip install pytest
 
       - name: Verify Backend REST API & Datasets
         run: |
           cd application/backend
           python generate_datasets.py
           python -c "import app.main; print('FastAPI Engine loaded successfully!')"
+
+      - name: Run Phase 1A Authentication Tests
+        run: |
+          cd application/backend
+          pytest tests/test_auth_supabase.py
 
       - name: Verify Frontend Application Files
         run: |
