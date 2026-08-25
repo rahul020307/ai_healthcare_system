@@ -22,7 +22,7 @@ jobs:
 
       - name: Deploy to FastAPI Cloud
         working-directory: application/backend
-        run: uv run fastapi deploy
+        run: uv run --with "fastapi[standard]" fastapi deploy
         env:
           FASTAPI_CLOUD_TOKEN: ${{ secrets.FASTAPI_CLOUD_API_TOKEN }}
           FASTAPI_CLOUD_APP_ID: ${{ secrets.FASTAPI_CLOUD_APP_ID }}
