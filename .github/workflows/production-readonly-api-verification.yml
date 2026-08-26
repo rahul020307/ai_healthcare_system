@@ -21,7 +21,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          endpoints=(
+          public_endpoints=(
             "/"
             "/api/status"
             "/home/"
@@ -32,12 +32,7 @@ jobs:
             "/medicine/info/MED-002"
             "/medicine/generics/MED-002"
             "/store/medicines?search=Augmentin"
-            "/store/orders"
             "/maps/facilities"
-            "/profile/user"
-            "/profile/health-records"
-            "/profile/appointments"
-            "/profile/vitals"
             "/db/status"
             "/db/collections"
             "/db/collection/medicines?limit=1"
@@ -45,14 +40,23 @@ jobs:
             "/db/collection/generic_alternatives?limit=1"
           )
 
+          protected_endpoints=(
+            "/store/orders"
+            "/profile/user"
+            "/profile/health-records"
+            "/profile/appointments"
+            "/profile/vitals"
+          )
+
           failed=0
           passed=0
 
           echo "Production API: ${API_BASE_URL}"
-          echo "Checking ${#endpoints[@]} read-only GET endpoints..."
+          echo "Checking ${#public_endpoints[@]} public read-only GET endpoints..."
+          echo "Checking ${#protected_endpoints[@]} protected GET endpoints for unauthenticated rejection..."
           echo
 
-          for endpoint in "${endpoints[@]}"; do
+          for endpoint in "${public_endpoints[@]}"; do
             url="${API_BASE_URL}${endpoint}"
             tmp="$(mktemp)"
             status="$(curl -sS -L --max-time 30 --retry 2 --retry-delay 2 \
@@ -62,7 +66,27 @@ jobs:
               echo "PASS ${status} ${endpoint}"
               passed=$((passed + 1))
             else
-              echo "FAIL ${status} ${endpoint}"
+              echo "FAIL ${status} ${endpoint} (expected 2xx)"
+              echo "Response:"
+              head -c 1000 "${tmp}" || true
+              echo
+              failed=$((failed + 1))
+            fi
+
+            rm -f "${tmp}"
+          done
+
+          for endpoint in "${protected_endpoints[@]}"; do
+            url="${API_BASE_URL}${endpoint}"
+            tmp="$(mktemp)"
+            status="$(curl -sS -L --max-time 30 --retry 2 --retry-delay 2 \
+              -o "${tmp}" -w '%{http_code}' "${url}" || true)"
+
+            if [[ "${status}" == "401" ]]; then
+              echo "PASS ${status} ${endpoint} (unauthenticated access rejected)"
+              passed=$((passed + 1))
+            else
+              echo "FAIL ${status} ${endpoint} (expected 401 without credentials)"
               echo "Response:"
               head -c 1000 "${tmp}" || true
               echo
