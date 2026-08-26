@@ -20,40 +20,83 @@ let state = {
   activeRoutePolyline: null
 };
 
-function saveStateToStorage() {
-  try {
-    localStorage.setItem('cura_schedule_v1', JSON.stringify(state.schedule));
-    localStorage.setItem('cura_records_v1', JSON.stringify(state.records));
-    localStorage.setItem('cura_cart_v1', JSON.stringify(state.cart));
-  } catch (e) {
-    console.warn("[CuraAssist] Storage save error:", e);
+async function getSupabaseSession() {
+  if (!window.curaSupabase) return null;
+  const { data, error } = await window.curaSupabase.auth.getSession();
+  if (error) {
+    console.warn('[CuraAssist] Unable to read Supabase session:', error.message);
+    return null;
+  }
+  return data.session;
+}
+
+async function getAuthHeaders() {
+  const session = await getSupabaseSession();
+  if (!session?.access_token) return {};
+  return { Authorization: `Bearer ${session.access_token}` };
+}
+
+function clearClientUserState() {
+  state.records = [];
+  state.schedule = [];
+  if (typeof INITIAL_DATA !== 'undefined') {
+    INITIAL_DATA.userAuth.isLoggedIn = false;
+    INITIAL_DATA.userAuth.user = { name: 'Guest User', email: '', phone: '', token: '' };
   }
 }
 
+function saveStateToStorage() {
+  // Deprecated: user data is no longer persisted in browser localStorage.
+}
+
 function loadStateFromStorage() {
-  try {
-    const savedSch = localStorage.getItem('cura_schedule_v1');
-    const savedRec = localStorage.getItem('cura_records_v1');
-    const savedCart = localStorage.getItem('cura_cart_v1');
+  // Deprecated: user data is loaded from the authenticated backend/Supabase session.
+}
 
-    if (savedSch) {
-      state.schedule = JSON.parse(savedSch);
-    } else if (typeof INITIAL_DATA !== 'undefined' && INITIAL_DATA.medicineSchedule) {
-      state.schedule = JSON.parse(JSON.stringify(INITIAL_DATA.medicineSchedule));
-    }
-
-    if (savedRec) {
-      state.records = JSON.parse(savedRec);
-    } else if (typeof INITIAL_DATA !== 'undefined' && INITIAL_DATA.healthRecords) {
-      state.records = JSON.parse(JSON.stringify(INITIAL_DATA.healthRecords));
-    }
-
-    if (savedCart) {
-      state.cart = JSON.parse(savedCart);
-    }
-  } catch (e) {
-    console.warn("[CuraAssist] Storage load error:", e);
+async function loadAuthenticatedUser() {
+  if (!window.curaSupabase) return false;
+  const session = await getSupabaseSession();
+  if (!session) {
+    clearClientUserState();
+    return false;
   }
+
+  try {
+    const response = await fetch(`${API_BASE}/profile/user`, {
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error(`profile request failed (${response.status})`);
+    const payload = await response.json();
+    const user = payload?.user;
+    if (!user) throw new Error('profile response missing user');
+
+    const userData = {
+      isLoggedIn: true,
+      userName: user.name,
+      email: user.email,
+      phone: user.phone,
+      blood: user.bloodGroup,
+      city: user.location,
+      age: user.age,
+      userId: user.id,
+      token: session.access_token,
+    };
+    updateAuthUIState(userData);
+    return true;
+  } catch (err) {
+    console.warn('[CuraAssist] Authenticated profile load failed:', err.message || err);
+    clearClientUserState();
+    await window.curaSupabase.auth.signOut();
+    return false;
+  }
+}
+
+async function initializeAuthenticatedState() {
+  const authenticated = await loadAuthenticatedUser();
+  if (authenticated) {
+    await syncDatabaseRecordsWithBackend();
+  }
+  return authenticated;
 }
 
 function ensureLucideIcons() {
@@ -65,14 +108,10 @@ function ensureLucideIcons() {
 }
 window.addEventListener('load', ensureLucideIcons);
 
-// Initialize app when DOM is ready safely
 document.addEventListener('DOMContentLoaded', () => {
   const safeRun = (fn, name) => {
     try { fn(); } catch (err) { console.warn(`[CuraAssist] Init warning in ${name}:`, err); }
   };
-
-  safeRun(() => loadStateFromStorage(), 'initDataState');
-  safeRun(() => checkSavedSession(), 'checkSavedSession');
 
   safeRun(() => ensureLucideIcons(), 'lucide');
   setTimeout(ensureLucideIcons, 300);
@@ -89,31 +128,26 @@ document.addEventListener('DOMContentLoaded', () => {
   safeRun(() => renderFirstAidGuide(), 'renderFirstAidGuide');
   safeRun(() => renderGenericDropdown(), 'renderGenericDropdown');
   safeRun(() => updateUploadsBadgeCount(), 'updateUploadsBadgeCount');
-  safeRun(() => syncDatabaseRecordsWithBackend(), 'syncDatabaseRecordsWithBackend');
+  safeRun(() => initializeAuthenticatedState(), 'initializeAuthenticatedState');
+
+  if (window.curaSupabase) {
+    window.curaSupabase.auth.onAuthStateChange(async () => {
+      await initializeAuthenticatedState();
+    });
+  }
 });
 
 async function syncDatabaseRecordsWithBackend() {
   try {
-    const res = await fetch(`${API_BASE}/profile/health-records`);
-    if (res.ok) {
-      const data = await res.json();
-      if (data && data.records && data.records.length > 0) {
-        const existingIds = new Set(state.records.map(r => r.id));
-        let added = false;
-        data.records.forEach(r => {
-          if (!existingIds.has(r.id)) {
-            state.records.unshift(r);
-            existingIds.add(r.id);
-            added = true;
-          }
-        });
-        if (added) {
-          renderRecords();
-        }
-      }
-    }
+    const res = await fetch(`${API_BASE}/profile/health-records`, {
+      headers: await getAuthHeaders(),
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    state.records = Array.isArray(data?.records) ? data.records : [];
+    renderRecords();
   } catch (e) {
-    console.warn("SQL health-records sync note:", e);
+    console.warn('SQL health-records sync note:', e);
   }
 }
 
@@ -121,7 +155,6 @@ async function syncDatabaseRecordsWithBackend() {
 function switchTab(tabName) {
   state.currentTab = tabName;
   
-  // Update sidebar & mobile bottom nav active highlights
   document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.mobile-nav-btn').forEach(el => {
     el.classList.remove('text-teal-400', 'font-black', 'scale-105');
@@ -137,27 +170,20 @@ function switchTab(tabName) {
     activeMobileNav.classList.add('text-teal-400', 'font-black', 'scale-105');
   }
 
-  // Toggle Header visibility (Remove top header in Maps tab for full screen map view)
   const appHeader = document.getElementById('app-header');
   if (appHeader) {
-    if (tabName === 'maps') {
-      appHeader.classList.add('hidden');
-    } else {
-      appHeader.classList.remove('hidden');
-    }
+    if (tabName === 'maps') appHeader.classList.add('hidden');
+    else appHeader.classList.remove('hidden');
   }
 
-  // Hide all sections
   ['home', 'store', 'maps', 'profile'].forEach(tab => {
     const sec = document.getElementById(`view-${tab}`);
     if (sec) sec.classList.add('hidden');
   });
 
-  // Show active view section
   const targetSec = document.getElementById(`view-${tabName}`);
   if (targetSec) targetSec.classList.remove('hidden');
 
-  // If switching to Maps tab, initialize map if needed
   if (tabName === 'maps') {
     setTimeout(() => {
       initMap();
@@ -175,22 +201,17 @@ function toggleNearbyPlacesLayout() {
   if (!drawer) return;
 
   if (drawer.classList.contains('max-h-56')) {
-    // State 2: Expanded view (75% screen height) for full list scrolling
     drawer.classList.remove('max-h-56');
     drawer.classList.add('max-h-[75vh]');
   } else if (drawer.classList.contains('max-h-[75vh]')) {
-    // State 3: Compact Bar view (h-12 overflow-hidden) for full map visibility
     drawer.classList.remove('max-h-[75vh]');
     drawer.classList.add('max-h-12', 'overflow-hidden');
   } else {
-    // State 1: Reset back to standard height
     drawer.classList.remove('max-h-12', 'overflow-hidden');
     drawer.classList.add('max-h-56');
   }
 
-  if (state.map) {
-    setTimeout(() => state.map.invalidateSize(), 300);
-  }
+  if (state.map) setTimeout(() => state.map.invalidateSize(), 300);
 }
 
 function scrollToSection(secId) {
@@ -207,13 +228,13 @@ function openAuthModal() {
   if (overlay) overlay.classList.remove('hidden');
 }
 
-function closeAuthModal() {
-  const saved = localStorage.getItem('cura_auth_session');
-  if (saved) {
+async function closeAuthModal() {
+  const session = await getSupabaseSession();
+  if (session) {
     const overlay = document.getElementById('auth-guard-overlay');
     if (overlay) overlay.classList.add('hidden');
   } else {
-    alert("⚠️ Registration or Login is required to access the application.");
+    alert('⚠️ Registration or Login is required to access the application.');
   }
 }
 
@@ -242,91 +263,73 @@ function switchAuthTab(mode) {
 }
 
 async function submitAuth(message, overrideName, mode = 'login') {
-  let userName = overrideName;
-  let identity = (document.getElementById('auth-login-identity')?.value || '').trim();
-  let email = (document.getElementById('auth-reg-email')?.value || '').trim();
-  let phone = (document.getElementById('auth-reg-phone')?.value || '').trim();
-  let blood = (document.getElementById('auth-reg-blood')?.value || 'O+').trim();
-  let city = (document.getElementById('auth-reg-city')?.value || 'Hyderabad').trim();
-  let age = (document.getElementById('auth-reg-age')?.value || '30').trim();
-  let password = (document.getElementById('auth-login-password')?.value || document.getElementById('auth-reg-password')?.value || '').trim();
-  let name = (document.getElementById('auth-reg-name')?.value || '').trim();
-
-  if (!userName) {
-    if (mode === 'register' && name) {
-      userName = name;
-    } else if (identity) {
-      userName = identity.split('@')[0];
-    } else if (email) {
-      userName = email.split('@')[0];
-    } else {
-      userName = "User";
-    }
+  if (!window.curaSupabase) {
+    alert('⚠️ Secure authentication is not configured. Please try again after configuration.');
+    return;
   }
 
-  // Capitalize first letter of userName for clean display
-  userName = userName.charAt(0).toUpperCase() + userName.slice(1);
-  const userEmail = email || `${userName.toLowerCase().replace(/\s+/g, '')}@curahealth.in`;
-  const userPhone = phone || "+91 98765 43210";
+  const email = (mode === 'register'
+    ? document.getElementById('auth-reg-email')?.value
+    : document.getElementById('auth-login-identity')?.value || document.getElementById('auth-reg-email')?.value || '')?.trim();
+  const password = (mode === 'register'
+    ? document.getElementById('auth-reg-password')?.value
+    : document.getElementById('auth-login-password')?.value || '')?.trim();
 
-  const userSessionData = {
-    isLoggedIn: true,
-    userName: userName,
-    email: userEmail,
-    phone: userPhone,
-    blood: blood,
-    city: city,
-    age: age,
-    token: `jwt-token-${Date.now()}`
-  };
+  if (!email || !password) {
+    alert('⚠️ Email and password are required.');
+    return;
+  }
 
-  // Attempt backend API call if server is active
-  try {
-    const endpoint = mode === 'register' ? `${API_BASE}/profile/register` : `${API_BASE}/profile/login`;
-    await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        identity: identity || userName,
-        email: userEmail,
-        name: userName,
-        phone: userPhone,
-        blood_group: blood,
-        city: city,
-        age: age,
-        password: password || "demo123"
-      })
+  let authResult;
+  if (mode === 'register') {
+    const name = (document.getElementById('auth-reg-name')?.value || email.split('@')[0]).trim();
+    const phone = (document.getElementById('auth-reg-phone')?.value || '').trim();
+    const city = (document.getElementById('auth-reg-city')?.value || 'Hyderabad').trim();
+    const blood = (document.getElementById('auth-reg-blood')?.value || 'O+').trim();
+    const age = Number((document.getElementById('auth-reg-age')?.value || '30').trim());
+
+    authResult = await window.curaSupabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { name, phone, city, blood_group: blood, age },
+      },
     });
-  } catch (err) {
-    console.warn("Backend auth notification note:", err);
+  } else {
+    authResult = await window.curaSupabase.auth.signInWithPassword({ email, password });
   }
 
-  // Update App State & Dataset
-  if (typeof INITIAL_DATA !== 'undefined') {
-    INITIAL_DATA.userAuth.isLoggedIn = true;
-    INITIAL_DATA.userAuth.user.name = userName;
-    if (INITIAL_DATA.familyMembers && INITIAL_DATA.familyMembers[0]) {
-      INITIAL_DATA.familyMembers[0].name = userName;
-      INITIAL_DATA.familyMembers[0].phone = userPhone;
-      INITIAL_DATA.familyMembers[0].email = userEmail;
-      INITIAL_DATA.familyMembers[0].bloodGroup = blood;
-      INITIAL_DATA.familyMembers[0].age = age;
-    }
+  if (authResult.error) {
+    alert(`⚠️ ${authResult.error.message}`);
+    return;
   }
 
-  // Save Session in localStorage for persistence across refreshes
-  try {
-    localStorage.setItem('cura_auth_session', JSON.stringify(userSessionData));
-  } catch (e) {}
+  if (mode === 'register' && !authResult.data.session) {
+    alert('✅ Registration created. Check your email to confirm your account, then sign in.');
+    return;
+  }
 
-  // Update UI Elements across the application
-  updateAuthUIState(userSessionData);
-  
-  // Unlock application overlay
+  const authenticated = await loadAuthenticatedUser();
+  if (!authenticated) {
+    alert('⚠️ Authentication succeeded, but the CuraAssist profile could not be loaded.');
+    return;
+  }
+
   const overlay = document.getElementById('auth-guard-overlay');
   if (overlay) overlay.classList.add('hidden');
+  alert(message || `Welcome to CuraAssist Healthcare!`);
+}
 
-  alert(message || `Welcome to CuraAssist Healthcare, ${userName}! Your profile is connected.`);
+async function signOutCuraAssist() {
+  if (!window.curaSupabase) return;
+  const { error } = await window.curaSupabase.auth.signOut();
+  if (error) {
+    alert(`⚠️ ${error.message}`);
+    return;
+  }
+  clearClientUserState();
+  updateAuthUIState({ userName: 'Guest User', email: '', phone: '', city: 'Hyderabad, Telangana', age: '', blood: '' });
+  openAuthModal();
 }
 
 let currentPendingAvatarUrl = null;
@@ -353,65 +356,50 @@ function selectPresetAvatar(url) {
 function updateAuthUIState(userData) {
   const user = (typeof userData === 'object' && userData !== null) ? userData : { userName: userData };
   let rawName = user.userName || user.name || "Guest User";
-  
-  if (rawName.includes('@')) {
-    rawName = rawName.split('@')[0];
-  }
+  if (rawName.includes('@')) rawName = rawName.split('@')[0];
   let cleanName = rawName.replace(/([a-zA-Z]+)(\d+)$/, '$1');
   cleanName = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
 
   const userName = cleanName;
-  const userEmail = user.email || `${userName.toLowerCase().replace(/\s+/g, '')}@curahealth.in`;
-  const userPhone = user.phone || "+91 98765 43210";
-  const userBlood = user.blood || user.bloodGroup || "O+";
-  const userCity = user.city || "Hyderabad, Telangana";
-  const userAge = user.age || "30";
-  const userAvatar = user.avatar || (typeof INITIAL_DATA !== 'undefined' && INITIAL_DATA.familyMembers?.[0]?.avatar) || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250";
+  const userEmail = user.email || '';
+  const userPhone = user.phone || '';
+  const userBlood = user.blood || user.bloodGroup || '';
+  const userCity = user.city || user.location || 'Hyderabad, Telangana';
+  const userAge = user.age || '';
+  const userAvatar = user.avatar || (typeof INITIAL_DATA !== 'undefined' && INITIAL_DATA.familyMembers?.[0]?.avatar) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250';
 
   const authText = document.getElementById('auth-btn-text');
-  if (authText) authText.innerText = `Account (${userName})`;
-
+  if (authText) authText.innerText = userName === 'Guest User' ? 'Login / Register' : `Account (${userName})`;
   const sidebarName = document.getElementById('sidebar-user-name');
   if (sidebarName) sidebarName.innerText = userName;
-
   const sidebarAge = document.getElementById('sidebar-user-age');
-  if (sidebarAge) sidebarAge.innerText = `${userAge} Yrs`;
-
+  if (sidebarAge) sidebarAge.innerText = userAge ? `${userAge} Yrs` : '';
+  const sidebarBlood = document.getElementById('sidebar-user-blood');
+  if (sidebarBlood) sidebarBlood.innerText = userBlood;
   const activeFamilyName = document.getElementById('active-family-name');
   if (activeFamilyName) activeFamilyName.innerText = userName;
-
   const welcomeName = document.getElementById('home-welcome-name');
   if (welcomeName) welcomeName.innerText = userName;
-
   const profileHeaderName = document.getElementById('prof-name');
   if (profileHeaderName) profileHeaderName.innerText = userName;
 
-  // Sync Avatars Across App
   const mainAvatar = document.getElementById('profile-main-avatar');
   if (mainAvatar) mainAvatar.src = userAvatar;
-
   const sidebarAvatar = document.getElementById('sidebar-avatar');
   if (sidebarAvatar) sidebarAvatar.src = userAvatar;
-
   const activeFamilyAvatar = document.getElementById('active-family-avatar');
   if (activeFamilyAvatar) activeFamilyAvatar.src = userAvatar;
 
-  // Profile Card Dynamic Sync
   const profMainName = document.getElementById('profile-main-name');
   if (profMainName) profMainName.innerText = userName;
-
   const profMainPhone = document.getElementById('profile-main-phone');
   if (profMainPhone) profMainPhone.innerText = userPhone;
-
   const profMainEmail = document.getElementById('profile-main-email');
   if (profMainEmail) profMainEmail.innerText = userEmail;
-
   const profMainLocation = document.getElementById('profile-main-location');
   if (profMainLocation) profMainLocation.innerText = userCity;
-
   const profMainAge = document.getElementById('profile-main-age');
   if (profMainAge) profMainAge.innerText = userAge;
-
   const profMainBlood = document.getElementById('profile-main-blood');
   if (profMainBlood) profMainBlood.innerText = userBlood;
 }
