@@ -14,12 +14,27 @@ from app.database.sql_db import (
 
 router = APIRouter(prefix="/profile", tags=["Profile"])
 DATA_DIR = Path(__file__).parent.parent.parent / "data"
+DEFAULT_EMAIL = "rahul.sharma@email.com"
+
+
+def _resolve_owner_user(session, email: Optional[str] = DEFAULT_EMAIL):
+    """Resolve the current pre-JWT user for Phase 1B ownership compatibility.
+
+    Auth/JWT will replace request-supplied email identity in the next phase.
+    Until then, every owned-table read/write must resolve a real users.id and
+    use that id for ownership filtering/assignment.
+    """
+    normalized_email = (email or DEFAULT_EMAIL).strip().lower()
+    user = session.query(UserModel).filter_by(email=normalized_email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User profile not found")
+    return user
 
 
 # --- USER PROFILE ENDPOINTS (SQL BACKED) ---
 
 @router.get("/user")
-def get_user_profile(email: Optional[str] = "rahul.sharma@email.com"):
+def get_user_profile(email: Optional[str] = DEFAULT_EMAIL):
     session = get_db_session()
     try:
         user = session.query(UserModel).filter_by(email=email).first()
@@ -68,7 +83,7 @@ def get_user_profile(email: Optional[str] = "rahul.sharma@email.com"):
 def update_user_profile(payload: dict = Body(...)):
     session = get_db_session()
     try:
-        email = payload.get("email", "rahul.sharma@email.com")
+        email = payload.get("email", DEFAULT_EMAIL)
         user = session.query(UserModel).filter_by(email=email).first()
         if not user:
             user = UserModel(id=f"usr-{int(datetime.datetime.utcnow().timestamp())}", email=email, name=payload.get("name", "User"))
@@ -93,10 +108,16 @@ def update_user_profile(payload: dict = Body(...)):
 # --- HEALTH RECORDS ENDPOINTS (SQL BACKED) ---
 
 @router.get("/health-records")
-def get_health_records(email: Optional[str] = "rahul.sharma@email.com"):
+def get_health_records(email: Optional[str] = DEFAULT_EMAIL):
     session = get_db_session()
     try:
-        records = session.query(HealthRecordModel).order_by(HealthRecordModel.created_at.desc()).all()
+        owner = _resolve_owner_user(session, email)
+        records = (
+            session.query(HealthRecordModel)
+            .filter(HealthRecordModel.owner_user_id == owner.id)
+            .order_by(HealthRecordModel.created_at.desc())
+            .all()
+        )
         res = []
         for r in records:
             res.append({
@@ -124,14 +145,16 @@ def get_health_records(email: Optional[str] = "rahul.sharma@email.com"):
 def upload_health_record(payload: dict = Body(...)):
     session = get_db_session()
     try:
+        owner = _resolve_owner_user(session, payload.get("userEmail", DEFAULT_EMAIL))
         rec_id = payload.get("id") or f"rec-{int(datetime.datetime.utcnow().timestamp() * 1000)}"
         tags_raw = payload.get("tags", ["Uploaded", "Health Record"])
         tags_str = ",".join(tags_raw) if isinstance(tags_raw, list) else str(tags_raw)
 
         new_rec = HealthRecordModel(
             id=rec_id,
+            owner_user_id=owner.id,
             member_id=payload.get("memberId", "fam1"),
-            user_email=payload.get("userEmail", "rahul.sharma@email.com"),
+            user_email=owner.email,
             title=payload.get("title", "Uploaded Health Document"),
             category=payload.get("category", "Medical Reports"),
             date=payload.get("date") or datetime.date.today().isoformat(),
@@ -158,6 +181,9 @@ def upload_health_record(payload: dict = Body(...)):
                 "summary": new_rec.summary
             }
         }
+    except HTTPException:
+        session.rollback()
+        raise
     except Exception as e:
         session.rollback()
         raise HTTPException(status_code=500, detail=str(e))
@@ -168,10 +194,16 @@ def upload_health_record(payload: dict = Body(...)):
 # --- APPOINTMENTS ENDPOINTS (SQL BACKED) ---
 
 @router.get("/appointments")
-def get_appointments(email: Optional[str] = "rahul.sharma@email.com"):
+def get_appointments(email: Optional[str] = DEFAULT_EMAIL):
     session = get_db_session()
     try:
-        appts = session.query(AppointmentModel).order_by(AppointmentModel.created_at.desc()).all()
+        owner = _resolve_owner_user(session, email)
+        appts = (
+            session.query(AppointmentModel)
+            .filter(AppointmentModel.owner_user_id == owner.id)
+            .order_by(AppointmentModel.created_at.desc())
+            .all()
+        )
         res = []
         for a in appts:
             res.append({
@@ -196,14 +228,16 @@ def get_appointments(email: Optional[str] = "rahul.sharma@email.com"):
 def book_appointment(payload: dict = Body(...)):
     session = get_db_session()
     try:
+        owner = _resolve_owner_user(session, payload.get("userEmail", DEFAULT_EMAIL))
         appt_id = payload.get("id") or f"apt-{int(datetime.datetime.utcnow().timestamp() * 1000)}"
         appt = AppointmentModel(
             id=appt_id,
-            user_email=payload.get("userEmail", "rahul.sharma@email.com"),
+            owner_user_id=owner.id,
+            user_email=owner.email,
             doctor_id=payload.get("doctorId", "doc-01"),
             doctor_name=payload.get("doctorName", "Dr. Priya Sharma"),
             specialty=payload.get("specialty", "Cardiologist"),
-            patient_name=payload.get("patientName", "Rahul Sharma"),
+            patient_name=payload.get("patientName", owner.name),
             appointment_date=payload.get("date", datetime.date.today().isoformat()),
             appointment_time=payload.get("time", "10:30 AM"),
             status=payload.get("status", "Confirmed"),
@@ -228,6 +262,9 @@ def book_appointment(payload: dict = Body(...)):
                 "hospitalName": appt.hospital_name
             }
         }
+    except HTTPException:
+        session.rollback()
+        raise
     except Exception as e:
         session.rollback()
         raise HTTPException(status_code=500, detail=str(e))
@@ -236,10 +273,18 @@ def book_appointment(payload: dict = Body(...)):
 
 
 @router.delete("/appointments/{appt_id}")
-def cancel_appointment(appt_id: str):
+def cancel_appointment(appt_id: str, email: Optional[str] = DEFAULT_EMAIL):
     session = get_db_session()
     try:
-        appt = session.query(AppointmentModel).filter_by(id=appt_id).first()
+        owner = _resolve_owner_user(session, email)
+        appt = (
+            session.query(AppointmentModel)
+            .filter(
+                AppointmentModel.id == appt_id,
+                AppointmentModel.owner_user_id == owner.id,
+            )
+            .first()
+        )
         if appt:
             session.delete(appt)
             session.commit()
@@ -252,10 +297,17 @@ def cancel_appointment(appt_id: str):
 # --- VITALS LOGGING ENDPOINTS (SQL BACKED) ---
 
 @router.get("/vitals")
-def get_user_vitals(email: Optional[str] = "rahul.sharma@email.com"):
+def get_user_vitals(email: Optional[str] = DEFAULT_EMAIL):
     session = get_db_session()
     try:
-        vitals = session.query(VitalRecordModel).order_by(VitalRecordModel.recorded_at.desc()).limit(30).all()
+        owner = _resolve_owner_user(session, email)
+        vitals = (
+            session.query(VitalRecordModel)
+            .filter(VitalRecordModel.owner_user_id == owner.id)
+            .order_by(VitalRecordModel.recorded_at.desc())
+            .limit(30)
+            .all()
+        )
         res = []
         for v in vitals:
             res.append({
@@ -276,10 +328,12 @@ def get_user_vitals(email: Optional[str] = "rahul.sharma@email.com"):
 def log_vital_reading(payload: dict = Body(...)):
     session = get_db_session()
     try:
+        owner = _resolve_owner_user(session, payload.get("userEmail", DEFAULT_EMAIL))
         vital_id = payload.get("id") or f"vit-{int(datetime.datetime.utcnow().timestamp() * 1000)}"
         vital = VitalRecordModel(
             id=vital_id,
-            user_email=payload.get("userEmail", "rahul.sharma@email.com"),
+            owner_user_id=owner.id,
+            user_email=owner.email,
             systolic=int(payload.get("systolic", 120)),
             diastolic=int(payload.get("diastolic", 80)),
             pulse=int(payload.get("pulse", 72)),
@@ -289,6 +343,9 @@ def log_vital_reading(payload: dict = Body(...)):
         session.add(vital)
         session.commit()
         return {"status": "success", "message": "Vitals logged into SQL database", "vital": payload}
+    except HTTPException:
+        session.rollback()
+        raise
     except Exception as e:
         session.rollback()
         raise HTTPException(status_code=500, detail=str(e))
