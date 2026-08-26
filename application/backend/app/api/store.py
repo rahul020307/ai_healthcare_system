@@ -1,12 +1,16 @@
 import json
 import os
+import datetime
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
 
+from app.database.sql_db import get_db_session, OrderModel, UserModel
+
 router = APIRouter(prefix="/store", tags=["Store"])
 
 DATA_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "data", "medicines.json")
+
 
 def load_json_medicines():
     if os.path.exists(DATA_FILE):
@@ -26,7 +30,7 @@ class OrderItem(BaseModel):
 
 
 class OrderRequest(BaseModel):
-    userId: str
+    userId: Optional[str] = None
     items: List[OrderItem]
     totalAmount: float
     address: str
@@ -39,39 +43,21 @@ def get_medicines(
     search: Optional[str] = "",
     location: Optional[str] = "Hyderabad, Telangana",
     lat: Optional[float] = 17.3850,
-    lng: Optional[float] = 78.4867
+    lng: Optional[float] = 78.4867,
 ):
     loc_lower = (location or "").lower()
-
-    # Determine region & fulfillment hub based on location (All Indian context)
     if "mumbai" in loc_lower:
-        currency = "₹"
-        rate = 1.0
-        hub = "Apollo Pharmacy • Bandra West"
-        eta = "18-28 mins"
+        currency, rate, hub, eta = "₹", 1.0, "Apollo Pharmacy • Bandra West", "18-28 mins"
     elif "delhi" in loc_lower or "new delhi" in loc_lower:
-        currency = "₹"
-        rate = 1.0
-        hub = "Max Health Pharmacy • Connaught Place"
-        eta = "20-35 mins"
+        currency, rate, hub, eta = "₹", 1.0, "Max Health Pharmacy • Connaught Place", "20-35 mins"
     elif "bengaluru" in loc_lower or "bangalore" in loc_lower:
-        currency = "₹"
-        rate = 1.0
-        hub = "MedPlus Express • Indiranagar"
-        eta = "15-20 mins"
+        currency, rate, hub, eta = "₹", 1.0, "MedPlus Express • Indiranagar", "15-20 mins"
     elif "hyderabad" in loc_lower:
-        currency = "₹"
-        rate = 1.0
-        hub = "Apollo Pharmacy • Banjara Hills"
-        eta = "15-25 mins"
+        currency, rate, hub, eta = "₹", 1.0, "Apollo Pharmacy • Banjara Hills", "15-25 mins"
     else:
-        currency = "₹"
-        rate = 1.0
-        hub = f"MedPlus Express • {location or 'Indian City Center'}"
-        eta = "15-30 mins"
+        currency, rate, hub, eta = "₹", 1.0, f"MedPlus Express • {location or 'Indian City Center'}", "15-30 mins"
 
     json_records = load_json_medicines()
-
     base_medicines = []
     for item in json_records:
         raw_price = item.get("price", 50.0)
@@ -103,12 +89,11 @@ def get_medicines(
             "warnings": item.get("warnings", []),
             "contraindications": item.get("contraindications", []),
             "storage": item.get("storage", "Store in a cool dry place."),
-            "barcode": item.get("barcode", "8901234567890")
+            "barcode": item.get("barcode", "8901234567890"),
         })
 
     cat_lower = (category or "all").lower()
     search_lower = (search or "").lower()
-
     results = []
     for m in base_medicines:
         cat_match = cat_lower == "all" or cat_lower in m["category"].lower() or m["category"].lower() in cat_lower
@@ -122,19 +107,23 @@ def get_medicines(
         "fulfillingStore": hub,
         "deliveryEta": eta,
         "count": len(results),
-        "medicines": results
+        "medicines": results,
     }
-
-
-from app.database.sql_db import get_db_session, OrderModel
-import datetime
 
 
 @router.get("/orders")
 def get_user_orders(email: Optional[str] = "rahul.sharma@email.com"):
     session = get_db_session()
     try:
-        orders = session.query(OrderModel).order_by(OrderModel.created_at.desc()).all()
+        user = session.query(UserModel).filter_by(email=email).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User profile not found")
+        orders = (
+            session.query(OrderModel)
+            .filter(OrderModel.owner_user_id == user.id)
+            .order_by(OrderModel.created_at.desc())
+            .all()
+        )
         res = []
         for o in orders:
             try:
@@ -150,7 +139,7 @@ def get_user_orders(email: Optional[str] = "rahul.sharma@email.com"):
                 "address": o.delivery_address,
                 "paymentMethod": o.payment_method,
                 "status": o.status,
-                "createdAt": o.created_at.isoformat() if o.created_at else datetime.datetime.utcnow().isoformat()
+                "createdAt": o.created_at.isoformat() if o.created_at else datetime.datetime.utcnow().isoformat(),
             })
         return {"status": "success", "source": "SQL Database", "count": len(res), "orders": res}
     finally:
@@ -162,20 +151,25 @@ def place_order(order: OrderRequest):
     if not order.items:
         raise HTTPException(status_code=400, detail="Cart is empty")
 
-    order_id = f"ORD-{int(datetime.datetime.utcnow().timestamp() * 1000) % 1000000:06d}"
-    items_list = [{"id": it.id, "name": it.name, "price": it.price, "quantity": it.quantity} for it in order.items]
-
     session = get_db_session()
     try:
+        email = order.userId or "rahul.sharma@email.com"
+        user = session.query(UserModel).filter_by(email=email).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User profile not found")
+
+        order_id = f"ORD-{int(datetime.datetime.utcnow().timestamp() * 1000) % 1000000:06d}"
+        items_list = [{"id": it.id, "name": it.name, "price": it.price, "quantity": it.quantity} for it in order.items]
         order_record = OrderModel(
             id=order_id,
-            user_email="rahul.sharma@email.com",
-            patient_name=order.userId or "Rahul Sharma",
+            owner_user_id=user.id,
+            user_email=user.email,
+            patient_name=user.name,
             items_json=json.dumps(items_list),
             total_amount=order.totalAmount,
             delivery_address=order.address,
             payment_method=order.paymentMethod,
-            status="Confirmed - Preparing for Delivery"
+            status="Confirmed - Preparing for Delivery",
         )
         session.add(order_record)
         session.commit()
@@ -190,9 +184,12 @@ def place_order(order: OrderRequest):
                 "itemCount": len(order.items),
                 "deliveryAddress": order.address,
                 "paymentMethod": order.paymentMethod,
-                "status": "Confirmed"
-            }
+                "status": "Confirmed",
+            },
         }
+    except HTTPException:
+        session.rollback()
+        raise
     except Exception as e:
         session.rollback()
         raise HTTPException(status_code=500, detail=str(e))
