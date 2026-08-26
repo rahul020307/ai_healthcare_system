@@ -3,39 +3,39 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "/api/index.py"
+      "destination": "https://curaassist-carehub-backend-2.fastapicloud.dev/api/:path*"
     },
     {
       "source": "/chat/:path*",
-      "destination": "/api/index.py"
+      "destination": "https://curaassist-carehub-backend-2.fastapicloud.dev/chat/:path*"
     },
     {
       "source": "/store/:path*",
-      "destination": "/api/index.py"
+      "destination": "https://curaassist-carehub-backend-2.fastapicloud.dev/store/:path*"
     },
     {
       "source": "/profile/:path*",
-      "destination": "/api/index.py"
+      "destination": "https://curaassist-carehub-backend-2.fastapicloud.dev/profile/:path*"
     },
     {
       "source": "/auth/:path*",
-      "destination": "/api/index.py"
+      "destination": "https://curaassist-carehub-backend-2.fastapicloud.dev/auth/:path*"
     },
     {
       "source": "/medicine/:path*",
-      "destination": "/api/index.py"
+      "destination": "https://curaassist-carehub-backend-2.fastapicloud.dev/medicine/:path*"
     },
     {
       "source": "/maps/:path*",
-      "destination": "/api/index.py"
+      "destination": "https://curaassist-carehub-backend-2.fastapicloud.dev/maps/:path*"
     },
     {
       "source": "/home/:path*",
-      "destination": "/api/index.py"
+      "destination": "https://curaassist-carehub-backend-2.fastapicloud.dev/home/:path*"
     },
     {
       "source": "/db/:path*",
-      "destination": "/api/index.py"
+      "destination": "https://curaassist-carehub-backend-2.fastapicloud.dev/db/:path*"
     }
   ]
 }
