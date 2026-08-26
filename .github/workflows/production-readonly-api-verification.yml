@@ -1,0 +1,81 @@
+name: Production Read-Only API Verification
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: "17 */6 * * *"
+
+jobs:
+  verify-readonly-production-apis:
+    name: Verify important production GET endpoints
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      API_BASE_URL: https://curaassist-carehub-backend-2.fastapicloud.dev
+
+    steps:
+      - name: Verify production read-only endpoints
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          endpoints=(
+            "/"
+            "/api/status"
+            "/home/"
+            "/home/health-tips"
+            "/home/db-status"
+            "/medicine/all"
+            "/medicine/search?query=Augmentin"
+            "/medicine/info/MED-002"
+            "/medicine/generics/MED-002"
+            "/store/medicines?search=Augmentin"
+            "/store/orders"
+            "/maps/facilities"
+            "/profile/user"
+            "/profile/health-records"
+            "/profile/appointments"
+            "/profile/vitals"
+            "/db/status"
+            "/db/collections"
+            "/db/collection/medicines?limit=1"
+            "/db/collection/drug_interactions?limit=1"
+            "/db/collection/generic_alternatives?limit=1"
+          )
+
+          failed=0
+          passed=0
+
+          echo "Production API: ${API_BASE_URL}"
+          echo "Checking ${#endpoints[@]} read-only GET endpoints..."
+          echo
+
+          for endpoint in "${endpoints[@]}"; do
+            url="${API_BASE_URL}${endpoint}"
+            tmp="$(mktemp)"
+            status="$(curl -sS -L --max-time 30 --retry 2 --retry-delay 2 \
+              -o "${tmp}" -w '%{http_code}' "${url}" || true)"
+
+            if [[ "${status}" =~ ^2[0-9][0-9]$ ]]; then
+              echo "PASS ${status} ${endpoint}"
+              passed=$((passed + 1))
+            else
+              echo "FAIL ${status} ${endpoint}"
+              echo "Response:"
+              head -c 1000 "${tmp}" || true
+              echo
+              failed=$((failed + 1))
+            fi
+
+            rm -f "${tmp}"
+          done
+
+          echo
+          echo "Passed: ${passed}"
+          echo "Failed: ${failed}"
+
+          if [[ "${failed}" -ne 0 ]]; then
+            exit 1
+          fi
