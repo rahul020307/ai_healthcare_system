@@ -97,3 +97,33 @@ def get_current_identity(
         "role": claims.get("role"),
         "claims": claims,
     }
+
+
+def get_current_user(identity: Dict[str, Any] = Depends(get_current_identity)):
+    """Resolve a verified Supabase identity to the application's SQL user row."""
+    from app.database.sql_db import UserModel, get_db_session
+
+    session = get_db_session()
+    try:
+        user = session.query(UserModel).filter_by(id=identity["sub"]).first()
+        if not user:
+            user = session.query(UserModel).filter_by(email=identity["email"]).first()
+
+        if not user:
+            user = UserModel(
+                id=identity["sub"],
+                name=identity["email"].split("@", 1)[0],
+                email=identity["email"],
+                role="Patient",
+            )
+            session.add(user)
+            session.commit()
+        return user
+    except Exception as exc:
+        session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unable to resolve authenticated application user",
+        ) from exc
+    finally:
+        session.close()
