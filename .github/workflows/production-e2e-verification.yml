@@ -3,6 +3,8 @@ name: Production Frontend E2E Verification
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
   schedule:
     - cron: "47 */6 * * *"
@@ -142,7 +144,7 @@ jobs:
               await browser.close();
             }
 
-            console.log(`Passed/remaining checks complete; failures=${failures}`);
+            console.log(`Failures=${failures}`);
             if (failures > 0) process.exit(1);
           })().catch(error => {
             console.error(error);
