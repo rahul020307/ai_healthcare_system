@@ -11,9 +11,9 @@
     ]
   },
   {
-    "medicine_id": "MED-003",
-    "brand_name": "Augmentin 625 Duo",
-    "generic_name": "Amoxicillin 500mg + Clavulanic Acid 125mg",
+    "medicine_id": "MED-002",
+    "brand_name": "Augmentin 625 Duo Tablet",
+    "generic_name": "Amoxicillin & Clavulanate Potassium 625mg",
     "alternative_brands": [
       "Moxikind-CV 625",
       "Clavam 625",
