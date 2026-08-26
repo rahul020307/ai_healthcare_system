@@ -68,7 +68,7 @@ def test_health_records_are_scoped_to_authenticated_owner(monkeypatch, db_sessio
     assert response["records"][0]["id"] == "rec-a"
 
 
-def test_order_creation_uses_authenticated_owner(monkeypatch, db_session):
+def test_order_creation_uses_authenticated_owner_and_ignores_client_user_id(monkeypatch, db_session):
     owner = UserModel(id="owner-a", name="A", email="a@example.com")
     db_session.add(owner)
     db_session.commit()
@@ -89,13 +89,30 @@ def test_order_creation_uses_authenticated_owner(monkeypatch, db_session):
     assert stored.user_email == "a@example.com"
 
 
-def test_appointment_and_vital_writes_set_authenticated_owner(monkeypatch, db_session):
+def test_order_reads_are_scoped_to_authenticated_owner(monkeypatch, db_session):
+    owner_a = UserModel(id="owner-a", name="A", email="a@example.com")
+    owner_b = UserModel(id="owner-b", name="B", email="b@example.com")
+    db_session.add_all([owner_a, owner_b])
+    db_session.add_all([
+        OrderModel(id="order-a", owner_user_id="owner-a", user_email="a@example.com", items_json="[]", total_amount=10.0, delivery_address="A", payment_method="Test", status="Confirmed"),
+        OrderModel(id="order-b", owner_user_id="owner-b", user_email="b@example.com", items_json="[]", total_amount=20.0, delivery_address="B", payment_method="Test", status="Confirmed"),
+    ])
+    db_session.commit()
+    monkeypatch.setattr(store_api, "get_db_session", lambda: db_session)
+
+    response = store_api.get_user_orders(owner_a)
+
+    assert response["count"] == 1
+    assert response["orders"][0]["orderId"] == "order-a"
+
+
+def test_appointment_and_vital_writes_set_authenticated_owner_and_ignore_client_identity(monkeypatch, db_session):
     owner = UserModel(id="owner-a", name="A", email="a@example.com")
     db_session.add(owner)
     db_session.commit()
     monkeypatch.setattr(profile_api, "get_db_session", lambda: db_session)
 
-    appointment = profile_api.book_appointment({"patientName": "Attacker"}, owner)
+    appointment = profile_api.book_appointment({"patientName": "Attacker", "userEmail": "attacker@example.com"}, owner)
     vital = profile_api.log_vital_reading({"userEmail": "attacker@example.com"}, owner)
 
     stored_appointment = db_session.query(AppointmentModel).filter_by(id=appointment["appointment"]["id"]).one()
@@ -105,3 +122,37 @@ def test_appointment_and_vital_writes_set_authenticated_owner(monkeypatch, db_se
     assert stored_vital.owner_user_id == "owner-a"
     assert stored_appointment.user_email == "a@example.com"
     assert stored_vital.user_email == "a@example.com"
+
+
+def test_appointment_reads_are_scoped_to_authenticated_owner(monkeypatch, db_session):
+    owner_a = UserModel(id="owner-a", name="A", email="a@example.com")
+    owner_b = UserModel(id="owner-b", name="B", email="b@example.com")
+    db_session.add_all([owner_a, owner_b])
+    db_session.add_all([
+        AppointmentModel(id="appt-a", owner_user_id="owner-a", user_email="a@example.com"),
+        AppointmentModel(id="appt-b", owner_user_id="owner-b", user_email="b@example.com"),
+    ])
+    db_session.commit()
+    monkeypatch.setattr(profile_api, "get_db_session", lambda: db_session)
+
+    response = profile_api.get_appointments(owner_a)
+
+    assert response["count"] == 1
+    assert response["appointments"][0]["id"] == "appt-a"
+
+
+def test_vital_reads_are_scoped_to_authenticated_owner(monkeypatch, db_session):
+    owner_a = UserModel(id="owner-a", name="A", email="a@example.com")
+    owner_b = UserModel(id="owner-b", name="B", email="b@example.com")
+    db_session.add_all([owner_a, owner_b])
+    db_session.add_all([
+        VitalRecordModel(id="vital-a", owner_user_id="owner-a", user_email="a@example.com"),
+        VitalRecordModel(id="vital-b", owner_user_id="owner-b", user_email="b@example.com"),
+    ])
+    db_session.commit()
+    monkeypatch.setattr(profile_api, "get_db_session", lambda: db_session)
+
+    response = profile_api.get_user_vitals(owner_a)
+
+    assert response["count"] == 1
+    assert response["vitals"][0]["id"] == "vital-a"
