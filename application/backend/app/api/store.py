@@ -1,10 +1,11 @@
 import json
 import os
 import datetime
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
 
+from app.auth import get_current_user
 from app.database.sql_db import get_db_session, OrderModel, UserModel
 
 router = APIRouter(prefix="/store", tags=["Store"])
@@ -112,15 +113,12 @@ def get_medicines(
 
 
 @router.get("/orders")
-def get_user_orders(email: Optional[str] = "rahul.sharma@email.com"):
+def get_user_orders(current_user: UserModel = Depends(get_current_user)):
     session = get_db_session()
     try:
-        user = session.query(UserModel).filter_by(email=email).first()
-        if not user:
-            raise HTTPException(status_code=404, detail="User profile not found")
         orders = (
             session.query(OrderModel)
-            .filter(OrderModel.owner_user_id == user.id)
+            .filter(OrderModel.owner_user_id == current_user.id)
             .order_by(OrderModel.created_at.desc())
             .all()
         )
@@ -147,24 +145,22 @@ def get_user_orders(email: Optional[str] = "rahul.sharma@email.com"):
 
 
 @router.post("/orders")
-def place_order(order: OrderRequest):
+def place_order(
+    order: OrderRequest,
+    current_user: UserModel = Depends(get_current_user),
+):
     if not order.items:
         raise HTTPException(status_code=400, detail="Cart is empty")
 
     session = get_db_session()
     try:
-        email = order.userId or "rahul.sharma@email.com"
-        user = session.query(UserModel).filter_by(email=email).first()
-        if not user:
-            raise HTTPException(status_code=404, detail="User profile not found")
-
         order_id = f"ORD-{int(datetime.datetime.utcnow().timestamp() * 1000) % 1000000:06d}"
         items_list = [{"id": it.id, "name": it.name, "price": it.price, "quantity": it.quantity} for it in order.items]
         order_record = OrderModel(
             id=order_id,
-            owner_user_id=user.id,
-            user_email=user.email,
-            patient_name=user.name,
+            owner_user_id=current_user.id,
+            user_email=current_user.email,
+            patient_name=current_user.name,
             items_json=json.dumps(items_list),
             total_amount=order.totalAmount,
             delivery_address=order.address,
@@ -187,9 +183,6 @@ def place_order(order: OrderRequest):
                 "status": "Confirmed",
             },
         }
-    except HTTPException:
-        session.rollback()
-        raise
     except Exception as e:
         session.rollback()
         raise HTTPException(status_code=500, detail=str(e))
