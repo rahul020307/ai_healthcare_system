@@ -118,6 +118,9 @@ def get_current_user(identity: Dict[str, Any] = Depends(get_current_identity)):
             )
             session.add(user)
             session.commit()
+            session.refresh(user)
+
+        session.expunge(user)
         return user
     except Exception as exc:
         session.rollback()
