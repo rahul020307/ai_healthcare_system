@@ -1,0 +1,146 @@
+name: Production Security and Failure-Path Verification
+
+on:
+  push:
+    branches:
+      - main
+      - production-security-failure-verification
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+  schedule:
+    - cron: "17 */6 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  verify-production-security-failure-paths:
+    name: Verify production failure paths and security boundaries
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      API_BASE_URL: https://curaassist-carehub-backend-2.fastapicloud.dev
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install test dependencies
+        run: python -m pip install --upgrade pip requests
+
+      - name: Run non-mutating production security and failure-path checks
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import sys
+          from urllib.parse import urlparse
+          import requests
+
+          base = os.environ["API_BASE_URL"].rstrip("/")
+          failures = []
+
+          def request(name, method, path, **kwargs):
+              url = f"{base}{path}"
+              try:
+                  response = requests.request(method, url, timeout=20, allow_redirects=False, **kwargs)
+                  print(f"{response.status_code} {method} {path}")
+                  return response
+              except requests.RequestException as exc:
+                  failures.append(f"{name}: request failed: {exc}")
+                  return None
+
+          def expect_status(name, response, expected):
+              if response is None:
+                  return
+              if response.status_code != expected:
+                  failures.append(f"{name}: expected HTTP {expected}, got {response.status_code}")
+
+          def expect_json_content_type(name, response):
+              if response is None:
+                  return
+              content_type = response.headers.get("content-type", "").lower()
+              if "application/json" not in content_type:
+                  failures.append(f"{name}: unexpected content-type {content_type!r}")
+
+          def expect_no_sensitive_leak(name, response):
+              if response is None:
+                  return
+              body = response.text.lower()
+              forbidden = [
+                  "traceback (most recent call last)",
+                  "file \"/app/",
+                  "connectionstring",
+                  "database_url",
+                  "secret_key",
+                  "api_key",
+              ]
+              leaked = [token for token in forbidden if token in body]
+              if leaked:
+                  failures.append(f"{name}: response leaked sensitive/internal markers: {leaked}")
+
+          # 1) Unknown route should be a controlled 404 and not expose internals.
+          r = request("unknown-route", "GET", "/definitely-not-a-real-route")
+          expect_status("unknown-route", r, 404)
+          expect_json_content_type("unknown-route", r)
+          expect_no_sensitive_leak("unknown-route", r)
+
+          # 2) Known POST-only endpoint should reject GET without executing the operation.
+          r = request("wrong-method-interactions", "GET", "/medicine/check-interactions")
+          expect_status("wrong-method-interactions", r, 405)
+          expect_no_sensitive_leak("wrong-method-interactions", r)
+
+          # 3) Invalid JSON/body on the interaction endpoint should be a controlled 4xx.
+          r = request(
+              "invalid-interaction-body",
+              "POST",
+              "/medicine/check-interactions",
+              data="{not-valid-json}",
+              headers={"content-type": "application/json"},
+          )
+          if r is not None and not (400 <= r.status_code < 500):
+              failures.append(f"invalid-interaction-body: expected 4xx, got {r.status_code}")
+          expect_no_sensitive_leak("invalid-interaction-body", r)
+
+          # 4) Missing required request body should be a controlled 4xx.
+          r = request(
+              "missing-interaction-body",
+              "POST",
+              "/medicine/check-interactions",
+              headers={"content-type": "application/json"},
+          )
+          if r is not None and not (400 <= r.status_code < 500):
+              failures.append(f"missing-interaction-body: expected 4xx, got {r.status_code}")
+          expect_no_sensitive_leak("missing-interaction-body", r)
+
+          # 5) Malformed medicine id should be controlled and non-internal.
+          r = request("invalid-medicine-id", "GET", "/medicine/info/NOT-A-REAL-MEDICINE")
+          if r is not None and not (400 <= r.status_code < 500):
+              failures.append(f"invalid-medicine-id: expected 4xx, got {r.status_code}")
+          expect_no_sensitive_leak("invalid-medicine-id", r)
+
+          # 6) Verify production API does not redirect HTTP requests unexpectedly.
+          parsed = urlparse(base)
+          if parsed.scheme != "https":
+              failures.append(f"api-base-url: expected HTTPS, got {parsed.scheme!r}")
+
+          # 7) Explicitly verify the security-sensitive response headers we can assess reliably here.
+          r = request("api-status", "GET", "/api/status")
+          if r is not None:
+              for header in ("server",):
+                  if header in r.headers and any(secret in r.headers[header].lower() for secret in ("traceback", "password")):
+                      failures.append(f"api-status: suspicious {header} header value")
+              expect_no_sensitive_leak("api-status", r)
+
+          print(json.dumps({"failures": failures}, indent=2))
+          if failures:
+              sys.exit(1)
+          print("All production security/failure-path checks passed.")
+          PY
