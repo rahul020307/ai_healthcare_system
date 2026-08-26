@@ -1,0 +1,151 @@
+name: Production Frontend E2E Verification
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: "47 */6 * * *"
+
+jobs:
+  verify-production-e2e:
+    name: Verify Vercel frontend to FastAPI integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      FRONTEND_URL: https://ai-healthcare-system-eta.vercel.app/
+      API_BASE_URL: https://curaassist-carehub-backend-2.fastapicloud.dev
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Playwright
+        run: |
+          npm init -y
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Verify production frontend and browser-origin API integration
+        run: |
+          node <<'NODE'
+          const { chromium } = require('playwright');
+
+          const frontend = process.env.FRONTEND_URL;
+          const api = process.env.API_BASE_URL;
+          let failures = 0;
+
+          function pass(message) {
+            console.log(`PASS ${message}`);
+          }
+
+          function fail(message) {
+            console.error(`FAIL ${message}`);
+            failures++;
+          }
+
+          (async () => {
+            const browser = await chromium.launch({ headless: true });
+            const page = await browser.newPage();
+
+            try {
+              const response = await page.goto(frontend, {
+                waitUntil: 'domcontentloaded',
+                timeout: 60000,
+              });
+              await page.waitForTimeout(5000);
+
+              if (!response || !response.ok()) {
+                fail(`Vercel frontend did not load successfully: ${response && response.status()}`);
+              } else {
+                pass(`Vercel frontend loaded (${response.status()})`);
+              }
+
+              const title = await page.title();
+              if (title.includes('CuraAssist')) {
+                pass('CuraAssist page title is present');
+              } else {
+                fail(`Unexpected page title: ${title}`);
+              }
+
+              for (const selector of ['#nav-home', '#nav-store', '#nav-maps', '#nav-profile']) {
+                if (await page.locator(selector).count()) {
+                  pass(`Frontend navigation selector exists: ${selector}`);
+                } else {
+                  fail(`Missing frontend navigation selector: ${selector}`);
+                }
+              }
+
+              const apiChecks = [
+                {
+                  name: 'API status',
+                  method: 'GET',
+                  path: '/api/status',
+                },
+                {
+                  name: 'Medicine info',
+                  method: 'GET',
+                  path: '/medicine/info/MED-002',
+                  validate: body => body?.medicine?.medicine_id === 'MED-002',
+                },
+                {
+                  name: 'Generic alternatives',
+                  method: 'GET',
+                  path: '/medicine/generics/MED-002',
+                },
+                {
+                  name: 'Drug interaction check',
+                  method: 'POST',
+                  path: '/medicine/check-interactions',
+                  body: { medicines: ['Warfarin', 'Aspirin'] },
+                  validate: body => body?.status === 'success' && body?.hasInteractions === true,
+                },
+              ];
+
+              for (const check of apiChecks) {
+                const result = await page.evaluate(async ({ api, check }) => {
+                  const options = {
+                    method: check.method,
+                    headers: { 'Content-Type': 'application/json' },
+                  };
+                  if (check.body) options.body = JSON.stringify(check.body);
+
+                  try {
+                    const response = await fetch(`${api}${check.path}`, options);
+                    const text = await response.text();
+                    let body = null;
+                    try { body = JSON.parse(text); } catch (_) {}
+                    return { ok: response.ok, status: response.status, body, text: text.slice(0, 500) };
+                  } catch (error) {
+                    return { ok: false, status: 0, error: String(error) };
+                  }
+                }, { api, check });
+
+                if (!result.ok) {
+                  fail(`${check.name}: HTTP ${result.status} ${result.error || result.text || ''}`);
+                  continue;
+                }
+
+                if (check.validate && !check.validate(result.body)) {
+                  fail(`${check.name}: response shape/content did not match expected production contract`);
+                  continue;
+                }
+
+                pass(`${check.name}: HTTP ${result.status}`);
+              }
+            } finally {
+              await browser.close();
+            }
+
+            console.log(`Passed/remaining checks complete; failures=${failures}`);
+            if (failures > 0) process.exit(1);
+          })().catch(error => {
+            console.error(error);
+            process.exit(1);
+          });
+          NODE
