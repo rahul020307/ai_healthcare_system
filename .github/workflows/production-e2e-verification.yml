@@ -14,6 +14,8 @@ jobs:
     name: Verify Vercel frontend to FastAPI integration
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
     env:
       FRONTEND_URL: https://ai-healthcare-system-eta.vercel.app/
       API_BASE_URL: https://curaassist-carehub-backend-2.fastapicloud.dev
@@ -93,7 +95,7 @@ jobs:
                   name: 'Medicine info',
                   method: 'GET',
                   path: '/medicine/info/MED-002',
-                  validate: body => body?.medicine?.medicine_id === 'MED-002',
+                  validation: { type: 'medicine-id', expected: 'MED-002' },
                 },
                 {
                   name: 'Generic alternatives',
@@ -105,7 +107,7 @@ jobs:
                   method: 'POST',
                   path: '/medicine/check-interactions',
                   body: { medicines: ['Warfarin', 'Aspirin'] },
-                  validate: body => body?.status === 'success' && body?.hasInteractions === true,
+                  validation: { type: 'interaction-success' },
                 },
               ];
 
@@ -122,9 +124,22 @@ jobs:
                     const text = await response.text();
                     let body = null;
                     try { body = JSON.parse(text); } catch (_) {}
-                    return { ok: response.ok, status: response.status, body, text: text.slice(0, 500) };
+
+                    let valid = true;
+                    if (check.validation?.type === 'medicine-id') {
+                      valid = body?.medicine?.medicine_id === check.validation.expected;
+                    } else if (check.validation?.type === 'interaction-success') {
+                      valid = body?.status === 'success' && body?.hasInteractions === true;
+                    }
+
+                    return {
+                      ok: response.ok,
+                      status: response.status,
+                      valid,
+                      text: text.slice(0, 500),
+                    };
                   } catch (error) {
-                    return { ok: false, status: 0, error: String(error) };
+                    return { ok: false, status: 0, valid: false, error: String(error) };
                   }
                 }, { api, check });
 
@@ -133,7 +148,7 @@ jobs:
                   continue;
                 }
 
-                if (check.validate && !check.validate(result.body)) {
+                if (!result.valid) {
                   fail(`${check.name}: response shape/content did not match expected production contract`);
                   continue;
                 }
