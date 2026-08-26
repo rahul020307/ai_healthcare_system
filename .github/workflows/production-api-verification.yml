@@ -1,0 +1,27 @@
+name: Production API Verification
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - production-api-verification
+
+jobs:
+  verify-production-api:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install test dependencies
+        run: python -m pip install --upgrade pip pytest requests
+
+      - name: Run production API verification
+        env:
+          PRODUCTION_API_URL: https://curaassist-carehub-backend-2.fastapicloud.dev
+        run: pytest -q application/backend/tests/test_production_api.py
