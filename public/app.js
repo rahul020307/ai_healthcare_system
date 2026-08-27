@@ -327,6 +327,11 @@ async function submitAuth(message, overrideName, mode = 'login') {
     }
   }
 
+  // Capitalize first letter of userName for clean display
+  userName = userName.charAt(0).toUpperCase() + userName.slice(1);
+  const userEmail = email || (identity.includes('@') ? identity : (identity ? `${identity.toLowerCase()}@curahealth.in` : `${userName.toLowerCase().replace(/\s+/g, '')}@curahealth.in`));
+  const userPhone = phone || "+91 98765 43210";
+
   // Supabase Auth Integration
   const client = getSupabaseClient();
   let supabaseToken = null;
@@ -335,15 +340,21 @@ async function submitAuth(message, overrideName, mode = 'login') {
       if (mode === 'register') {
         const { data, error } = await client.auth.signUp({
           email: userEmail,
-          password: password || "demo12345",
+          password: password,
           options: { data: { name: userName, phone: userPhone } }
         });
+        if (error && !error.message.includes('already registered')) {
+          console.warn("Supabase SignUp Note:", error.message);
+        }
         if (data?.session?.access_token) supabaseToken = data.session.access_token;
       } else {
         const { data, error } = await client.auth.signInWithPassword({
-          email: userEmail || identity,
-          password: password || "demo12345"
+          email: userEmail,
+          password: password
         });
+        if (error) {
+          console.warn("Supabase SignIn Note:", error.message);
+        }
         if (data?.session?.access_token) supabaseToken = data.session.access_token;
       }
     } catch (e) {
