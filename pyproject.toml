@@ -21,7 +21,8 @@ dependencies = [
 ]
 
 [tool.setuptools.packages.find]
+where = ["application/backend"]
 include = ["app*"]
 
 [tool.fastapi]
-entrypoint = "app.main:app"
+entrypoint = "application.backend.app.main:app"
