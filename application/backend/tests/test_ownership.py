@@ -10,10 +10,54 @@ from app.database.sql_db import (
     OrderModel,
     UserModel,
     VitalRecordModel,
+    MedicineScheduleModel,
 )
 import app.database.sql_db as sql_db
 import app.api.profile as profile_api
 import app.api.store as store_api
+
+
+def test_medicine_schedule_reads_and_writes_are_scoped_to_authenticated_owner(monkeypatch, db_session):
+    owner_a = UserModel(id="owner-a", name="A", email="a@example.com")
+    owner_b = UserModel(id="owner-b", name="B", email="b@example.com")
+    db_session.add_all([owner_a, owner_b])
+    db_session.add_all([
+        MedicineScheduleModel(id="sch-a", owner_user_id="owner-a", user_email="a@example.com", name="Amoxicillin"),
+        MedicineScheduleModel(id="sch-b", owner_user_id="owner-b", user_email="b@example.com", name="Metformin"),
+    ])
+    db_session.commit()
+    monkeypatch.setattr(profile_api, "get_db_session", lambda: db_session)
+
+    res_a = profile_api.get_medicine_schedules(owner_a)
+    assert res_a["count"] == 1
+    assert res_a["schedules"][0]["id"] == "sch-a"
+
+    res_write = profile_api.add_medicine_schedule({"name": "Paracetamol", "dosage": "500mg"}, owner_a)
+    stored = db_session.query(MedicineScheduleModel).filter_by(id=res_write["schedule"]["id"]).one()
+    assert stored.owner_user_id == "owner-a"
+
+    # User B cannot delete User A's schedule
+    with pytest.raises(Exception):
+        profile_api.delete_medicine_schedule("sch-a", owner_b)
+
+
+def test_health_record_deletion_enforces_ownership(monkeypatch, db_session):
+    owner_a = UserModel(id="owner-a", name="A", email="a@example.com")
+    owner_b = UserModel(id="owner-b", name="B", email="b@example.com")
+    db_session.add_all([owner_a, owner_b])
+    db_session.add(HealthRecordModel(id="rec-a", owner_user_id="owner-a", title="A Report"))
+    db_session.commit()
+    monkeypatch.setattr(profile_api, "get_db_session", lambda: db_session)
+
+    # User B deletion attempt must fail
+    with pytest.raises(Exception):
+        profile_api.delete_health_record("rec-a", owner_b)
+
+    # User A deletion succeeds
+    del_res = profile_api.delete_health_record("rec-a", owner_a)
+    assert del_res["status"] == "success"
+    assert db_session.query(HealthRecordModel).filter_by(id="rec-a").first() is None
+
 
 
 @pytest.fixture

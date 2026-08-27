@@ -114,6 +114,22 @@ class VitalRecordModel(Base):
     recorded_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 
+class MedicineScheduleModel(Base):
+    __tablename__ = "schedules"
+    id = Column(String, primary_key=True, index=True)
+    owner_user_id = Column(String, ForeignKey("users.id"), index=True, nullable=False)
+    user_email = Column(String, index=True, default="rahul.sharma@email.com")
+    name = Column(String, nullable=False)
+    dosage = Column(String, default="1 Tablet")
+    frequency = Column(String, default="Daily")
+    time = Column(String, default="08:00 AM")
+    category = Column(String, default="General")
+    next_dose = Column(String, default="Today, 08:00 AM")
+    status = Column(String, default="Active")
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+
+
 class MedicineModel(Base):
     __tablename__ = "medicines"
     medicine_id = Column(String, primary_key=True, index=True)

@@ -20,10 +20,86 @@ let state = {
   activeRoutePolyline: null
 };
 
+function getSupabaseClient() {
+  if (window._supabaseClient) return window._supabaseClient;
+  if (typeof supabase !== 'undefined' && supabase.createClient) {
+    const url = window.SUPABASE_URL || "https://curaassist-carehub.supabase.co";
+    const key = window.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1cmFhc3Npc3QtY2FyZWh1YiIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzA0MDY3MjAwLCJleHAiOjIwMTk2NDMyMDB9.placeholder_key";
+    try {
+      window._supabaseClient = supabase.createClient(url, key);
+      return window._supabaseClient;
+    } catch (e) {
+      console.warn("Supabase init note:", e);
+    }
+  }
+  return null;
+}
+
+function getAuthToken() {
+  if (window.authToken) return window.authToken;
+  const client = getSupabaseClient();
+  if (client && client.auth) {
+    try {
+      const session = client.auth.session ? client.auth.session() : null;
+      if (session?.access_token) {
+        window.authToken = session.access_token;
+        return window.authToken;
+      }
+    } catch (e) {}
+  }
+  return null;
+}
+
+function getAuthHeaders() {
+  const token = getAuthToken();
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  return headers;
+}
+
+async function fetchUserDataFromBackend() {
+  const headers = getAuthHeaders();
+  if (!headers['Authorization']) return;
+
+  try {
+    // 1. Fetch User Profile
+    const profRes = await fetch(`${API_BASE}/profile/user`, { headers });
+    if (profRes.ok) {
+      const profData = await profRes.json();
+      if (profData.user) {
+        updateAuthUIState({ isLoggedIn: true, ...profData.user });
+      }
+    }
+
+    // 2. Fetch Health Records
+    const recRes = await fetch(`${API_BASE}/profile/health-records`, { headers });
+    if (recRes.ok) {
+      const recData = await recRes.json();
+      if (Array.isArray(recData.records)) {
+        state.records = recData.records;
+        if (typeof renderRecords === 'function') renderRecords();
+      }
+    }
+
+    // 3. Fetch Medicine Schedules
+    const schRes = await fetch(`${API_BASE}/profile/schedules`, { headers });
+    if (schRes.ok) {
+      const schData = await schRes.json();
+      if (Array.isArray(schData.schedules)) {
+        state.schedule = schData.schedules;
+        if (typeof renderSchedule === 'function') renderSchedule();
+      }
+    }
+  } catch (e) {
+    console.warn("[CuraAssist] Backend data sync note:", e);
+  }
+}
+
 function saveStateToStorage() {
   try {
-    localStorage.setItem('cura_schedule_v1', JSON.stringify(state.schedule));
-    localStorage.setItem('cura_records_v1', JSON.stringify(state.records));
+    // UI temporary preferences only (e.g. cart). Healthcare data is saved to Supabase/SQL database.
     localStorage.setItem('cura_cart_v1', JSON.stringify(state.cart));
   } catch (e) {
     console.warn("[CuraAssist] Storage save error:", e);
@@ -32,28 +108,15 @@ function saveStateToStorage() {
 
 function loadStateFromStorage() {
   try {
-    const savedSch = localStorage.getItem('cura_schedule_v1');
-    const savedRec = localStorage.getItem('cura_records_v1');
     const savedCart = localStorage.getItem('cura_cart_v1');
-
-    if (savedSch) {
-      state.schedule = JSON.parse(savedSch);
-    } else if (typeof INITIAL_DATA !== 'undefined' && INITIAL_DATA.medicineSchedule) {
-      state.schedule = JSON.parse(JSON.stringify(INITIAL_DATA.medicineSchedule));
-    }
-
-    if (savedRec) {
-      state.records = JSON.parse(savedRec);
-    } else if (typeof INITIAL_DATA !== 'undefined' && INITIAL_DATA.healthRecords) {
-      state.records = JSON.parse(JSON.stringify(INITIAL_DATA.healthRecords));
-    }
-
     if (savedCart) {
       state.cart = JSON.parse(savedCart);
     }
   } catch (e) {
     console.warn("[CuraAssist] Storage load error:", e);
   }
+  // Load persistent user healthcare data directly from authenticated backend APIs
+  fetchUserDataFromBackend();
 }
 
 function ensureLucideIcons() {
@@ -264,10 +327,29 @@ async function submitAuth(message, overrideName, mode = 'login') {
     }
   }
 
-  // Capitalize first letter of userName for clean display
-  userName = userName.charAt(0).toUpperCase() + userName.slice(1);
-  const userEmail = email || `${userName.toLowerCase().replace(/\s+/g, '')}@curahealth.in`;
-  const userPhone = phone || "+91 98765 43210";
+  // Supabase Auth Integration
+  const client = getSupabaseClient();
+  let supabaseToken = null;
+  if (client && client.auth) {
+    try {
+      if (mode === 'register') {
+        const { data, error } = await client.auth.signUp({
+          email: userEmail,
+          password: password || "demo12345",
+          options: { data: { name: userName, phone: userPhone } }
+        });
+        if (data?.session?.access_token) supabaseToken = data.session.access_token;
+      } else {
+        const { data, error } = await client.auth.signInWithPassword({
+          email: userEmail || identity,
+          password: password || "demo12345"
+        });
+        if (data?.session?.access_token) supabaseToken = data.session.access_token;
+      }
+    } catch (e) {
+      console.warn("Supabase Auth note:", e);
+    }
+  }
 
   const userSessionData = {
     isLoggedIn: true,
@@ -277,15 +359,19 @@ async function submitAuth(message, overrideName, mode = 'login') {
     blood: blood,
     city: city,
     age: age,
-    token: `jwt-token-${Date.now()}`
+    token: supabaseToken || window.authToken || null
   };
 
-  // Attempt backend API call if server is active
+  if (supabaseToken) {
+    window.authToken = supabaseToken;
+  }
+
+  // Register / update profile on FastAPI backend
   try {
     const endpoint = mode === 'register' ? `${API_BASE}/profile/register` : `${API_BASE}/profile/login`;
     await fetch(endpoint, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         identity: identity || userName,
         email: userEmail,
@@ -294,11 +380,11 @@ async function submitAuth(message, overrideName, mode = 'login') {
         blood_group: blood,
         city: city,
         age: age,
-        password: password || "demo123"
+        password: password || "demo12345"
       })
     });
   } catch (err) {
-    console.warn("Backend auth notification note:", err);
+    console.warn("Backend auth sync note:", err);
   }
 
   // Update App State & Dataset
@@ -314,11 +400,6 @@ async function submitAuth(message, overrideName, mode = 'login') {
     }
   }
 
-  // Save Session in localStorage for persistence across refreshes
-  try {
-    localStorage.setItem('cura_auth_session', JSON.stringify(userSessionData));
-  } catch (e) {}
-
   // Update UI Elements across the application
   updateAuthUIState(userSessionData);
   
@@ -326,7 +407,10 @@ async function submitAuth(message, overrideName, mode = 'login') {
   const overlay = document.getElementById('auth-guard-overlay');
   if (overlay) overlay.classList.add('hidden');
 
-  alert(message || `Welcome to CuraAssist Healthcare, ${userName}! Your profile is connected.`);
+  // Fetch real persistent healthcare data from backend for authenticated user
+  fetchUserDataFromBackend();
+
+  alert(message || `Welcome to CuraAssist Healthcare, ${userName}! Your Supabase profile is connected.`);
 }
 
 let currentPendingAvatarUrl = null;
@@ -497,10 +581,15 @@ function saveProfileEdits() {
   alert(`✨ Profile details, age (${age} Yrs) & avatar photo updated successfully for ${name}!`);
 }
 
-function logoutUser() {
-  try {
-    localStorage.removeItem('cura_auth_session');
-  } catch (e) {}
+async function logoutUser() {
+  const client = getSupabaseClient();
+  if (client && client.auth) {
+    try { await client.auth.signOut(); } catch (e) {}
+  }
+  window.authToken = null;
+  state.records = [];
+  state.schedule = [];
+
   if (typeof INITIAL_DATA !== 'undefined') {
     INITIAL_DATA.userAuth.isLoggedIn = false;
     INITIAL_DATA.userAuth.user.name = "Guest User";
@@ -661,11 +750,21 @@ function togglePillTaken(id) {
   }
 }
 
-function deleteReminder(id) {
-  if (state.schedule[state.activeFamilyId]) {
+async function deleteReminder(id) {
+  if (Array.isArray(state.schedule)) {
+    state.schedule = state.schedule.filter(p => p.id !== id);
+  } else if (state.schedule[state.activeFamilyId]) {
     state.schedule[state.activeFamilyId] = state.schedule[state.activeFamilyId].filter(p => p.id !== id);
-    saveStateToStorage();
-    renderSchedule();
+  }
+  renderSchedule();
+
+  try {
+    await fetch(`${API_BASE}/profile/schedules/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders()
+    });
+  } catch (e) {
+    console.warn("Delete reminder note:", e);
   }
 }
 
@@ -680,31 +779,41 @@ function closeAddReminderModal() {
   document.getElementById('modal-add-reminder').classList.add('hidden');
 }
 
-function saveNewReminder() {
+async function saveNewReminder() {
   const name = document.getElementById('rem-name').value;
   const dose = document.getElementById('rem-dose').value;
   const slot = document.getElementById('rem-slot').value;
 
   if (!name) return alert("Please enter medicine name");
 
-  if (!state.schedule[state.activeFamilyId]) {
-    state.schedule[state.activeFamilyId] = [];
-  }
-
-  state.schedule[state.activeFamilyId].push({
+  const newItem = {
     id: `sch-${Date.now()}`,
     name,
-    dose: dose || "1 Tablet",
-    time: `${slot.toUpperCase()} Slot`,
-    slot,
-    taken: false,
-    refillsLeft: 30,
-    total: 30
-  });
+    dosage: dose || "1 Tablet",
+    time: `${(slot || 'Morning').toUpperCase()} Slot`,
+    category: "General",
+    status: "Active"
+  };
 
-  saveStateToStorage();
+  if (Array.isArray(state.schedule)) {
+    state.schedule.unshift(newItem);
+  } else {
+    if (!state.schedule[state.activeFamilyId]) state.schedule[state.activeFamilyId] = [];
+    state.schedule[state.activeFamilyId].push(newItem);
+  }
+
   closeAddReminderModal();
   renderSchedule();
+
+  try {
+    await fetch(`${API_BASE}/profile/schedules`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(newItem)
+    });
+  } catch (e) {
+    console.warn("Save reminder note:", e);
+  }
 }
 
 // MODULE 8: PRESCRIPTION MANAGEMENT & OCR EXTRACTION
@@ -876,12 +985,20 @@ function closeRecordDetailModal() {
   document.getElementById('modal-record-detail')?.classList.add('hidden');
 }
 
-function deleteHealthRecord(recId) {
+async function deleteHealthRecord(recId) {
   if (confirm("Are you sure you want to delete this document from your health records?")) {
     state.records = state.records.filter(r => r.id !== recId);
-    saveStateToStorage();
     closeRecordDetailModal();
     renderRecords();
+
+    try {
+      await fetch(`${API_BASE}/profile/health-records/${recId}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+    } catch (e) {
+      console.warn("Delete health record note:", e);
+    }
   }
 }
 

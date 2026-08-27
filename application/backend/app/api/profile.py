@@ -11,7 +11,9 @@ from app.database.sql_db import (
     HealthRecordModel,
     AppointmentModel,
     VitalRecordModel,
+    MedicineScheduleModel,
 )
+from app.services.storage import upload_base64_to_supabase
 
 router = APIRouter(prefix="/profile", tags=["Profile"])
 DATA_DIR = Path(__file__).parent.parent.parent / "data"
@@ -141,6 +143,17 @@ def upload_health_record(
         tags_raw = payload.get("tags", ["Uploaded", "Health Record"])
         tags_str = ",".join(tags_raw) if isinstance(tags_raw, list) else str(tags_raw)
 
+        file_url = payload.get("file_url") or payload.get("fileUrl")
+        file_data = payload.get("fileData") or payload.get("base64")
+        if file_data and not file_url:
+            filename = payload.get("filename") or f"prescription_{rec_id}.jpg"
+            storage_res = upload_base64_to_supabase(
+                base64_data=file_data,
+                filename=filename,
+                user_id=current_user.id,
+            )
+            file_url = storage_res.get("file_url")
+
         new_rec = HealthRecordModel(
             id=rec_id,
             owner_user_id=current_user.id,
@@ -152,7 +165,8 @@ def upload_health_record(
             doctor=payload.get("doctor", "Self Upload / Clinic"),
             facility=payload.get("facility", "CuraAssist Digital Hub"),
             tags=tags_str,
-            summary=payload.get("summary", "Medical record uploaded and saved to SQL database."),
+            summary=payload.get("summary", "Medical record stored securely in Supabase / SQL database."),
+            file_url=file_url,
         )
         session.add(new_rec)
         session.commit()
@@ -170,8 +184,39 @@ def upload_health_record(
                 "facility": new_rec.facility,
                 "tags": tags_raw,
                 "summary": new_rec.summary,
+                "file_url": new_rec.file_url,
             },
         }
+    except Exception as e:
+        session.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        session.close()
+
+
+@router.delete("/health-records/{record_id}")
+def delete_health_record(
+    record_id: str,
+    current_user: UserModel = Depends(get_current_user),
+):
+    session = get_db_session()
+    try:
+        rec = (
+            session.query(HealthRecordModel)
+            .filter(
+                HealthRecordModel.id == record_id,
+                HealthRecordModel.owner_user_id == current_user.id,
+            )
+            .first()
+        )
+        if not rec:
+            raise HTTPException(status_code=404, detail="Health record not found or unauthorized")
+        session.delete(rec)
+        session.commit()
+        return {"status": "success", "message": "Health record deleted", "id": record_id}
+    except HTTPException:
+        session.rollback()
+        raise
     except Exception as e:
         session.rollback()
         raise HTTPException(status_code=500, detail=str(e))
@@ -485,4 +530,100 @@ def delete_user_upload(
         if not (u.get("id") == upload_id and u.get("ownerUserId") == current_user.id)
     ]
     save_uploads(updated)
-    return {"status": "success", "message": f"Upload {upload_id} deleted"}
+    return {"status": "success", "message": "Upload record deleted"}
+
+
+# --- MEDICINE SCHEDULE ENDPOINTS (SQL / SUPABASE BACKED) ---
+
+@router.get("/schedules")
+def get_medicine_schedules(current_user: UserModel = Depends(get_current_user)):
+    session = get_db_session()
+    try:
+        schedules = (
+            session.query(MedicineScheduleModel)
+            .filter(MedicineScheduleModel.owner_user_id == current_user.id)
+            .order_by(MedicineScheduleModel.created_at.desc())
+            .all()
+        )
+        res = []
+        for s in schedules:
+            res.append({
+                "id": s.id,
+                "name": s.name,
+                "dosage": s.dosage,
+                "frequency": s.frequency,
+                "time": s.time,
+                "category": s.category,
+                "nextDose": s.next_dose,
+                "status": s.status,
+            })
+        return {
+            "status": "success",
+            "source": "SQL Database",
+            "count": len(res),
+            "schedules": res,
+        }
+    finally:
+        session.close()
+
+
+@router.post("/schedules")
+def add_medicine_schedule(
+    payload: dict = Body(...),
+    current_user: UserModel = Depends(get_current_user),
+):
+    session = get_db_session()
+    try:
+        sch_id = payload.get("id") or f"sch-{int(datetime.datetime.utcnow().timestamp() * 1000)}"
+        item = MedicineScheduleModel(
+            id=sch_id,
+            owner_user_id=current_user.id,
+            user_email=current_user.email,
+            name=payload.get("name", "Prescription Medicine"),
+            dosage=payload.get("dosage", "1 Tablet"),
+            frequency=payload.get("frequency", "Daily"),
+            time=payload.get("time", "08:00 AM"),
+            category=payload.get("category", "General"),
+            next_dose=payload.get("nextDose") or payload.get("next_dose", "Today, 08:00 AM"),
+            status=payload.get("status", "Active"),
+        )
+        session.add(item)
+        session.commit()
+        out_payload = dict(payload)
+        out_payload["id"] = sch_id
+        return {"status": "success", "message": "Medicine schedule saved", "schedule": out_payload}
+    except Exception as e:
+        session.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        session.close()
+
+
+@router.delete("/schedules/{schedule_id}")
+def delete_medicine_schedule(
+    schedule_id: str,
+    current_user: UserModel = Depends(get_current_user),
+):
+    session = get_db_session()
+    try:
+        item = (
+            session.query(MedicineScheduleModel)
+            .filter(
+                MedicineScheduleModel.id == schedule_id,
+                MedicineScheduleModel.owner_user_id == current_user.id,
+            )
+            .first()
+        )
+        if not item:
+            raise HTTPException(status_code=404, detail="Schedule entry not found or unauthorized")
+        session.delete(item)
+        session.commit()
+        return {"status": "success", "message": "Schedule entry deleted", "id": schedule_id}
+    except HTTPException:
+        session.rollback()
+        raise
+    except Exception as e:
+        session.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        session.close()
