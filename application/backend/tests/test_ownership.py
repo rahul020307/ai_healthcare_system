@@ -20,10 +20,13 @@ import app.api.store as store_api
 def db_session():
     engine = create_engine("sqlite:///:memory:")
     Base.metadata.create_all(bind=engine)
-    session = sessionmaker(autocommit=False, autoflush=False, bind=engine)()
+    session = sessionmaker(autocommit=False, autoflush=False, expire_on_commit=False, bind=engine)()
+    real_close = session.close
+    session.close = lambda: None
     try:
         yield session
     finally:
+        session.close = real_close
         session.close()
         engine.dispose()
 
@@ -129,8 +132,8 @@ def test_appointment_reads_are_scoped_to_authenticated_owner(monkeypatch, db_ses
     owner_b = UserModel(id="owner-b", name="B", email="b@example.com")
     db_session.add_all([owner_a, owner_b])
     db_session.add_all([
-        AppointmentModel(id="appt-a", owner_user_id="owner-a", user_email="a@example.com"),
-        AppointmentModel(id="appt-b", owner_user_id="owner-b", user_email="b@example.com"),
+        AppointmentModel(id="appt-a", owner_user_id="owner-a", user_email="a@example.com", doctor_name="Dr. Smith", patient_name="Patient A", appointment_date="2026-08-28", appointment_time="10:00 AM"),
+        AppointmentModel(id="appt-b", owner_user_id="owner-b", user_email="b@example.com", doctor_name="Dr. Jones", patient_name="Patient B", appointment_date="2026-08-28", appointment_time="11:00 AM"),
     ])
     db_session.commit()
     monkeypatch.setattr(profile_api, "get_db_session", lambda: db_session)

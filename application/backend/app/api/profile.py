@@ -331,7 +331,9 @@ def log_vital_reading(
         )
         session.add(vital)
         session.commit()
-        return {"status": "success", "message": "Vitals logged into SQL database", "vital": payload}
+        vital_payload = dict(payload)
+        vital_payload["id"] = vital_id
+        return {"status": "success", "message": "Vitals logged into SQL database", "vital": vital_payload}
     except Exception as e:
         session.rollback()
         raise HTTPException(status_code=500, detail=str(e))
