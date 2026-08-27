@@ -35,12 +35,12 @@ function getSupabaseClient() {
   return null;
 }
 
-function getAuthToken() {
+async function getAuthToken() {
   if (window.authToken) return window.authToken;
   const client = getSupabaseClient();
   if (client && client.auth) {
     try {
-      const session = client.auth.session ? client.auth.session() : null;
+      const { data: { session } } = await client.auth.getSession();
       if (session?.access_token) {
         window.authToken = session.access_token;
         return window.authToken;
@@ -270,9 +270,9 @@ function openAuthModal() {
   if (overlay) overlay.classList.remove('hidden');
 }
 
-function closeAuthModal() {
-  const saved = localStorage.getItem('cura_auth_session');
-  if (saved) {
+async function closeAuthModal() {
+  const token = window.authToken || (await getAuthToken());
+  if (token) {
     const overlay = document.getElementById('auth-guard-overlay');
     if (overlay) overlay.classList.add('hidden');
   } else {
@@ -315,52 +315,78 @@ async function submitAuth(message, overrideName, mode = 'login') {
   let password = (document.getElementById('auth-login-password')?.value || document.getElementById('auth-reg-password')?.value || '').trim();
   let name = (document.getElementById('auth-reg-name')?.value || '').trim();
 
-  if (!userName) {
-    if (mode === 'register' && name) {
-      userName = name;
-    } else if (identity) {
-      userName = identity.split('@')[0];
-    } else if (email) {
-      userName = email.split('@')[0];
-    } else {
-      userName = "User";
-    }
-  }
-
-  // Capitalize first letter of userName for clean display
-  userName = userName.charAt(0).toUpperCase() + userName.slice(1);
-  const userEmail = email || (identity.includes('@') ? identity : (identity ? `${identity.toLowerCase()}@curahealth.in` : `${userName.toLowerCase().replace(/\s+/g, '')}@curahealth.in`));
-  const userPhone = phone || "+91 98765 43210";
-
-  // Supabase Auth Integration
   const client = getSupabaseClient();
-  let supabaseToken = null;
-  if (client && client.auth) {
-    try {
-      if (mode === 'register') {
-        const { data, error } = await client.auth.signUp({
-          email: userEmail,
-          password: password,
-          options: { data: { name: userName, phone: userPhone } }
-        });
-        if (error && !error.message.includes('already registered')) {
-          console.warn("Supabase SignUp Note:", error.message);
-        }
-        if (data?.session?.access_token) supabaseToken = data.session.access_token;
-      } else {
-        const { data, error } = await client.auth.signInWithPassword({
-          email: userEmail,
-          password: password
-        });
-        if (error) {
-          console.warn("Supabase SignIn Note:", error.message);
-        }
-        if (data?.session?.access_token) supabaseToken = data.session.access_token;
-      }
-    } catch (e) {
-      console.warn("Supabase Auth note:", e);
+  if (!client || !client.auth) {
+    alert("Supabase Authentication client is not initialized.");
+    return;
+  }
+
+  let userEmail = "";
+  if (mode === 'register') {
+    userEmail = email;
+    if (!userEmail || !password) {
+      alert("Please enter a valid email address and password to register.");
+      return;
+    }
+  } else {
+    // Mode === 'login'
+    if (!identity || !password) {
+      alert("Please enter your email and password to log in.");
+      return;
+    }
+    if (identity.includes('@')) {
+      userEmail = identity;
+    } else {
+      alert("Supabase Authentication requires a valid email address. Please enter your account email.");
+      return;
     }
   }
+
+  if (!userName) {
+    userName = name || (userEmail ? userEmail.split('@')[0] : "User");
+  }
+  userName = userName.charAt(0).toUpperCase() + userName.slice(1);
+  const userPhone = phone || "";
+
+  let session = null;
+  if (mode === 'register') {
+    const { data, error } = await client.auth.signUp({
+      email: userEmail,
+      password: password,
+      options: { data: { name: userName, phone: userPhone } }
+    });
+
+    if (error) {
+      alert(`Registration Failed: ${error.message}`);
+      return;
+    }
+
+    if (data?.session?.access_token) {
+      session = data.session;
+    } else {
+      alert("Registration successful! Please check your email to confirm your account before logging in.");
+      switchAuthTab('login');
+      return;
+    }
+  } else {
+    const { data, error } = await client.auth.signInWithPassword({
+      email: userEmail,
+      password: password
+    });
+
+    if (error) {
+      alert(`Login Failed: ${error.message}`);
+      return;
+    }
+
+    if (!data?.session?.access_token) {
+      alert("Login failed: No access token returned from Supabase.");
+      return;
+    }
+    session = data.session;
+  }
+
+  window.authToken = session.access_token;
 
   const userSessionData = {
     isLoggedIn: true,
@@ -370,32 +396,26 @@ async function submitAuth(message, overrideName, mode = 'login') {
     blood: blood,
     city: city,
     age: age,
-    token: supabaseToken || window.authToken || null
+    token: session.access_token
   };
 
-  if (supabaseToken) {
-    window.authToken = supabaseToken;
-  }
-
-  // Register / update profile on FastAPI backend
+  // Sync authenticated user profile on FastAPI backend
   try {
-    const endpoint = mode === 'register' ? `${API_BASE}/profile/register` : `${API_BASE}/profile/login`;
-    await fetch(endpoint, {
+    await fetch(`${API_BASE}/profile/register`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify({
-        identity: identity || userName,
+        identity: identity || userEmail,
         email: userEmail,
         name: userName,
         phone: userPhone,
         blood_group: blood,
         city: city,
-        age: age,
-        password: password || "demo12345"
+        age: age
       })
     });
   } catch (err) {
-    console.warn("Backend auth sync note:", err);
+    console.warn("Backend auth profile sync note:", err);
   }
 
   // Update App State & Dataset
@@ -413,13 +433,13 @@ async function submitAuth(message, overrideName, mode = 'login') {
 
   // Update UI Elements across the application
   updateAuthUIState(userSessionData);
-  
+
   // Unlock application overlay
   const overlay = document.getElementById('auth-guard-overlay');
   if (overlay) overlay.classList.add('hidden');
 
   // Fetch real persistent healthcare data from backend for authenticated user
-  fetchUserDataFromBackend();
+  await fetchUserDataFromBackend();
 
   alert(message || `Welcome to CuraAssist Healthcare, ${userName}! Your Supabase profile is connected.`);
 }
@@ -455,9 +475,8 @@ function updateAuthUIState(userData) {
   let cleanName = rawName.replace(/([a-zA-Z]+)(\d+)$/, '$1');
   cleanName = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
 
-  const userName = cleanName;
-  const userEmail = user.email || `${userName.toLowerCase().replace(/\s+/g, '')}@curahealth.in`;
-  const userPhone = user.phone || "+91 98765 43210";
+  const userEmail = user.email || "";
+  const userPhone = user.phone || "";
   const userBlood = user.blood || user.bloodGroup || "O+";
   const userCity = user.city || "Hyderabad, Telangana";
   const userAge = user.age || "30";
@@ -519,14 +538,13 @@ function openEditProfileModal() {
   const modal = document.getElementById('modal-edit-profile');
   if (!modal) return;
 
-  const currentSession = JSON.parse(localStorage.getItem('cura_auth_session') || '{}');
-  const currentName = currentSession.userName || document.getElementById('profile-main-name')?.innerText || "Rahul Sharma";
-  const currentEmail = currentSession.email || document.getElementById('profile-main-email')?.innerText || "rahul@curahealth.in";
-  const currentPhone = currentSession.phone || document.getElementById('profile-main-phone')?.innerText || "+91 98765 43210";
-  const currentCity = currentSession.city || document.getElementById('profile-main-location')?.innerText || "Hyderabad, Telangana";
-  const currentBlood = currentSession.blood || document.getElementById('profile-main-blood')?.innerText || "O+";
-  const currentAge = currentSession.age || document.getElementById('profile-main-age')?.innerText || "30";
-  const currentAvatar = currentSession.avatar || document.getElementById('profile-main-avatar')?.src || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250";
+  const currentName = document.getElementById('profile-main-name')?.innerText || "User";
+  const currentEmail = document.getElementById('profile-main-email')?.innerText || "";
+  const currentPhone = document.getElementById('profile-main-phone')?.innerText || "";
+  const currentCity = document.getElementById('profile-main-location')?.innerText || "Hyderabad, Telangana";
+  const currentBlood = document.getElementById('profile-main-blood')?.innerText || "O+";
+  const currentAge = document.getElementById('profile-main-age')?.innerText || "30";
+  const currentAvatar = document.getElementById('profile-main-avatar')?.src || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250";
 
   currentPendingAvatarUrl = currentAvatar;
   const avatarPreview = document.getElementById('edit-prof-avatar-preview');
@@ -564,18 +582,13 @@ function saveProfileEdits() {
   const updatedSession = {
     isLoggedIn: true,
     userName: name,
-    email: email || `${name.toLowerCase().replace(/\s+/g, '')}@curahealth.in`,
-    phone: phone || "+91 98765 43210",
+    email: email,
+    phone: phone,
     blood: blood,
     city: city || "Hyderabad, Telangana",
     age: age,
-    avatar: avatarUrl,
-    token: `jwt-token-${Date.now()}`
+    avatar: avatarUrl
   };
-
-  try {
-    localStorage.setItem('cura_auth_session', JSON.stringify(updatedSession));
-  } catch (e) {}
 
   if (typeof INITIAL_DATA !== 'undefined' && INITIAL_DATA.familyMembers && INITIAL_DATA.familyMembers[0]) {
     INITIAL_DATA.familyMembers[0].name = name;
@@ -609,7 +622,7 @@ async function logoutUser() {
   const authText = document.getElementById('auth-btn-text');
   if (authText) authText.innerText = "Login / Register";
   
-  switchAuthTab('register');
+  switchAuthTab('login');
 
   // Lock app behind mandatory authentication guard
   const overlay = document.getElementById('auth-guard-overlay');
@@ -618,30 +631,38 @@ async function logoutUser() {
   alert("🔒 Logged out successfully. Please sign up or log in to access CuraAssist.");
 }
 
-function checkSavedSession() {
-  try {
-    const saved = localStorage.getItem('cura_auth_session');
-    const overlay = document.getElementById('auth-guard-overlay');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (parsed && (parsed.isLoggedIn || parsed.userName || parsed.name)) {
+async function checkSavedSession() {
+  const overlay = document.getElementById('auth-guard-overlay');
+  const client = getSupabaseClient();
+  if (client && client.auth) {
+    try {
+      const { data: { session } } = await client.auth.getSession();
+      if (session?.access_token) {
+        window.authToken = session.access_token;
+        const userEmail = session.user?.email || "User";
+        const userName = session.user?.user_metadata?.name || userEmail.split('@')[0];
+        
         if (typeof INITIAL_DATA !== 'undefined') {
           INITIAL_DATA.userAuth.isLoggedIn = true;
-          INITIAL_DATA.userAuth.user.name = parsed.userName || parsed.name;
+          INITIAL_DATA.userAuth.user.name = userName;
           if (INITIAL_DATA.familyMembers && INITIAL_DATA.familyMembers[0]) {
-            INITIAL_DATA.familyMembers[0].name = parsed.userName || parsed.name;
+            INITIAL_DATA.familyMembers[0].name = userName;
           }
         }
-        updateAuthUIState(parsed);
+        updateAuthUIState({ isLoggedIn: true, userName: userName, email: userEmail, token: session.access_token });
         if (overlay) overlay.classList.add('hidden');
+
+        await fetchUserDataFromBackend();
         return true;
       }
+    } catch (e) {
+      console.warn("Session check note:", e);
     }
+  }
 
-    // Default to Sign Up / Register Gate on startup when no session exists
-    switchAuthTab('register');
-    if (overlay) overlay.classList.remove('hidden');
-  } catch (e) {}
+  // Default to Login Gate on startup when no active Supabase session exists
+  switchAuthTab('login');
+  if (overlay) overlay.classList.remove('hidden');
   return false;
 }
 
@@ -1570,8 +1591,7 @@ async function processCheckout() {
     return;
   }
 
-  const userSession = JSON.parse(localStorage.getItem('cura_auth_session') || '{}');
-  const userId = userSession.userName || 'Rahul Sharma';
+  const userId = document.getElementById('profile-main-name')?.innerText || 'Authenticated User';
   const totalAmount = state.cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
 
   const items = state.cart.map(c => ({
