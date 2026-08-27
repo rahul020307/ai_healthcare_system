@@ -97,3 +97,4 @@ def upload_base64_to_supabase(
         content_type=mime,
         bucket_name=bucket_name,
     )
+
