@@ -2,11 +2,46 @@ import os
 import uuid
 import base64
 import requests
-from typing import Optional, Dict, Any
+from typing import Dict, Any
 
 SUPABASE_URL = os.getenv("SUPABASE_URL", "").strip().rstrip("/")
-SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY") or os.getenv("SUPABASE_ANON_KEY") or os.getenv("SUPABASE_KEY", "")
-DEFAULT_BUCKET = os.getenv("SUPABASE_STORAGE_BUCKET", "prescriptions")
+# Storage operations must use the service role key. Never fall back to an anon key
+# because the health-record bucket is private and uploads are server-authorized.
+SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "").strip()
+DEFAULT_BUCKET = os.getenv("SUPABASE_STORAGE_BUCKET", "health-records").strip() or "health-records"
+MAX_FILE_BYTES = 20 * 1024 * 1024
+
+
+def _headers(content_type: str = "application/json") -> Dict[str, str]:
+    if not SUPABASE_SERVICE_ROLE_KEY:
+        raise RuntimeError("SUPABASE_SERVICE_ROLE_KEY is required for private health-record storage")
+    return {
+        "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+        "apikey": SUPABASE_SERVICE_ROLE_KEY,
+        "Content-Type": content_type,
+    }
+
+
+def _signed_url(bucket_name: str, storage_path: str, expires_in: int = 3600) -> str:
+    """Create a short-lived signed URL for a private Storage object."""
+    if not SUPABASE_URL:
+        raise RuntimeError("SUPABASE_URL is required for private health-record storage")
+
+    sign_url = f"{SUPABASE_URL}/storage/v1/object/sign/{bucket_name}/{storage_path}"
+    response = requests.post(
+        sign_url,
+        json={"expiresIn": expires_in},
+        headers=_headers(),
+        timeout=10,
+    )
+    response.raise_for_status()
+    payload = response.json()
+    signed_path = payload.get("signedURL") or payload.get("signedUrl")
+    if not signed_path:
+        raise RuntimeError("Supabase Storage did not return a signed URL")
+    if signed_path.startswith("http"):
+        return signed_path
+    return f"{SUPABASE_URL}/storage/v1{signed_path}"
 
 
 def upload_file_to_supabase(
@@ -16,59 +51,36 @@ def upload_file_to_supabase(
     content_type: str = "image/jpeg",
     bucket_name: str = DEFAULT_BUCKET,
 ) -> Dict[str, Any]:
-    """
-    Uploads a file to Supabase Storage under isolated path users/<user_id>/<file_id>_<filename>.
-    Returns storage metadata including public/signed file URL.
-    """
+    """Upload a private health document under users/<user_id>/ and return a short-lived signed URL."""
+    if len(file_bytes) > MAX_FILE_BYTES:
+        raise ValueError("File exceeds the 20 MB health-record upload limit")
+    if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY:
+        raise RuntimeError("Supabase private storage is not configured")
+
     clean_filename = os.path.basename(filename).replace(" ", "_")
     file_id = f"file-{uuid.uuid4().hex[:8]}"
     storage_path = f"users/{user_id}/{file_id}_{clean_filename}"
-
-    if not SUPABASE_URL or not SUPABASE_KEY:
-        # Fallback for environments without live Supabase storage credentials
-        local_url = f"/uploads/{storage_path}"
-        return {
-            "status": "success",
-            "storage": "local_fallback",
-            "bucket": bucket_name,
-            "path": storage_path,
-            "file_url": local_url,
-            "filename": filename,
-        }
-
     upload_url = f"{SUPABASE_URL}/storage/v1/object/{bucket_name}/{storage_path}"
-    headers = {
-        "Authorization": f"Bearer {SUPABASE_KEY}",
-        "apikey": SUPABASE_KEY,
-        "Content-Type": content_type,
-        "x-upsert": "true",
+
+    headers = _headers(content_type)
+    headers["x-upsert"] = "false"
+
+    response = requests.post(
+        upload_url,
+        data=file_bytes,
+        headers=headers,
+        timeout=15,
+    )
+    response.raise_for_status()
+
+    return {
+        "status": "success",
+        "storage": "supabase_private",
+        "bucket": bucket_name,
+        "path": storage_path,
+        "file_url": _signed_url(bucket_name, storage_path),
+        "filename": filename,
     }
-
-    try:
-        response = requests.post(upload_url, data=file_bytes, headers=headers, timeout=10)
-        response.raise_for_status()
-
-        public_url = f"{SUPABASE_URL}/storage/v1/object/public/{bucket_name}/{storage_path}"
-        return {
-            "status": "success",
-            "storage": "supabase",
-            "bucket": bucket_name,
-            "path": storage_path,
-            "file_url": public_url,
-            "filename": filename,
-        }
-    except Exception as exc:
-        print(f"[Supabase Storage] Upload error for {storage_path}:", exc)
-        fallback_url = f"/uploads/{storage_path}"
-        return {
-            "status": "partial",
-            "storage": "local_fallback",
-            "bucket": bucket_name,
-            "path": storage_path,
-            "file_url": fallback_url,
-            "filename": filename,
-            "error": str(exc),
-        }
 
 
 def upload_base64_to_supabase(
@@ -77,7 +89,7 @@ def upload_base64_to_supabase(
     user_id: str,
     bucket_name: str = DEFAULT_BUCKET,
 ) -> Dict[str, Any]:
-    """Helper to upload base64 encoded data to Supabase Storage."""
+    """Decode base64 data and upload it to the private health-record bucket."""
     if "," in base64_data:
         header, encoded = base64_data.split(",", 1)
         mime = header.split(";")[0].replace("data:", "") if "data:" in header else "image/jpeg"
@@ -86,7 +98,7 @@ def upload_base64_to_supabase(
         mime = "image/jpeg"
 
     try:
-        file_bytes = base64.b64decode(encoded)
+        file_bytes = base64.b64decode(encoded, validate=True)
     except Exception as exc:
         raise ValueError("Invalid base64 string provided") from exc
 
@@ -97,4 +109,3 @@ def upload_base64_to_supabase(
         content_type=mime,
         bucket_name=bucket_name,
     )
-
