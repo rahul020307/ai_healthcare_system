@@ -805,6 +805,13 @@ function saveProfileEdits() {
   alert(`✨ Profile details, age (${age} Yrs) & avatar photo updated successfully for ${name}!`);
 }
 
+function clearAuthInputs() {
+  ['auth-reg-name', 'auth-reg-email', 'auth-reg-phone', 'auth-reg-password', 'auth-login-identity', 'auth-login-password', 'auth-otp-input'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+}
+
 async function logoutUser() {
   const client = getSupabaseClient();
   if (client && client.auth) {
@@ -816,24 +823,30 @@ async function logoutUser() {
 
   try {
     localStorage.removeItem('cura_active_user_v1');
+    localStorage.removeItem('cura_cart_v1');
+    sessionStorage.clear();
   } catch (e) {}
+
+  clearAuthInputs();
 
   if (typeof INITIAL_DATA !== 'undefined') {
     INITIAL_DATA.userAuth.isLoggedIn = false;
     INITIAL_DATA.userAuth.user.name = "Guest User";
     if (INITIAL_DATA.familyMembers && INITIAL_DATA.familyMembers[0]) {
-      INITIAL_DATA.familyMembers[0].name = "Rahul Sharma";
+      INITIAL_DATA.familyMembers[0].name = "Guest User";
+      INITIAL_DATA.familyMembers[0].email = "";
+      INITIAL_DATA.familyMembers[0].phone = "";
     }
   }
   updateAuthUIState({ isLoggedIn: false, userName: "Guest User" });
   
-  switchAuthTab('login');
+  switchAuthTab('register');
 
   // Lock app behind mandatory authentication guard
   const overlay = document.getElementById('auth-guard-overlay');
   if (overlay) overlay.classList.remove('hidden');
 
-  alert("🔒 Logged out successfully. Please sign up or log in to access CuraAssist.");
+  alert("🔒 Logged out. Registration & Login gate is now open for a fresh sign-up test.");
 }
 
 async function checkSavedSession() {
