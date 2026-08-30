@@ -63,14 +63,32 @@ async function fetchUserDataFromBackend() {
   const headers = await getAuthHeaders();
   if (!headers['Authorization']) return;
 
+  // Retrieve locally saved user session profile
+  let localUser = null;
+  try {
+    const saved = localStorage.getItem('cura_active_user_v1');
+    if (saved) localUser = JSON.parse(saved);
+  } catch (e) {}
+
   try {
     // 1. Fetch User Profile
     const profRes = await fetch(`${API_BASE}/profile/user`, { headers });
     if (profRes.ok) {
       const profData = await profRes.json();
       if (profData.user) {
-        updateAuthUIState({ isLoggedIn: true, ...profData.user });
+        const mergedUser = {
+          isLoggedIn: true,
+          ...profData.user,
+          ...(localUser || {})
+        };
+        // If backend has a custom name different from default placeholder, use it
+        if (profData.user.name && profData.user.name !== "Rahul Sharma" && profData.user.name !== "rahul.sharma" && (!localUser || !localUser.userName)) {
+          mergedUser.userName = profData.user.name;
+        }
+        updateAuthUIState(mergedUser);
       }
+    } else if (localUser) {
+      updateAuthUIState(localUser);
     }
 
     // 2. Fetch Health Records
@@ -94,6 +112,7 @@ async function fetchUserDataFromBackend() {
     }
   } catch (e) {
     console.warn("[CuraAssist] Backend data sync note:", e);
+    if (localUser) updateAuthUIState(localUser);
   }
 }
 
@@ -540,7 +559,7 @@ async function submitAuth(message, overrideName, mode = 'login') {
     blood: mode === 'register' ? blood : (existingUser.blood || blood),
     city: mode === 'register' ? city : (existingUser.city || city),
     age: mode === 'register' ? age : (existingUser.age || age),
-    avatar: existingUser.avatar || (typeof INITIAL_DATA !== 'undefined' && INITIAL_DATA.familyMembers?.[0]?.avatar),
+    avatar: existingUser.avatar || (typeof INITIAL_DATA !== 'undefined' && INITIAL_DATA.familyMembers?.[0]?.avatar) || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250",
     token: session.access_token
   };
 
@@ -564,6 +583,25 @@ async function submitAuth(message, overrideName, mode = 'login') {
 
   // Update UI Elements across the application
   updateAuthUIState(userSessionData);
+
+  // Sync profile details to backend database immediately
+  try {
+    const headers = await getAuthHeaders();
+    await fetch(`${API_BASE}/profile/user`, {
+      method: 'PUT',
+      headers: headers,
+      body: JSON.stringify({
+        name: userSessionData.userName,
+        email: userSessionData.email,
+        phone: userSessionData.phone,
+        bloodGroup: userSessionData.blood,
+        location: userSessionData.city,
+        age: userSessionData.age
+      })
+    });
+  } catch (syncErr) {
+    console.warn("[CuraAssist] Profile backend sync note:", syncErr);
+  }
 
   // Unlock application overlay
   const overlay = document.getElementById('auth-guard-overlay');
@@ -600,20 +638,38 @@ function updateAuthUIState(userData) {
   const isGuest = userData === "Login / Register" || (typeof userData === 'object' && userData !== null && userData.isLoggedIn === false);
   const user = (typeof userData === 'object' && userData !== null) ? userData : { userName: userData };
   
-  let rawName = isGuest ? "Guest User" : (user.userName || user.name || "User");
-  if (rawName.includes('@')) {
-    rawName = rawName.split('@')[0];
+  const bottomNav = document.getElementById('bottom-mobile-nav');
+  const floatingBtn = document.getElementById('floating-ai-chat-btn');
+  const overlay = document.getElementById('auth-guard-overlay');
+
+  if (isGuest) {
+    if (bottomNav) bottomNav.classList.add('hidden');
+    if (floatingBtn) floatingBtn.classList.add('hidden');
+    if (overlay) overlay.classList.remove('hidden');
+  } else {
+    if (bottomNav) bottomNav.classList.remove('hidden');
+    if (floatingBtn) floatingBtn.classList.remove('hidden');
+    if (overlay) overlay.classList.add('hidden');
   }
-  let cleanName = rawName.replace(/([a-zA-Z]+)(\d+)$/, '$1');
-  cleanName = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
-  const userName = isGuest ? "Guest User" : cleanName;
+
+  let rawName = isGuest ? "Guest User" : (user.userName || user.name || "User");
+  let userName = rawName;
+  if (rawName.includes('@')) {
+    userName = rawName.split('@')[0];
+  }
+  userName = userName.trim();
+  if (userName.length > 0) {
+    userName = userName.charAt(0).toUpperCase() + userName.slice(1);
+  }
 
   const userEmail = isGuest ? "" : (user.email || "");
   const userPhone = isGuest ? "" : (user.phone || "");
-  const userBlood = user.blood || user.bloodGroup || "O+";
-  const userCity = user.city || "Hyderabad, Telangana";
-  const userAge = user.age || "30";
-  const userAvatar = user.avatar || (typeof INITIAL_DATA !== 'undefined' && INITIAL_DATA.familyMembers?.[0]?.avatar) || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250";
+  const userBlood = isGuest ? "O+" : (user.blood || user.bloodGroup || "O+");
+  const userCity = isGuest ? "Hyderabad, Telangana" : (user.city || user.location || "Hyderabad, Telangana");
+  const userAge = isGuest ? "30" : String(user.age || "30");
+  const userAvatar = isGuest 
+    ? "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250"
+    : (user.avatar || (typeof INITIAL_DATA !== 'undefined' && INITIAL_DATA.familyMembers?.[0]?.avatar) || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250");
 
   const authText = document.getElementById('auth-btn-text');
   if (authText) authText.innerText = isGuest ? "Login / Register" : `Account (${userName})`;
@@ -622,13 +678,16 @@ function updateAuthUIState(userData) {
   if (sidebarName) sidebarName.innerText = userName;
 
   const sidebarAge = document.getElementById('sidebar-user-age');
-  if (sidebarAge) sidebarAge.innerText = `${userAge} Yrs`;
+  if (sidebarAge) sidebarAge.innerText = isGuest ? "-- Yrs" : `${userAge} Yrs`;
+
+  const sidebarBlood = document.getElementById('sidebar-user-blood');
+  if (sidebarBlood) sidebarBlood.innerText = userBlood;
 
   const activeFamilyName = document.getElementById('active-family-name');
   if (activeFamilyName) activeFamilyName.innerText = userName;
 
   const welcomeName = document.getElementById('home-welcome-name');
-  if (welcomeName) welcomeName.innerText = isGuest ? "Guest" : userName.split(' ')[0];
+  if (welcomeName) welcomeName.innerText = isGuest ? "Guest" : userName;
 
   const profileHeaderName = document.getElementById('prof-name');
   if (profileHeaderName) profileHeaderName.innerText = userName;
@@ -661,6 +720,14 @@ function updateAuthUIState(userData) {
 
   const profMainAge = document.getElementById('profile-main-age');
   if (profMainAge) profMainAge.innerText = userAge;
+
+  if (typeof INITIAL_DATA !== 'undefined' && INITIAL_DATA.familyMembers && INITIAL_DATA.familyMembers[0] && !isGuest) {
+    INITIAL_DATA.familyMembers[0].name = userName;
+    INITIAL_DATA.familyMembers[0].phone = userPhone;
+    INITIAL_DATA.familyMembers[0].email = userEmail;
+    INITIAL_DATA.familyMembers[0].bloodGroup = userBlood;
+    INITIAL_DATA.familyMembers[0].age = userAge;
+  }
 
   if (typeof initFamilyDropdown === 'function') {
     initFamilyDropdown();
@@ -834,6 +901,7 @@ async function checkSavedSession() {
 
   // Default to Login Gate on startup when no active session exists
   switchAuthTab('login');
+  updateAuthUIState({ isLoggedIn: false, userName: "Guest User" });
   if (overlay) overlay.classList.remove('hidden');
   return false;
 }
@@ -1125,6 +1193,59 @@ function openRecordDetailModal(recId) {
   const container = document.getElementById('record-detail-content');
   if (!modal || !container) return;
 
+  const isImage = rec.file_url && (rec.file_url.startsWith('data:image') || /\.(jpg|jpeg|png|webp|gif)(\?.*)?$/i.test(rec.file_url));
+  const isPdf = rec.file_url && (rec.file_url.startsWith('data:application/pdf') || /\.pdf(\?.*)?$/i.test(rec.file_url));
+
+  let previewHtml = '';
+  if (rec.file_url) {
+    if (isImage) {
+      previewHtml = `
+        <div class="space-y-1.5">
+          <h4 class="text-xs font-extrabold text-teal-400 flex items-center gap-1.5 uppercase tracking-wider">
+            <i data-lucide="image" class="w-4 h-4 text-teal-400"></i> Original Document Attachment:
+          </h4>
+          <div class="p-2 rounded-2xl bg-slate-950 border border-slate-800 text-center shadow-inner">
+            <img src="${rec.file_url}" alt="Report Attachment" class="max-h-64 rounded-xl object-contain mx-auto border border-slate-800/80 shadow">
+          </div>
+        </div>
+      `;
+    } else if (isPdf) {
+      previewHtml = `
+        <div class="p-3.5 rounded-2xl bg-slate-950 border border-teal-500/30 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center font-black text-xs">
+              PDF
+            </div>
+            <div>
+              <p class="text-xs font-bold text-white">${rec.filename || rec.title + '.pdf'}</p>
+              <p class="text-[10px] text-teal-400 font-semibold">Supabase Private Health Storage</p>
+            </div>
+          </div>
+          <a href="${rec.file_url}" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 rounded-xl bg-teal-500/20 hover:bg-teal-500/30 text-teal-300 border border-teal-500/40 text-xs font-bold flex items-center gap-1.5 transition-all">
+            <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Open Full PDF
+          </a>
+        </div>
+      `;
+    } else {
+      previewHtml = `
+        <div class="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-teal-500/20 text-teal-400 flex items-center justify-center">
+              <i data-lucide="file-check" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <p class="text-xs font-bold text-white">${rec.filename || rec.title}</p>
+              <p class="text-[10px] text-slate-400">Stored in Health Repository</p>
+            </div>
+          </div>
+          <a href="${rec.file_url}" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold flex items-center gap-1.5">
+            <i data-lucide="download" class="w-3.5 h-3.5"></i> View File
+          </a>
+        </div>
+      `;
+    }
+  }
+
   container.innerHTML = `
     <div class="space-y-4">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -1150,6 +1271,8 @@ function openRecordDetailModal(recId) {
         </div>
       </div>
 
+      ${previewHtml}
+
       <div class="space-y-1.5">
         <h4 class="text-xs font-extrabold text-cyan-400 flex items-center gap-1.5 uppercase tracking-wider">
           <i data-lucide="file-search" class="w-4 h-4 text-teal-400"></i> Extracted OCR Medicines & Clinical Findings:
@@ -1173,7 +1296,7 @@ function openRecordDetailModal(recId) {
 
         <div class="flex items-center gap-2">
           <button onclick="askAIAboutRecord('${rec.id}')" class="px-4 py-2 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-500 text-slate-950 font-extrabold text-xs flex items-center gap-1.5 shadow-lg hover:from-teal-400 hover:to-cyan-400 transition-all">
-            <i data-lucide="bot" class="w-4 h-4"></i> Ask CuraBot AI to Explain Prescription
+            <i data-lucide="bot" class="w-4 h-4"></i> Ask CuraBot AI
           </button>
           <button onclick="downloadHealthRecord('${rec.id}')" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center gap-1.5">
             <i data-lucide="download" class="w-3.5 h-3.5"></i> Download
@@ -1189,6 +1312,208 @@ function openRecordDetailModal(recId) {
 
 function closeRecordDetailModal() {
   document.getElementById('modal-record-detail')?.classList.add('hidden');
+}
+
+// MODULE 6.1: MEDICAL REPORT & ATTACHMENT UPLOAD ENGINE (JPG, PNG, PDF, WEBP, DOCX)
+let currentSelectedReportFile = null;
+let currentSelectedReportBase64 = null;
+
+function openUploadReportModal() {
+  const modal = document.getElementById('modal-upload-report');
+  if (!modal) return;
+
+  // Set default date to today
+  const dateInput = document.getElementById('report-input-date');
+  if (dateInput) {
+    dateInput.value = new Date().toISOString().split('T')[0];
+  }
+
+  // Pre-select active family member
+  const memberSelect = document.getElementById('report-input-member');
+  if (memberSelect && state.activeFamilyId) {
+    memberSelect.value = state.activeFamilyId;
+  }
+
+  clearReportSelectedFile();
+  modal.classList.remove('hidden');
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function closeUploadReportModal() {
+  document.getElementById('modal-upload-report')?.classList.add('hidden');
+}
+
+function clearReportSelectedFile() {
+  currentSelectedReportFile = null;
+  currentSelectedReportBase64 = null;
+  const fileInput = document.getElementById('report-file-input');
+  if (fileInput) fileInput.value = '';
+
+  const placeholder = document.getElementById('report-upload-placeholder');
+  const badge = document.getElementById('report-file-selected-badge');
+  if (placeholder) placeholder.classList.remove('hidden');
+  if (badge) badge.classList.add('hidden');
+}
+
+function handleReportFileSelected(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+
+  if (file.size > 20 * 1024 * 1024) {
+    alert("File size exceeds 20MB limit. Please choose a smaller report document.");
+    return;
+  }
+
+  currentSelectedReportFile = file;
+
+  // Auto-fill title if empty
+  const titleInput = document.getElementById('report-input-title');
+  if (titleInput && !titleInput.value.trim()) {
+    const cleanBaseName = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
+    titleInput.value = cleanBaseName.charAt(0).toUpperCase() + cleanBaseName.slice(1);
+  }
+
+  // Read file as Base64 Data URL
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    currentSelectedReportBase64 = e.target.result;
+  };
+  reader.readAsDataURL(file);
+
+  // Update Preview UI Badge
+  const placeholder = document.getElementById('report-upload-placeholder');
+  const badge = document.getElementById('report-file-selected-badge');
+  const filenameEl = document.getElementById('report-selected-filename');
+  const filesizeEl = document.getElementById('report-selected-filesize');
+  const typeIcon = document.getElementById('report-file-type-icon');
+
+  if (placeholder) placeholder.classList.add('hidden');
+  if (badge) badge.classList.remove('hidden');
+  if (filenameEl) filenameEl.textContent = file.name;
+
+  const sizeKb = (file.size / 1024).toFixed(1);
+  const sizeText = file.size > 1024 * 1024 ? `${(file.size / (1024 * 1024)).toFixed(2)} MB` : `${sizeKb} KB`;
+  if (filesizeEl) filesizeEl.textContent = `${sizeText} • Ready for Supabase Storage`;
+
+  if (typeIcon) {
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    if (ext === 'pdf') {
+      typeIcon.innerHTML = '<span class="text-xs font-black text-rose-400">PDF</span>';
+    } else if (['jpg', 'jpeg', 'png', 'webp'].includes(ext)) {
+      typeIcon.innerHTML = '<i data-lucide="image" class="w-5 h-5 text-teal-400"></i>';
+    } else {
+      typeIcon.innerHTML = '<i data-lucide="file-text" class="w-5 h-5 text-cyan-400"></i>';
+    }
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  }
+}
+
+async function submitMedicalReportUpload() {
+  const titleInput = document.getElementById('report-input-title');
+  const categorySelect = document.getElementById('report-input-category');
+  const dateInput = document.getElementById('report-input-date');
+  const doctorInput = document.getElementById('report-input-doctor');
+  const facilityInput = document.getElementById('report-input-facility');
+  const memberSelect = document.getElementById('report-input-member');
+  const summaryInput = document.getElementById('report-input-summary');
+  const submitBtn = document.getElementById('btn-submit-report-upload');
+
+  const title = titleInput?.value.trim();
+  if (!title) {
+    alert("Please enter a Title for this medical report.");
+    titleInput?.focus();
+    return;
+  }
+
+  const category = categorySelect?.value || "Medical Reports";
+  const date = dateInput?.value || new Date().toISOString().split('T')[0];
+  const doctor = doctorInput?.value.trim() || "Dr. Self / Attending Physician";
+  const facility = facilityInput?.value.trim() || "CuraAssist Digital Health Repository";
+  const memberId = memberSelect?.value || state.activeFamilyId || "fam1";
+  const customSummary = summaryInput?.value.trim();
+
+  const filename = currentSelectedReportFile ? currentSelectedReportFile.name : `report_${Date.now()}.pdf`;
+  const fileData = currentSelectedReportBase64 || null;
+
+  // Build Tags
+  const ext = filename.split('.').pop()?.toUpperCase() || 'DOCUMENT';
+  const tags = [category.replace(/ /g, ''), ext, 'SupabaseUploaded'];
+
+  const recId = `rec-${Date.now()}`;
+  const summary = customSummary || `Medical ${category} document "${title}" uploaded to Supabase private health records repository.`;
+
+  // UI Loading State
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Uploading to Supabase Storage...`;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  }
+
+  try {
+    let finalFileUrl = fileData;
+    try {
+      const headers = await getAuthHeaders();
+      const res = await fetch(`${API_BASE}/profile/upload-record`, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({
+          id: recId,
+          title: title,
+          category: category,
+          date: date,
+          doctor: doctor,
+          facility: facility,
+          memberId: memberId,
+          tags: tags,
+          summary: summary,
+          filename: filename,
+          fileData: fileData
+        })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.record?.file_url) {
+          finalFileUrl = data.record.file_url;
+        }
+      }
+    } catch (apiErr) {
+      console.warn("Backend report upload fallback:", apiErr);
+    }
+
+    // Add record to state
+    const newRecord = {
+      id: recId,
+      memberId: memberId,
+      title: title,
+      category: category,
+      date: date,
+      doctor: doctor,
+      facility: facility,
+      summary: summary,
+      tags: tags,
+      file_url: finalFileUrl,
+      filename: filename
+    };
+
+    state.records.unshift(newRecord);
+    closeUploadReportModal();
+
+    // Switch to Medical Reports and render
+    openMedicalReports();
+    renderRecords();
+
+    alert(`🎉 Medical Report "${title}" uploaded successfully and saved to your health records!`);
+  } catch (err) {
+    console.error("Report upload error:", err);
+    alert("Error uploading document. Please try again.");
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = `<i data-lucide="cloud-upload" class="w-4 h-4"></i> Upload & Save to Repository`;
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+  }
 }
 
 async function deleteHealthRecord(recId) {
@@ -1212,6 +1537,16 @@ async function deleteHealthRecord(recId) {
 function downloadHealthRecord(recId) {
   const rec = state.records.find(r => r.id === recId);
   if (!rec) return;
+
+  if (rec.file_url && rec.file_url.startsWith('data:')) {
+    const a = document.createElement('a');
+    a.href = rec.file_url;
+    a.download = rec.filename || `${rec.title.replace(/[^a-zA-Z0-9_-]/g, '_')}_Document`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    return;
+  }
 
   const content = `====================================================
 CURAASSIST CAREHUB - OFFICIAL DIGITAL MEDICAL RECORD

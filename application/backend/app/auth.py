@@ -82,14 +82,37 @@ def get_current_identity(
     # 2. Resilient session fallback for local development / demo tokens (e.g. sess-token-*, github-*, demo-*)
     if token.startswith("sess-token-") or token.startswith("demo-") or token.startswith("github-") or token.startswith("oauth-") or len(token) > 5:
         sanitized_id = "".join(c for c in token if c.isalnum() or c in "-_")[:40] or "demo-user"
+        user_id = f"usr-{sanitized_id}"
+        
+        # Check if user already exists in SQL database to maintain user-customized profile
+        from app.database.sql_db import UserModel, get_db_session
+        session = get_db_session()
+        try:
+            db_user = session.query(UserModel).filter_by(id=user_id).first()
+            if db_user:
+                return {
+                    "sub": db_user.id,
+                    "email": db_user.email,
+                    "role": db_user.role or "Patient",
+                    "claims": {
+                        "sub": db_user.id,
+                        "email": db_user.email,
+                        "name": db_user.name,
+                        "role": db_user.role or "Patient",
+                    },
+                }
+        finally:
+            session.close()
+
+        # If not yet in database, provide unique identity
         return {
-            "sub": f"usr-{sanitized_id}",
-            "email": "rahul.sharma@curahealth.in",
+            "sub": user_id,
+            "email": f"user.{sanitized_id[:12]}@curaassist.health",
             "role": "Patient",
             "claims": {
-                "sub": f"usr-{sanitized_id}",
-                "email": "rahul.sharma@curahealth.in",
-                "name": "Rahul Sharma",
+                "sub": user_id,
+                "email": f"user.{sanitized_id[:12]}@curaassist.health",
+                "name": "Active User",
                 "role": "Patient",
             },
         }
@@ -109,12 +132,14 @@ def get_current_user(identity: Dict[str, Any] = Depends(get_current_identity)):
     try:
         user = session.query(UserModel).filter_by(id=identity["sub"]).first()
         if not user:
+            # Check by email
             user = session.query(UserModel).filter_by(email=identity["email"]).first()
 
         if not user:
+            name_val = identity.get("claims", {}).get("name") or identity["email"].split("@", 1)[0]
             user = UserModel(
                 id=identity["sub"],
-                name=identity["email"].split("@", 1)[0],
+                name=name_val,
                 email=identity["email"],
                 role="Patient",
             )

@@ -935,7 +935,14 @@
         <div class="space-y-3">
           <h3 class="text-sm font-extrabold text-white">Quick Actions</h3>
 
-          <div class="grid grid-cols-5 gap-2 text-center">
+          <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center">
+            <button onclick="openUploadReportModal()" class="flex flex-col items-center gap-2 group">
+              <div class="w-12 h-12 rounded-full bg-slate-900 border border-slate-800 text-emerald-400 flex items-center justify-center group-hover:border-emerald-500 transition-colors shadow">
+                <i data-lucide="upload-cloud" class="w-5 h-5"></i>
+              </div>
+              <span class="text-[11px] font-bold text-slate-300">Upload Report</span>
+            </button>
+
             <button onclick="openMyPrescriptions()" class="flex flex-col items-center gap-2 group">
               <div class="w-12 h-12 rounded-full bg-slate-900 border border-slate-800 text-teal-400 flex items-center justify-center group-hover:border-teal-500 transition-colors shadow">
                 <i data-lucide="file-text" class="w-5 h-5"></i>
@@ -954,21 +961,21 @@
               <div class="w-12 h-12 rounded-full bg-slate-900 border border-slate-800 text-cyan-400 flex items-center justify-center group-hover:border-cyan-500 transition-colors shadow">
                 <i data-lucide="clock" class="w-5 h-5"></i>
               </div>
-              <span class="text-[11px] font-bold text-slate-300">Medicine Reminders</span>
+              <span class="text-[11px] font-bold text-slate-300">Reminders</span>
             </button>
 
             <button onclick="toggleCartDrawer(true)" class="flex flex-col items-center gap-2 group">
               <div class="w-12 h-12 rounded-full bg-slate-900 border border-slate-800 text-indigo-400 flex items-center justify-center group-hover:border-indigo-500 transition-colors shadow">
                 <i data-lucide="clipboard-list" class="w-5 h-5"></i>
               </div>
-              <span class="text-[11px] font-bold text-slate-300">Orders & History</span>
+              <span class="text-[11px] font-bold text-slate-300">Orders</span>
             </button>
 
             <button onclick="alert('Saved Delivery Addresses: Home (Hyderabad), Office (Cyber Towers)')" class="flex flex-col items-center gap-2 group">
               <div class="w-12 h-12 rounded-full bg-slate-900 border border-slate-800 text-amber-400 flex items-center justify-center group-hover:border-amber-500 transition-colors shadow">
                 <i data-lucide="book-user" class="w-5 h-5"></i>
               </div>
-              <span class="text-[11px] font-bold text-slate-300">Saved Addresses</span>
+              <span class="text-[11px] font-bold text-slate-300">Addresses</span>
             </button>
           </div>
         </div>
@@ -1013,11 +1020,32 @@
 
         <!-- 2. MEDICAL HISTORY & HEALTH RECORDS -->
         <div class="space-y-3">
-          <h3 class="text-sm font-extrabold text-white flex items-center gap-2">
-            <i data-lucide="heart-pulse" class="w-4 h-4 text-rose-400"></i> Health & Clinical History
-          </h3>
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-extrabold text-white flex items-center gap-2">
+              <i data-lucide="heart-pulse" class="w-4 h-4 text-rose-400"></i> Health & Clinical History
+            </h3>
+            <button onclick="openUploadReportModal()" class="px-3 py-1.5 rounded-xl bg-teal-500/20 hover:bg-teal-500/30 text-teal-300 border border-teal-500/40 text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm">
+              <i data-lucide="file-up" class="w-3.5 h-3.5"></i> + Upload Reports
+            </button>
+          </div>
 
           <div class="glass-panel rounded-3xl border border-slate-800 divide-y divide-slate-800/80 overflow-hidden shadow-xl">
+            <button onclick="openUploadReportModal()" class="w-full p-4 flex items-center justify-between hover:bg-slate-900/50 transition-colors text-left group bg-teal-950/20">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-teal-500/20 text-teal-400 flex items-center justify-center">
+                  <i data-lucide="upload-cloud" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h4 class="text-xs font-bold text-white group-hover:text-teal-300 transition-colors">Upload Medical Reports & Scans</h4>
+                    <span class="text-[9px] bg-teal-500/20 text-teal-300 font-extrabold px-1.5 py-0.5 rounded border border-teal-500/30">PDF, JPG, PNG</span>
+                  </div>
+                  <p class="text-[11px] text-slate-400">Save lab tests, X-rays, blood reports, & doctor slips to repository</p>
+                </div>
+              </div>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
+            </button>
+
             <button onclick="openMedicalHistoryModal()" class="w-full p-4 flex items-center justify-between hover:bg-slate-900/50 transition-colors text-left group">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center">
@@ -1193,7 +1221,7 @@
   <!-- ================= MODALS & DRAWERS ================= -->
 
   <!-- MANDATORY CREATIVE AUTHENTICATION GATEWAY & GUARD OVERLAY -->
-  <div id="auth-guard-overlay" class="hidden fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-2xl flex items-center justify-center p-4 overflow-y-auto">
+  <div id="auth-guard-overlay" class="hidden fixed inset-0 z-[999999] bg-slate-950/98 backdrop-blur-2xl flex items-center justify-center p-4 overflow-y-auto min-h-screen">
     <div class="w-full max-w-lg glass-panel border border-teal-500/40 rounded-3xl p-6 sm:p-8 space-y-6 relative shadow-2xl glow-teal my-auto">
       
       <!-- Top Decorative Branding Header -->
@@ -1439,6 +1467,123 @@
       </button>
       <div id="med-info-content">
         <!-- Rendered by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- DEDICATED MEDICAL REPORT UPLOAD MODAL (JPG, PNG, PDF, WEBP, DOCX) -->
+  <div id="modal-upload-report" class="hidden fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="glass-panel w-full max-w-xl rounded-3xl p-6 border border-teal-500/40 space-y-4 relative max-h-[92vh] overflow-y-auto shadow-2xl">
+      <button onclick="closeUploadReportModal()" class="absolute top-4 right-4 p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="space-y-1">
+        <div class="flex items-center gap-2">
+          <span class="text-[10px] bg-teal-500/20 text-teal-300 font-extrabold px-2 py-0.5 rounded-full border border-teal-500/30 uppercase tracking-wider">Supabase Health Storage</span>
+        </div>
+        <h3 class="text-base font-extrabold text-white flex items-center gap-2">
+          <i data-lucide="file-up" class="w-5 h-5 text-teal-400"></i> Upload Medical Reports & Documents
+        </h3>
+        <p class="text-xs text-slate-400">Upload lab results, blood work, radiology scans, discharge summaries, or doctor prescriptions</p>
+      </div>
+
+      <!-- File Drop & Picker Box -->
+      <div id="report-drop-box" onclick="document.getElementById('report-file-input').click()" class="relative rounded-2xl cursor-pointer overflow-hidden bg-slate-950/80 border-2 border-dashed border-teal-500/40 hover:border-teal-400 text-center p-5 min-h-[140px] flex flex-col items-center justify-center transition-all group">
+        
+        <div id="report-upload-placeholder" class="space-y-2">
+          <div class="w-12 h-12 rounded-2xl bg-teal-500/10 text-teal-400 flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
+            <i data-lucide="upload-cloud" class="w-6 h-6"></i>
+          </div>
+          <p class="text-xs text-slate-200 font-bold">Click to browse or drag & drop medical document</p>
+          <div class="flex items-center justify-center gap-2 text-[10px] text-slate-400 font-medium flex-wrap">
+            <span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-teal-300">PDF</span>
+            <span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-cyan-300">JPG / JPEG</span>
+            <span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-emerald-300">PNG</span>
+            <span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-indigo-300">WEBP / DOCX</span>
+            <span>(Max 20MB)</span>
+          </div>
+        </div>
+
+        <!-- Selected File Preview Badge -->
+        <div id="report-file-selected-badge" class="hidden w-full p-3 rounded-xl bg-slate-900/90 border border-teal-500/50 flex items-center justify-between text-xs text-left">
+          <div class="flex items-center gap-3">
+            <div id="report-file-type-icon" class="w-10 h-10 rounded-lg bg-teal-500/20 text-teal-400 flex items-center justify-center font-bold">
+              <i data-lucide="file-text" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <p id="report-selected-filename" class="font-bold text-white max-w-[240px] truncate">document.pdf</p>
+              <p id="report-selected-filesize" class="text-[10px] text-slate-400">1.2 MB • Ready for Supabase Storage</p>
+            </div>
+          </div>
+          <button type="button" onclick="event.stopPropagation(); clearReportSelectedFile()" class="p-1.5 rounded-lg text-rose-400 hover:bg-rose-950/50 transition-colors">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <input type="file" id="report-file-input" accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,application/pdf,image/*" onchange="handleReportFileSelected(event)" class="hidden">
+      </div>
+
+      <!-- Report Metadata Form -->
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block text-[11px] font-bold text-slate-300 mb-1">Report / Document Title *</label>
+          <input type="text" id="report-input-title" placeholder="e.g. Complete Blood Count (CBC) Lab Test" class="w-full glass-input rounded-xl px-3.5 py-2.5 text-xs text-white focus:ring-2 focus:ring-teal-500">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-[11px] font-bold text-slate-300 mb-1">Document Category</label>
+            <select id="report-input-category" class="w-full glass-input rounded-xl px-3 py-2.5 text-xs text-slate-200">
+              <option value="Lab Reports">🧪 Lab & Blood Reports</option>
+              <option value="Medical Reports">📄 General Medical Report</option>
+              <option value="Prescriptions">💊 Doctor Prescription</option>
+              <option value="Scans">🩻 Radiology / Scan / MRI / X-Ray</option>
+              <option value="Discharge Summary">🏥 Hospital Discharge Summary</option>
+              <option value="Vaccination">💉 Vaccination Certificate</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-300 mb-1">Report Date</label>
+            <input type="date" id="report-input-date" class="w-full glass-input rounded-xl px-3 py-2.5 text-xs text-slate-200">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-[11px] font-bold text-slate-300 mb-1">Doctor / Physician Name</label>
+            <input type="text" id="report-input-doctor" placeholder="e.g. Dr. Sarah Jenkins" class="w-full glass-input rounded-xl px-3.5 py-2.5 text-xs text-white">
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-300 mb-1">Clinic / Hospital / Lab Facility</label>
+            <input type="text" id="report-input-facility" placeholder="e.g. Apollo Diagnostics" class="w-full glass-input rounded-xl px-3.5 py-2.5 text-xs text-white">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold text-slate-300 mb-1">Patient Context (Family Member)</label>
+          <select id="report-input-member" class="w-full glass-input rounded-xl px-3 py-2.5 text-xs text-slate-200">
+            <option value="fam1">Self</option>
+            <option value="fam2">Mother (Eleanor Sharma)</option>
+            <option value="fam3">Wife (Sarah Sharma)</option>
+            <option value="fam4">Son (Leo Sharma)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold text-slate-300 mb-1">Summary / Clinical Notes / Key Findings (Optional)</label>
+          <textarea id="report-input-summary" rows="3" placeholder="e.g. Hemoglobin: 14.2 g/dL (Normal). Fasting Blood Glucose: 95 mg/dL. All parameters within reference range." class="w-full glass-input rounded-xl p-3 text-xs text-slate-200 resize-none"></textarea>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-3 pt-2">
+        <button type="button" onclick="closeUploadReportModal()" class="flex-1 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 font-bold text-xs transition-colors">
+          Cancel
+        </button>
+        <button type="button" id="btn-submit-report-upload" onclick="submitMedicalReportUpload()" class="flex-[2] py-3 rounded-xl bg-gradient-to-r from-teal-500 via-cyan-500 to-teal-400 text-slate-950 font-black text-xs hover:scale-[1.01] transition-all shadow-lg shadow-teal-500/20 flex items-center justify-center gap-2">
+          <i data-lucide="cloud-upload" class="w-4 h-4"></i> Upload & Save to Repository
+        </button>
       </div>
     </div>
   </div>

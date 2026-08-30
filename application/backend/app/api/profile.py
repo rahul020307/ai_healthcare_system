@@ -58,17 +58,22 @@ def update_user_profile(
         if not user:
             raise HTTPException(status_code=404, detail="Authenticated user profile not found")
 
-        if "name" in payload:
+        if "name" in payload and payload["name"]:
             user.name = payload["name"]
-        if "phone" in payload:
+        if "email" in payload and payload["email"]:
+            user.email = payload["email"]
+        if "phone" in payload and payload["phone"]:
             user.phone = payload["phone"]
-        if "location" in payload:
+        if "location" in payload and payload["location"]:
             user.location = payload["location"]
-        if "age" in payload:
-            user.age = int(payload["age"])
-        if "gender" in payload:
+        if "age" in payload and payload["age"]:
+            try:
+                user.age = int(payload["age"])
+            except (ValueError, TypeError):
+                pass
+        if "gender" in payload and payload["gender"]:
             user.gender = payload["gender"]
-        if "bloodGroup" in payload:
+        if "bloodGroup" in payload and payload["bloodGroup"]:
             user.blood_group = payload["bloodGroup"]
 
         session.commit()

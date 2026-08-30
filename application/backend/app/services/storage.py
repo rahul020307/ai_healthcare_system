@@ -109,19 +109,35 @@ def upload_file_to_supabase(
         raise RuntimeError("Unable to store health record document") from exc
 
 
+def _guess_mime_type(filename: str, fallback: str = "image/jpeg") -> str:
+    ext = os.path.splitext(filename)[1].lower()
+    mime_map = {
+        ".pdf": "application/pdf",
+        ".png": "image/png",
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".webp": "image/webp",
+        ".gif": "image/gif",
+        ".doc": "application/msword",
+        ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        ".txt": "text/plain",
+    }
+    return mime_map.get(ext, fallback)
+
+
 def upload_base64_to_supabase(
     base64_data: str,
     filename: str,
     user_id: str,
     bucket_name: str = DEFAULT_BUCKET,
 ) -> Dict[str, Any]:
-    """Decode base64 data and upload it to the private health-record bucket."""
+    """Decode base64 data and upload it to the private health-record bucket (supports PDF, JPG, PNG, WEBP, DOC)."""
     if "," in base64_data:
         header, encoded = base64_data.split(",", 1)
-        mime = header.split(";")[0].replace("data:", "") if "data:" in header else "image/jpeg"
+        mime = header.split(";")[0].replace("data:", "") if "data:" in header else _guess_mime_type(filename)
     else:
         encoded = base64_data
-        mime = "image/jpeg"
+        mime = _guess_mime_type(filename)
 
     try:
         file_bytes = base64.b64decode(encoded, validate=True)
