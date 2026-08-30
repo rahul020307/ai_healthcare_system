@@ -1132,14 +1132,37 @@ function renderActiveFamilyContext() {
 
 let activeAlarmItem = null;
 let triggeredAlarmsToday = new Set();
+let dismissedAlarmsToday = new Set();
 let reminderTickerInterval = null;
+let _curaAudioCtx = null;
+
+// Ensure audio context is unlocked on first user interaction
+function getCuraAudioContext() {
+  if (!_curaAudioCtx) {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (AudioCtx) {
+      _curaAudioCtx = new AudioCtx();
+    }
+  }
+  if (_curaAudioCtx && _curaAudioCtx.state === 'suspended') {
+    _curaAudioCtx.resume().catch(() => {});
+  }
+  return _curaAudioCtx;
+}
+
+if (typeof document !== 'undefined') {
+  ['click', 'touchstart', 'keydown'].forEach(evt => {
+    document.addEventListener(evt, () => {
+      getCuraAudioContext();
+    }, { once: true });
+  });
+}
 
 // Synthesize pleasant two-tone medical chime using Web Audio API
 function playMedicationChime() {
   try {
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    if (!AudioCtx) return;
-    const ctx = new AudioCtx();
+    const ctx = getCuraAudioContext();
+    if (!ctx) return;
     if (ctx.state === 'suspended') ctx.resume();
 
     const now = ctx.currentTime;
@@ -1242,11 +1265,17 @@ function getActiveSchedules() {
   return [];
 }
 
-// Convert "08:00 AM" or "14:30" or "08:00" to minutes from midnight
+// Convert "08:00 AM", "8:30pm", "14:30", "Morning Slot" to minutes from midnight
 function parseTimeToMinutes(timeStr) {
   if (!timeStr) return null;
-  const s = timeStr.trim();
-  const match12 = s.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  const s = String(timeStr).trim();
+  
+  if (/morning/i.test(s)) return 8 * 60; // 08:00 AM
+  if (/afternoon/i.test(s)) return 13 * 60; // 01:00 PM
+  if (/evening/i.test(s)) return 20 * 60; // 08:00 PM
+  if (/night/i.test(s)) return 22 * 60 + 30; // 10:30 PM
+
+  const match12 = s.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
   if (match12) {
     let hours = parseInt(match12[1], 10);
     const mins = parseInt(match12[2], 10);
@@ -1255,7 +1284,8 @@ function parseTimeToMinutes(timeStr) {
     if (meridian === 'AM' && hours === 12) hours = 0;
     return hours * 60 + mins;
   }
-  const match24 = s.match(/^(\d{1,2}):(\d{2})$/);
+
+  const match24 = s.match(/(\d{1,2}):(\d{2})/);
   if (match24) {
     return parseInt(match24[1], 10) * 60 + parseInt(match24[2], 10);
   }
@@ -1270,6 +1300,36 @@ function formatMinutesToAMPM(totalMins) {
   if (hours > 12) hours -= 12;
   if (hours === 0) hours = 12;
   return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')} ${meridian}`;
+}
+
+function setQuickTimeOffset(minsOffset = 1) {
+  const target = new Date(Date.now() + minsOffset * 60000);
+  const hh = String(target.getHours()).padStart(2, '0');
+  const mm = String(target.getMinutes()).padStart(2, '0');
+  const timeInput = document.getElementById('rem-time');
+  if (timeInput) {
+    timeInput.value = `${hh}:${mm}`;
+    updateTimePreview();
+  }
+}
+
+function setQuickTimeExact(hours, minutes = 0) {
+  const hh = String(hours).padStart(2, '0');
+  const mm = String(minutes).padStart(2, '0');
+  const timeInput = document.getElementById('rem-time');
+  if (timeInput) {
+    timeInput.value = `${hh}:${mm}`;
+    updateTimePreview();
+  }
+}
+
+function updateTimePreview() {
+  const timeInput = document.getElementById('rem-time');
+  const preview = document.getElementById('rem-time-preview');
+  if (timeInput && preview) {
+    const mins = parseTimeToMinutes(timeInput.value);
+    preview.innerText = mins !== null ? `(${formatMinutesToAMPM(mins)})` : '';
+  }
 }
 
 function calculateDoseStatus(item) {
@@ -1288,7 +1348,7 @@ function calculateDoseStatus(item) {
       const remainingMins = Math.max(1, Math.round((snoozeTime - Date.now()) / 60000));
       return {
         status: 'snoozed',
-        badgeClass: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+        badgeClass: 'bg-amber-500/20 text-amber-300 border-amber-500/30 font-bold',
         label: `⏰ Snoozed (${remainingMins}m left)`
       };
     }
@@ -1310,7 +1370,7 @@ function calculateDoseStatus(item) {
   if (diff === 0 || (diff < 0 && diff >= -15)) {
     return {
       status: 'due_now',
-      badgeClass: 'bg-red-500/20 text-red-300 border-red-500/40 animate-pulse',
+      badgeClass: 'bg-red-500/20 text-red-300 border-red-500/40 animate-pulse font-extrabold',
       label: '⚡ DUE NOW!'
     };
   } else if (diff < -15) {
@@ -1318,12 +1378,12 @@ function calculateDoseStatus(item) {
     return {
       status: 'overdue',
       badgeClass: 'bg-rose-500/20 text-rose-300 border-rose-500/30',
-      label: `⚠️ Overdue by ${overdueMins > 60 ? Math.round(overdueMins / 60) + 'h' : overdueMins + 'm'}`
+      label: `⚠️ Overdue by ${overdueMins > 60 ? Math.floor(overdueMins / 60) + 'h ' + (overdueMins % 60) + 'm' : overdueMins + 'm'}`
     };
   } else {
     return {
       status: 'upcoming',
-      badgeClass: 'bg-slate-800 text-teal-300 border-slate-700',
+      badgeClass: 'bg-slate-800 text-teal-300 border-slate-700 font-semibold',
       label: `In ${diff > 60 ? Math.floor(diff / 60) + 'h ' + (diff % 60) + 'm' : diff + 'm'}`
     };
   }
@@ -1532,6 +1592,11 @@ async function snoozePill(id, minutes = 15) {
   if (pill) {
     const snoozeUntil = new Date(Date.now() + minutes * 60000).toISOString();
     pill.snoozeUntil = snoozeUntil;
+    
+    // Clear alarm key so it re-triggers when snooze expires
+    triggeredAlarmsToday.delete(`${pill.id}-${new Date().toDateString()}-${pill.time}`);
+    dismissedAlarmsToday.delete(`${pill.id}-${new Date().toDateString()}`);
+
     renderSchedule();
 
     try {
@@ -1548,6 +1613,9 @@ async function snoozePill(id, minutes = 15) {
 }
 
 function dismissMedicationAlarm() {
+  if (activeAlarmItem) {
+    dismissedAlarmsToday.add(`${activeAlarmItem.id}-${new Date().toDateString()}`);
+  }
   const modal = document.getElementById('modal-medication-alarm');
   if (modal) modal.classList.add('hidden');
   activeAlarmItem = null;
@@ -1559,8 +1627,14 @@ function setQuickMedName(name) {
 }
 
 function openAddReminderModal() {
+  // Prepopulate with 1 minute ahead for quick testing
+  setQuickTimeOffset(1);
+
   const modal = document.getElementById('modal-add-reminder');
-  if (modal) modal.classList.remove('hidden');
+  if (modal) {
+    modal.classList.remove('hidden');
+    if (window.lucide) lucide.createIcons();
+  }
 }
 
 function closeAddReminderModal() {
@@ -1648,6 +1722,8 @@ function initRealtimeReminderTicker() {
 
   reminderTickerInterval = setInterval(() => {
     const now = new Date();
+    const nowMins = now.getHours() * 60 + now.getMinutes();
+    const todayStr = now.toDateString();
     
     // 1. Update Live Clock in Header
     const clockEl = document.getElementById('rem-clock-text');
@@ -1657,10 +1733,10 @@ function initRealtimeReminderTicker() {
 
     // 2. Check for due medications
     const schedules = getActiveSchedules();
-    const nowMins = now.getHours() * 60 + now.getMinutes();
 
     schedules.forEach(item => {
       if (item.taken) return;
+      if (dismissedAlarmsToday.has(`${item.id}-${todayStr}`)) return;
 
       let isDue = false;
 
@@ -1673,13 +1749,17 @@ function initRealtimeReminderTicker() {
         }
       } else {
         const doseMins = parseTimeToMinutes(item.time);
-        if (doseMins !== null && doseMins === nowMins) {
-          isDue = true;
+        if (doseMins !== null) {
+          // Trigger alarm if current minute matches or within a 2-minute window
+          const diff = nowMins - doseMins;
+          if (diff >= 0 && diff <= 2) {
+            isDue = true;
+          }
         }
       }
 
       if (isDue) {
-        const alarmKey = `${item.id}-${now.toDateString()}-${now.getHours()}:${now.getMinutes()}`;
+        const alarmKey = `${item.id}-${todayStr}-${item.time}`;
         if (!triggeredAlarmsToday.has(alarmKey)) {
           triggeredAlarmsToday.add(alarmKey);
           triggerMedicationAlarm(item);
@@ -1687,6 +1767,9 @@ function initRealtimeReminderTicker() {
         }
       }
     });
+
+    // 3. Update dynamic countdowns & adherence UI
+    updateAdherenceStats(schedules);
   }, 10000);
 }
 
@@ -1694,7 +1777,7 @@ function initRealtimeReminderTicker() {
 if (typeof window !== 'undefined') {
   setTimeout(() => {
     initRealtimeReminderTicker();
-  }, 1000);
+  }, 500);
 }
 
 // MODULE 8: PRESCRIPTION MANAGEMENT & OCR EXTRACTION

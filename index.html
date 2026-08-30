@@ -2449,8 +2449,19 @@
 
           <!-- Precise Time Picker -->
           <div>
-            <label class="block text-[11px] font-semibold text-slate-300 mb-1">Exact Reminder Time *</label>
-            <input type="time" id="rem-time" value="08:00" class="w-full glass-input rounded-xl px-3.5 py-2.5 text-xs font-bold text-teal-300 bg-slate-900">
+            <div class="flex items-center justify-between mb-1">
+              <label class="block text-[11px] font-semibold text-slate-300">Exact Reminder Time *</label>
+              <span id="rem-time-preview" class="text-[10px] text-teal-400 font-bold"></span>
+            </div>
+            <input type="time" id="rem-time" value="08:00" class="w-full glass-input rounded-xl px-3.5 py-2 text-xs font-bold text-teal-300 bg-slate-900">
+            <div class="flex items-center gap-1.5 mt-1.5 flex-wrap">
+              <span class="text-[10px] text-slate-500">Quick set:</span>
+              <button type="button" onclick="setQuickTimeOffset(1)" class="text-[10px] bg-teal-950/60 hover:bg-teal-900/80 text-teal-300 px-2 py-0.5 rounded-lg border border-teal-500/30 font-bold">⚡ +1 Min (Test)</button>
+              <button type="button" onclick="setQuickTimeOffset(5)" class="text-[10px] bg-slate-900 hover:bg-slate-800 text-slate-300 px-2 py-0.5 rounded-lg border border-slate-800">+5 Mins</button>
+              <button type="button" onclick="setQuickTimeExact(8, 0)" class="text-[10px] bg-slate-900 hover:bg-slate-800 text-slate-300 px-2 py-0.5 rounded-lg border border-slate-800">8 AM</button>
+              <button type="button" onclick="setQuickTimeExact(13, 0)" class="text-[10px] bg-slate-900 hover:bg-slate-800 text-slate-300 px-2 py-0.5 rounded-lg border border-slate-800">1 PM</button>
+              <button type="button" onclick="setQuickTimeExact(20, 0)" class="text-[10px] bg-slate-900 hover:bg-slate-800 text-slate-300 px-2 py-0.5 rounded-lg border border-slate-800">8 PM</button>
+            </div>
           </div>
         </div>
 
