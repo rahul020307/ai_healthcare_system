@@ -3,13 +3,21 @@ import smtplib
 import datetime
 from email.message import EmailMessage
 from typing import Optional
+from dotenv import load_dotenv
 
-SMTP_HOST = os.getenv("SMTP_HOST", "").strip()
-SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
-SMTP_USER = os.getenv("SMTP_USER", "").strip()
-SMTP_PASS = os.getenv("SMTP_PASS", "").strip()
-SMTP_FROM = os.getenv("SMTP_FROM", "CuraAssist Security <security@curaassist.health>").strip()
-SMTP_USE_SSL = os.getenv("SMTP_USE_SSL", "false").lower() in ["true", "1", "yes"]
+load_dotenv()
+
+
+def _get_smtp_config():
+    load_dotenv()
+    return {
+        "host": os.getenv("SMTP_HOST", "smtp.gmail.com").strip() if (os.getenv("SMTP_USER") or os.getenv("SMTP_HOST")) else "",
+        "port": int(os.getenv("SMTP_PORT", "587")),
+        "user": os.getenv("SMTP_USER", "").strip(),
+        "pass": os.getenv("SMTP_PASS", "").strip().replace(" ", ""),
+        "from": os.getenv("SMTP_FROM", "").strip() or f"CuraAssist Security <{os.getenv('SMTP_USER', 'security@curaassist.health')}>",
+        "use_ssl": os.getenv("SMTP_USE_SSL", "false").lower() in ["true", "1", "yes"] or os.getenv("SMTP_PORT") == "465",
+    }
 
 
 def send_security_login_email(
@@ -99,31 +107,32 @@ CuraAssist CareHub Automated Security System
 </html>
 """
 
+    config = _get_smtp_config()
     msg = EmailMessage()
     msg["Subject"] = subject
-    msg["From"] = SMTP_FROM
+    msg["From"] = config["from"]
     msg["To"] = recipient_email
     msg.set_content(text_content)
     msg.add_alternative(html_content, subtype="html")
 
     # 1. If SMTP server is configured, deliver via SMTP
-    if SMTP_HOST and SMTP_USER and SMTP_PASS:
+    if config["host"] and config["user"] and config["pass"]:
         try:
-            if SMTP_USE_SSL or SMTP_PORT == 465:
-                with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=10) as server:
-                    server.login(SMTP_USER, SMTP_PASS)
+            if config["use_ssl"] or config["port"] == 465:
+                with smtplib.SMTP_SSL(config["host"], config["port"], timeout=10) as server:
+                    server.login(config["user"], config["pass"])
                     server.send_message(msg)
             else:
-                with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=10) as server:
+                with smtplib.SMTP(config["host"], config["port"], timeout=10) as server:
                     server.starttls()
-                    server.login(SMTP_USER, SMTP_PASS)
+                    server.login(config["user"], config["pass"])
                     server.send_message(msg)
             print(f"[EmailService] Security login email dispatched successfully to {recipient_email}")
             return True
         except Exception as exc:
-            print(f"[EmailService] Failed to send email via SMTP ({SMTP_HOST}):", exc)
+            print(f"[EmailService] Failed to send email via SMTP ({config['host']}):", exc)
             return False
 
     # 2. Resilient fallback / Audit log
-    print(f"[EmailService - Security Notification] Queued login alert for {recipient_email} at {timestamp} (Configure SMTP_HOST/USER/PASS to send live mail)")
+    print(f"[EmailService - Security Notification] Queued login alert for {recipient_email} at {timestamp} (Configure SMTP_USER & SMTP_PASS in .env to send live mail)")
     return True
