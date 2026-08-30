@@ -913,35 +913,61 @@ async function logoutUser() {
     try { await client.auth.signOut(); } catch (e) {}
   }
   window.authToken = null;
+  currentPendingAvatarUrl = null;
+  
+  // 1. Wipe in-memory state
   state.records = [];
   state.schedule = [];
+  state.cart = [];
+  state.appointments = [];
+  state.vitals = [];
 
+  // 2. Clean all browser client storage completely
   try {
     localStorage.removeItem('cura_active_user_v1');
     localStorage.removeItem('cura_cart_v1');
+    localStorage.removeItem('cura_scanned_uploads');
     sessionStorage.clear();
   } catch (e) {}
 
   clearAuthInputs();
 
+  // 3. Reset form inputs & edit profile modal
+  ['edit-prof-name', 'edit-prof-email', 'edit-prof-phone', 'edit-prof-city', 'edit-prof-age'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  const preview = document.getElementById('edit-prof-avatar-preview');
+  if (preview) preview.src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250";
+
+  // 4. Reset Initial Data Store
   if (typeof INITIAL_DATA !== 'undefined') {
     INITIAL_DATA.userAuth.isLoggedIn = false;
-    INITIAL_DATA.userAuth.user.name = "Guest User";
+    INITIAL_DATA.userAuth.user = { name: "Guest User", email: "", phone: "", token: "" };
+    INITIAL_DATA.healthRecords = [];
+    INITIAL_DATA.medicineSchedule = {};
     if (INITIAL_DATA.familyMembers && INITIAL_DATA.familyMembers[0]) {
       INITIAL_DATA.familyMembers[0].name = "Guest User";
       INITIAL_DATA.familyMembers[0].email = "";
       INITIAL_DATA.familyMembers[0].phone = "";
+      INITIAL_DATA.familyMembers[0].avatar = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250";
     }
   }
-  updateAuthUIState({ isLoggedIn: false, userName: "Guest User" });
+
+  // 5. Reset UI components
+  updateAuthUIState({ isLoggedIn: false, userName: "Guest User", avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250" });
   
-  switchAuthTab('register');
+  if (typeof renderRecords === 'function') renderRecords();
+  if (typeof renderSchedule === 'function') renderSchedule();
+  if (typeof renderCart === 'function') renderCart();
+
+  switchAuthTab('login');
 
   // Lock app behind mandatory authentication guard
   const overlay = document.getElementById('auth-guard-overlay');
   if (overlay) overlay.classList.remove('hidden');
 
-  alert("🔒 Logged out. Registration & Login gate is now open for a fresh sign-up test.");
+  alert("🔒 Logged out successfully. Browser memory and session data have been cleared.");
 }
 
 async function checkSavedSession() {
