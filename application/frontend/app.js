@@ -136,8 +136,10 @@ async function fetchUserDataFromBackend() {
 
 function saveStateToStorage() {
   try {
-    // UI temporary preferences only (e.g. cart). Healthcare data is saved to Supabase/SQL database.
     localStorage.setItem('cura_cart_v1', JSON.stringify(state.cart));
+    if (state.schedule) {
+      localStorage.setItem('cura_schedules_v1', JSON.stringify(state.schedule));
+    }
   } catch (e) {
     console.warn("[CuraAssist] Storage save error:", e);
   }
@@ -148,6 +150,35 @@ function loadStateFromStorage() {
     const savedCart = localStorage.getItem('cura_cart_v1');
     if (savedCart) {
       state.cart = JSON.parse(savedCart);
+    }
+    const savedSchedules = localStorage.getItem('cura_schedules_v1');
+    if (savedSchedules) {
+      state.schedule = JSON.parse(savedSchedules);
+    } else if (!state.schedule || state.schedule.length === 0) {
+      state.schedule = [
+        {
+          id: "sch-demo-1",
+          name: "Paracetamol 500mg",
+          dosage: "1 Tablet",
+          time: "08:00 AM",
+          mealInstruction: "🍽️ After Meals",
+          frequency: "Daily",
+          refillsLeft: 28,
+          totalPills: 30,
+          taken: false
+        },
+        {
+          id: "sch-demo-2",
+          name: "Vitamin D3 60K",
+          dosage: "1 Capsule",
+          time: "08:00 PM",
+          mealInstruction: "🥗 Before Meals",
+          frequency: "Daily",
+          refillsLeft: 14,
+          totalPills: 15,
+          taken: false
+        }
+      ];
     }
   } catch (e) {
     console.warn("[CuraAssist] Storage load error:", e);
@@ -250,7 +281,7 @@ function switchTab(tabName) {
   }
 
   // Hide all sections
-  ['home', 'store', 'maps', 'profile'].forEach(tab => {
+  ['home', 'reminders', 'store', 'maps', 'profile'].forEach(tab => {
     const sec = document.getElementById(`view-${tab}`);
     if (sec) sec.classList.add('hidden');
   });
@@ -258,6 +289,11 @@ function switchTab(tabName) {
   // Show active view section
   const targetSec = document.getElementById(`view-${tabName}`);
   if (targetSec) targetSec.classList.remove('hidden');
+
+  // If switching to Reminders or Home, refresh schedule and adherence
+  if (tabName === 'reminders' || tabName === 'home') {
+    if (typeof renderSchedule === 'function') renderSchedule();
+  }
 
   // If switching to Maps tab, initialize map if needed
   if (tabName === 'maps') {
@@ -1389,80 +1425,109 @@ function calculateDoseStatus(item) {
   }
 }
 
+let activeReminderFilter = 'all';
+
+function filterReminders(filterType) {
+  activeReminderFilter = filterType;
+  ['all', 'pending', 'taken', 'low'].forEach(f => {
+    const btn = document.getElementById(`btn-rem-filter-${f}`);
+    if (btn) {
+      if (f === filterType || (f === 'low' && filterType === 'low_refill')) {
+        btn.className = "px-3.5 py-1.5 rounded-xl font-bold bg-teal-500/20 text-teal-300 border border-teal-500/30 text-xs";
+      } else {
+        btn.className = "px-3.5 py-1.5 rounded-xl font-semibold bg-slate-900 text-slate-400 border border-slate-800 hover:text-white text-xs";
+      }
+    }
+  });
+  renderSchedule();
+}
+
 function renderSchedule() {
-  const container = document.getElementById('schedule-container');
-  if (!container) return;
+  const homeContainer = document.getElementById('schedule-container');
+  const fullContainer = document.getElementById('reminders-full-container');
+  if (!homeContainer && !fullContainer) return;
 
   const schedules = getActiveSchedules();
 
-  if (schedules.length === 0) {
-    container.innerHTML = `
-      <div class="p-8 text-center glass-card rounded-2xl border border-slate-800/80 space-y-3">
-        <div class="p-3 bg-teal-500/10 text-teal-400 rounded-2xl inline-block">
-          <i data-lucide="calendar-plus" class="w-8 h-8"></i>
-        </div>
-        <p class="text-sm font-semibold text-white">No Active Medicine Reminders</p>
-        <p class="text-xs text-slate-400 max-w-sm mx-auto">Add your daily prescriptions, vitamins, or syrups with exact alarm times and refill thresholds.</p>
-        <button onclick="openAddReminderModal()" class="bg-teal-600 hover:bg-teal-500 text-white font-bold px-4 py-2 rounded-xl text-xs inline-flex items-center gap-1.5 shadow-lg shadow-teal-900/30">
-          <i data-lucide="plus" class="w-4 h-4"></i> Create First Reminder
-        </button>
-      </div>`;
-    if (window.lucide) lucide.createIcons();
-    updateAdherenceStats(schedules);
-    return;
+  // Apply active filter for full view
+  let filteredSchedules = schedules;
+  if (activeReminderFilter === 'pending') {
+    filteredSchedules = schedules.filter(s => !s.taken);
+  } else if (activeReminderFilter === 'taken') {
+    filteredSchedules = schedules.filter(s => s.taken);
+  } else if (activeReminderFilter === 'low_refill' || activeReminderFilter === 'low') {
+    filteredSchedules = schedules.filter(s => (s.refillsLeft ?? s.refills_left ?? 30) <= 5);
   }
 
-  container.innerHTML = schedules.map(item => {
-    const doseState = calculateDoseStatus(item);
-    const refills = item.refillsLeft ?? item.refills_left ?? 30;
-    const isLowRefill = refills <= 5;
-    const meal = item.mealInstruction || item.meal_instruction || 'After Meals';
+  const emptyHtml = `
+    <div class="p-8 text-center glass-card rounded-2xl border border-slate-800/80 space-y-3">
+      <div class="p-3 bg-teal-500/10 text-teal-400 rounded-2xl inline-block">
+        <i data-lucide="calendar-plus" class="w-8 h-8"></i>
+      </div>
+      <p class="text-sm font-semibold text-white">No Medicine Reminders Found</p>
+      <p class="text-xs text-slate-400 max-w-sm mx-auto">Add your daily prescriptions, vitamins, or syrups with exact alarm times and refill thresholds.</p>
+      <button onclick="openAddReminderModal()" class="bg-teal-600 hover:bg-teal-500 text-white font-bold px-4 py-2 rounded-xl text-xs inline-flex items-center gap-1.5 shadow-lg shadow-teal-900/30">
+        <i data-lucide="plus" class="w-4 h-4"></i> + Add New Reminder
+      </button>
+    </div>`;
 
-    return `
-      <div class="p-4 rounded-2xl glass-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 border ${item.taken ? 'border-emerald-500/30 bg-emerald-950/10 opacity-80' : doseState.status === 'due_now' ? 'border-teal-400 bg-teal-950/20 shadow-lg shadow-teal-950/50' : 'border-slate-800'} transition-all duration-300">
-        <div class="flex items-center gap-3">
-          <button onclick="togglePillTaken('${item.id}')" title="${item.taken ? 'Mark as Pending' : 'Mark as Taken'}" class="w-7 h-7 rounded-xl border flex items-center justify-center transition-all ${item.taken ? 'bg-emerald-500 border-emerald-400 text-slate-950 font-extrabold shadow-md shadow-emerald-500/30' : 'border-slate-700 bg-slate-900 text-transparent hover:border-teal-400 hover:text-teal-400'}">
-            ✓
-          </button>
-          <div class="space-y-0.5">
-            <div class="flex items-center gap-2 flex-wrap">
-              <h4 class="text-sm font-bold text-white ${item.taken ? 'line-through text-slate-400' : ''}">${item.name}</h4>
-              <span class="text-[10px] font-mono border px-2 py-0.5 rounded-full font-bold ${doseState.badgeClass}">
-                ${doseState.label}
-              </span>
-              <span class="text-[10px] bg-slate-900 text-teal-300 border border-slate-800 font-semibold px-2 py-0.5 rounded-full">
-                ${item.time}
-              </span>
-            </div>
-            <div class="flex items-center gap-2 text-xs text-slate-400 flex-wrap">
-              <span>${item.dosage || '1 Tablet'}</span>
-              <span>•</span>
-              <span class="text-amber-300 font-medium">${meal}</span>
-              <span>•</span>
-              <span class="${isLowRefill ? 'text-rose-400 font-bold' : 'text-slate-400'}">${refills} refills left</span>
+  const generateCardsHtml = (list) => {
+    if (list.length === 0) return emptyHtml;
+    return list.map(item => {
+      const doseState = calculateDoseStatus(item);
+      const refills = item.refillsLeft ?? item.refills_left ?? 30;
+      const isLowRefill = refills <= 5;
+      const meal = item.mealInstruction || item.meal_instruction || 'After Meals';
+
+      return `
+        <div class="p-4 rounded-2xl glass-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 border ${item.taken ? 'border-emerald-500/30 bg-emerald-950/10 opacity-80' : doseState.status === 'due_now' ? 'border-teal-400 bg-teal-950/20 shadow-lg shadow-teal-950/50' : 'border-slate-800'} transition-all duration-300">
+          <div class="flex items-center gap-3">
+            <button onclick="togglePillTaken('${item.id}')" title="${item.taken ? 'Mark as Pending' : 'Mark as Taken'}" class="w-7 h-7 rounded-xl border flex items-center justify-center transition-all ${item.taken ? 'bg-emerald-500 border-emerald-400 text-slate-950 font-extrabold shadow-md shadow-emerald-500/30' : 'border-slate-700 bg-slate-900 text-transparent hover:border-teal-400 hover:text-teal-400'}">
+              ✓
+            </button>
+            <div class="space-y-0.5">
+              <div class="flex items-center gap-2 flex-wrap">
+                <h4 class="text-sm font-bold text-white ${item.taken ? 'line-through text-slate-400' : ''}">${item.name}</h4>
+                <span class="text-[10px] font-mono border px-2 py-0.5 rounded-full font-bold ${doseState.badgeClass}">
+                  ${doseState.label}
+                </span>
+                <span class="text-[10px] bg-slate-900 text-teal-300 border border-slate-800 font-semibold px-2 py-0.5 rounded-full">
+                  ${item.time}
+                </span>
+              </div>
+              <div class="flex items-center gap-2 text-xs text-slate-400 flex-wrap">
+                <span>${item.dosage || '1 Tablet'}</span>
+                <span>•</span>
+                <span class="text-amber-300 font-medium">${meal}</span>
+                <span>•</span>
+                <span class="${isLowRefill ? 'text-rose-400 font-bold' : 'text-slate-400'}">${refills} refills left</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="flex items-center gap-2 self-end sm:self-center flex-wrap">
-          ${!item.taken ? `
-            <button onclick="snoozePill('${item.id}', 10)" class="px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs border border-slate-700 font-medium flex items-center gap-1 transition-colors">
-              ⏰ +10m
+          <div class="flex items-center gap-2 self-end sm:self-center flex-wrap">
+            ${!item.taken ? `
+              <button onclick="snoozePill('${item.id}', 10)" class="px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs border border-slate-700 font-medium flex items-center gap-1 transition-colors">
+                ⏰ +10m
+              </button>
+              <button onclick="snoozePill('${item.id}', 30)" class="px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs border border-slate-700 font-medium flex items-center gap-1 transition-colors">
+                ⏰ +30m
+              </button>
+            ` : ''}
+            <button onclick="togglePillTaken('${item.id}')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shadow-md ${item.taken ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30' : 'bg-teal-600 hover:bg-teal-500 text-white shadow-teal-900/30'}">
+              ${item.taken ? 'Taken ✓' : 'Mark Taken'}
             </button>
-            <button onclick="snoozePill('${item.id}', 30)" class="px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs border border-slate-700 font-medium flex items-center gap-1 transition-colors">
-              ⏰ +30m
+            <button onclick="deleteReminder('${item.id}')" title="Delete Reminder" class="px-2.5 py-1.5 rounded-xl bg-red-950/30 hover:bg-red-900/50 text-red-400 hover:text-red-300 text-xs border border-red-800/40 transition-colors">
+              🗑️
             </button>
-          ` : ''}
-          <button onclick="togglePillTaken('${item.id}')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shadow-md ${item.taken ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30' : 'bg-teal-600 hover:bg-teal-500 text-white shadow-teal-900/30'}">
-            ${item.taken ? 'Taken ✓' : 'Mark Taken'}
-          </button>
-          <button onclick="deleteReminder('${item.id}')" title="Delete Reminder" class="px-2.5 py-1.5 rounded-xl bg-red-950/30 hover:bg-red-900/50 text-red-400 hover:text-red-300 text-xs border border-red-800/40 transition-colors">
-            🗑️
-          </button>
+          </div>
         </div>
-      </div>
-    `;
-  }).join('');
+      `;
+    }).join('');
+  };
+
+  if (homeContainer) homeContainer.innerHTML = generateCardsHtml(schedules);
+  if (fullContainer) fullContainer.innerHTML = generateCardsHtml(filteredSchedules);
 
   if (window.lucide) lucide.createIcons();
   updateAdherenceStats(schedules);
@@ -1473,6 +1538,7 @@ function updateAdherenceStats(schedules) {
   const takenCount = schedules.filter(s => s.taken).length;
   const percent = total === 0 ? 100 : Math.round((takenCount / total) * 100);
 
+  // Home widgets
   const scoreEl = document.getElementById('adherence-score-text');
   if (scoreEl) scoreEl.innerText = `${percent}%`;
 
@@ -1482,28 +1548,49 @@ function updateAdherenceStats(schedules) {
   const countEl = document.getElementById('adherence-doses-count');
   if (countEl) countEl.innerText = `${takenCount} of ${total} doses taken today`;
 
+  // Full Reminders view widgets
+  const fullScoreEl = document.getElementById('adherence-full-score');
+  if (fullScoreEl) fullScoreEl.innerText = `${percent}%`;
+
+  const fullBarEl = document.getElementById('adherence-full-bar');
+  if (fullBarEl) fullBarEl.style.width = `${percent}%`;
+
+  const fullCountEl = document.getElementById('adherence-full-count');
+  if (fullCountEl) fullCountEl.innerText = `${takenCount} of ${total} doses taken`;
+
   // Next dose calculation
   const nextDoseEl = document.getElementById('next-dose-countdown');
-  if (nextDoseEl) {
-    const upcoming = schedules.filter(s => !s.taken);
-    if (upcoming.length === 0) {
-      nextDoseEl.innerText = total > 0 ? "All doses completed! 🎉" : "No scheduled doses";
-    } else {
-      const firstUpcoming = upcoming[0];
-      nextDoseEl.innerText = `${firstUpcoming.name} (${firstUpcoming.time})`;
-    }
+  const nextFullDoseEl = document.getElementById('next-full-dose-text');
+  const upcoming = schedules.filter(s => !s.taken);
+  
+  if (upcoming.length === 0) {
+    const text = total > 0 ? "All doses completed! 🎉" : "No scheduled doses";
+    if (nextDoseEl) nextDoseEl.innerText = text;
+    if (nextFullDoseEl) nextFullDoseEl.innerText = text;
+  } else {
+    const firstUpcoming = upcoming[0];
+    const text = `${firstUpcoming.name} (${firstUpcoming.time})`;
+    if (nextDoseEl) nextDoseEl.innerText = text;
+    if (nextFullDoseEl) nextFullDoseEl.innerText = text;
   }
 
   // Refills summary
   const refillsEl = document.getElementById('refills-summary-text');
-  if (refillsEl) {
-    const lowSupplies = schedules.filter(s => (s.refillsLeft ?? s.refills_left ?? 30) <= 5);
-    if (lowSupplies.length > 0) {
-      refillsEl.innerHTML = `<span class="text-rose-400 font-bold">${lowSupplies.length} Low (${lowSupplies.map(s => s.name).join(', ')})</span>`;
-    } else {
-      refillsEl.innerText = "All supplies adequate";
-    }
+  const refillsFullEl = document.getElementById('refills-full-text');
+  const lowSupplies = schedules.filter(s => (s.refillsLeft ?? s.refills_left ?? 30) <= 5);
+
+  if (lowSupplies.length > 0) {
+    const summaryHtml = `<span class="text-rose-400 font-bold">${lowSupplies.length} Low (${lowSupplies.map(s => s.name).join(', ')})</span>`;
+    if (refillsEl) refillsEl.innerHTML = summaryHtml;
+    if (refillsFullEl) refillsFullEl.innerHTML = summaryHtml;
+  } else {
+    if (refillsEl) refillsEl.innerText = "All supplies adequate";
+    if (refillsFullEl) refillsFullEl.innerText = "All supplies adequate";
   }
+
+  // Sidebar badge
+  const sideBadge = document.getElementById('reminders-badge-side');
+  if (sideBadge) sideBadge.innerText = upcoming.length;
 }
 
 async function togglePillTaken(id) {
@@ -1678,6 +1765,7 @@ async function saveNewReminder() {
     state.schedule[state.activeFamilyId].unshift(newItem);
   }
 
+  saveStateToStorage();
   closeAddReminderModal();
   renderSchedule();
 
@@ -1701,6 +1789,7 @@ async function deleteReminder(id) {
   } else if (state.schedule[state.activeFamilyId]) {
     state.schedule[state.activeFamilyId] = state.schedule[state.activeFamilyId].filter(p => p.id !== id);
   }
+  saveStateToStorage();
   renderSchedule();
 
   try {
@@ -1726,10 +1815,11 @@ function initRealtimeReminderTicker() {
     const todayStr = now.toDateString();
     
     // 1. Update Live Clock in Header
+    const timeStr = now.toLocaleTimeString([], { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' });
     const clockEl = document.getElementById('rem-clock-text');
-    if (clockEl) {
-      clockEl.innerText = now.toLocaleTimeString([], { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    }
+    if (clockEl) clockEl.innerText = timeStr;
+    const fullClockEl = document.getElementById('rem-full-clock');
+    if (fullClockEl) fullClockEl.innerText = timeStr;
 
     // 2. Check for due medications
     const schedules = getActiveSchedules();

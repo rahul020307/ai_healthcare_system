@@ -203,6 +203,12 @@
             <i data-lucide="home" class="w-4 h-4 text-teal-400"></i>
             <span id="txt-home">Home</span>
           </button>
+
+          <button onclick="switchTab('reminders')" class="nav-link w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-semibold text-xs text-slate-300 hover:text-white hover:bg-slate-800/50" id="nav-reminders">
+            <i data-lucide="alarm-clock" class="w-4 h-4 text-amber-400"></i>
+            <span id="txt-reminders">Reminders</span>
+            <span id="reminders-badge-side" class="ml-auto bg-amber-500/20 text-amber-300 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
+          </button>
           
           <button onclick="switchTab('store')" class="nav-link w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-semibold text-xs text-slate-300 hover:text-white hover:bg-slate-800/50" id="nav-store">
             <i data-lucide="shopping-bag" class="w-4 h-4 text-cyan-400"></i>
@@ -340,7 +346,7 @@
           </button>
 
           <!-- Card 4: Medicine Reminder -->
-          <button onclick="openAddReminderModal()" class="p-4 rounded-2xl glass-panel glass-panel-hover border-amber-500/30 text-left space-y-2 group">
+          <button onclick="switchTab('reminders')" class="p-4 rounded-2xl glass-panel glass-panel-hover border-amber-500/30 text-left space-y-2 group">
             <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center group-hover:scale-110 transition-transform">
               <i data-lucide="bell" class="w-5 h-5"></i>
             </div>
@@ -348,6 +354,7 @@
               <h4 class="text-sm font-extrabold text-white">Medicine Reminder</h4>
               <p class="text-[11px] text-slate-400">Set reminders for medicines</p>
             </div>
+          </button>
         </div>
 
         <!-- AI HEALTHCARE INTELLIGENCE SUITE (PHASE 6) -->
@@ -667,6 +674,130 @@
               <!-- Rendered by JS -->
             </div>
           </div>
+        </div>
+
+        <!-- Dedicated Bottom Navigation Clearance Spacer -->
+        <div class="h-40 w-full shrink-0"></div>
+
+      </section>
+
+      <!-- ================= MEDICINE REMINDERS MODULE VIEW ================= -->
+      <section id="view-reminders" class="hidden space-y-6">
+        
+        <!-- Header Banner -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2.5">
+              <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-2">
+                <i data-lucide="alarm-clock" class="w-7 h-7 text-amber-400"></i>
+                Smart Medicine Reminders
+              </h2>
+              <span class="text-xs font-mono bg-teal-500/10 text-teal-300 border border-teal-500/30 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
+                <span class="w-2 h-2 rounded-full bg-teal-400 animate-pulse"></span>
+                <span id="rem-full-clock">--:--:--</span>
+              </span>
+            </div>
+            <p class="text-xs sm:text-sm text-slate-400 font-medium mt-1">Real-time audio alarms, meal timings, dose countdowns & cross-device synchronization.</p>
+          </div>
+
+          <div class="flex items-center gap-2 flex-wrap">
+            <button onclick="enablePushNotifications()" class="bg-slate-900 hover:bg-slate-800 text-teal-300 border border-slate-700 font-semibold px-3.5 py-2 rounded-xl text-xs flex items-center gap-1.5 transition-colors shadow-sm">
+              <i data-lucide="bell" class="w-4 h-4"></i> Push Alerts
+            </button>
+            <button onclick="testReminderAlarm()" class="bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 font-semibold px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 transition-colors" title="Test Web Audio Chime">
+              <i data-lucide="volume-2" class="w-4 h-4 text-teal-400"></i> Test Sound
+            </button>
+            <button onclick="openAddReminderModal()" class="bg-teal-600 hover:bg-teal-500 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 transition-colors shadow-lg shadow-teal-900/40">
+              <i data-lucide="plus" class="w-4 h-4"></i> + Add Reminder
+            </button>
+          </div>
+        </div>
+
+        <!-- Adherence & Statistics Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Card 1: Today's Adherence -->
+          <div class="p-5 rounded-3xl glass-panel border border-teal-500/20 space-y-2 relative overflow-hidden">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-slate-400">Today's Adherence</span>
+              <div class="p-2 rounded-xl bg-teal-500/10 text-teal-400">
+                <i data-lucide="award" class="w-5 h-5"></i>
+              </div>
+            </div>
+            <div class="text-2xl font-black text-white" id="adherence-full-score">100%</div>
+            <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+              <div id="adherence-full-bar" class="h-full bg-gradient-to-r from-teal-500 to-emerald-400 rounded-full transition-all duration-500" style="width: 100%;"></div>
+            </div>
+            <p id="adherence-full-count" class="text-[10px] text-slate-500 font-medium">0 of 0 doses taken</p>
+          </div>
+
+          <!-- Card 2: Next Dose -->
+          <div class="p-5 rounded-3xl glass-panel border border-cyan-500/20 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-slate-400">Next Due Dose</span>
+              <div class="p-2 rounded-xl bg-cyan-500/10 text-cyan-400">
+                <i data-lucide="clock" class="w-5 h-5"></i>
+              </div>
+            </div>
+            <div class="text-base font-bold text-white truncate" id="next-full-dose-text">No upcoming doses</div>
+            <p class="text-[11px] text-cyan-300 font-medium flex items-center gap-1">
+              <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Audio alert primed
+            </p>
+          </div>
+
+          <!-- Card 3: Refills & Inventory -->
+          <div class="p-5 rounded-3xl glass-panel border border-amber-500/20 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-slate-400">Medicine Supplies</span>
+              <div class="p-2 rounded-xl bg-amber-500/10 text-amber-400">
+                <i data-lucide="package" class="w-5 h-5"></i>
+              </div>
+            </div>
+            <div class="text-base font-bold text-white truncate" id="refills-full-text">All supplies adequate</div>
+            <button onclick="switchTab('store')" class="text-[11px] text-amber-400 hover:underline font-bold flex items-center gap-1">
+              Order from Pharmacy Store &rarr;
+            </button>
+          </div>
+
+          <!-- Card 4: Streak -->
+          <div class="p-5 rounded-3xl glass-panel border border-rose-500/20 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-slate-400">Adherence Streak</span>
+              <div class="p-2 rounded-xl bg-rose-500/10 text-rose-400">
+                <i data-lucide="flame" class="w-5 h-5 fill-rose-500"></i>
+              </div>
+            </div>
+            <div class="text-2xl font-black text-white">7 Days</div>
+            <p class="text-[11px] text-slate-400 font-medium">Keep it up for perfect health!</p>
+          </div>
+        </div>
+
+        <!-- Filter Chips & Actions Bar -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl glass-panel border border-slate-800">
+          <div class="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+            <button onclick="filterReminders('all')" id="btn-rem-filter-all" class="px-3.5 py-1.5 rounded-xl font-bold bg-teal-500/20 text-teal-300 border border-teal-500/30 text-xs">
+              All Reminders
+            </button>
+            <button onclick="filterReminders('pending')" id="btn-rem-filter-pending" class="px-3.5 py-1.5 rounded-xl font-semibold bg-slate-900 text-slate-400 border border-slate-800 hover:text-white text-xs">
+              Pending Today
+            </button>
+            <button onclick="filterReminders('taken')" id="btn-rem-filter-taken" class="px-3.5 py-1.5 rounded-xl font-semibold bg-slate-900 text-slate-400 border border-slate-800 hover:text-white text-xs">
+              Taken ✓
+            </button>
+            <button onclick="filterReminders('low_refill')" id="btn-rem-filter-low" class="px-3.5 py-1.5 rounded-xl font-semibold bg-slate-900 text-slate-400 border border-slate-800 hover:text-white text-xs">
+              Low Refills (≤ 5)
+            </button>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button onclick="openPrescriptionScanModal()" class="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-cyan-300 border border-slate-700 text-xs font-semibold flex items-center gap-1.5">
+              <i data-lucide="scan-line" class="w-3.5 h-3.5"></i> Scan Prescription to Schedule
+            </button>
+          </div>
+        </div>
+
+        <!-- Full Schedule Container -->
+        <div id="reminders-full-container" class="space-y-3">
+          <!-- Dynamically injected by JS -->
         </div>
 
         <!-- Dedicated Bottom Navigation Clearance Spacer -->
@@ -1000,7 +1131,7 @@
               <span class="text-[11px] font-bold text-slate-300">My Health Records</span>
             </button>
 
-            <button onclick="scrollToSection('sec-schedule')" class="flex flex-col items-center gap-2 group">
+            <button onclick="switchTab('reminders')" class="flex flex-col items-center gap-2 group">
               <div class="w-12 h-12 rounded-full bg-slate-900 border border-slate-800 text-cyan-400 flex items-center justify-center group-hover:border-cyan-500 transition-colors shadow">
                 <i data-lucide="clock" class="w-5 h-5"></i>
               </div>
@@ -2216,11 +2347,10 @@
       <span>Home</span>
     </button>
 
-    <!-- Store -->
-    <button onclick="switchTab('store')" id="mobile-nav-store" class="mobile-nav-btn flex flex-col items-center gap-0.5 text-slate-400 text-[10px] transition-all p-1 relative">
-      <i data-lucide="shopping-bag" class="w-5 h-5"></i>
-      <span>Store</span>
-      <span id="cart-badge-mobile" class="absolute -top-1 right-1 bg-teal-500 text-slate-950 text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center">0</span>
+    <!-- Reminders -->
+    <button onclick="switchTab('reminders')" id="mobile-nav-reminders" class="mobile-nav-btn flex flex-col items-center gap-0.5 text-slate-400 text-[10px] transition-all p-1">
+      <i data-lucide="alarm-clock" class="w-5 h-5"></i>
+      <span>Reminders</span>
     </button>
 
     <!-- Center Scan Action Button -->
@@ -2229,6 +2359,13 @@
         <i data-lucide="scan-line" class="w-6 h-6 stroke-[2.5]"></i>
       </div>
       <span class="text-[9px] font-extrabold text-teal-300">Scanner</span>
+    </button>
+
+    <!-- Store -->
+    <button onclick="switchTab('store')" id="mobile-nav-store" class="mobile-nav-btn flex flex-col items-center gap-0.5 text-slate-400 text-[10px] transition-all p-1 relative">
+      <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+      <span>Store</span>
+      <span id="cart-badge-mobile" class="absolute -top-1 right-1 bg-teal-500 text-slate-950 text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center">0</span>
     </button>
 
     <!-- Maps -->
