@@ -1,0 +1,34 @@
+{
+  "mcpServers": {
+    "github": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-github"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${env:GITHUB_PERSONAL_ACCESS_TOKEN}"
+      }
+    },
+    "supabase": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@supabase/mcp-server-supabase"
+      ],
+      "env": {
+        "SUPABASE_ACCESS_TOKEN": "${env:SUPABASE_ACCESS_TOKEN}"
+      }
+    },
+    "vercel": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "vercel-mcp"
+      ],
+      "env": {
+        "VERCEL_ACCESS_TOKEN": "${env:VERCEL_ACCESS_TOKEN}"
+      }
+    }
+  }
+}
