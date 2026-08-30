@@ -346,7 +346,7 @@
           </button>
 
           <!-- Card 4: Medicine Reminder -->
-          <button onclick="switchTab('reminders')" class="p-4 rounded-2xl glass-panel glass-panel-hover border-amber-500/30 text-left space-y-2 group">
+          <button onclick="switchTab('reminders'); openAddReminderModal();" class="p-4 rounded-2xl glass-panel glass-panel-hover border-amber-500/30 text-left space-y-2 group">
             <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center group-hover:scale-110 transition-transform">
               <i data-lucide="bell" class="w-5 h-5"></i>
             </div>
@@ -2547,7 +2547,7 @@
   </div>
 
   <!-- ENHANCED ADD / EDIT REMINDER MODAL -->
-  <div id="modal-add-reminder" class="hidden fixed inset-0 z-[100001] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+  <div id="modal-add-reminder" class="hidden fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4" style="z-index: 99999;">
     <div class="glass-panel w-full max-w-lg rounded-3xl p-6 sm:p-7 border border-teal-500/40 space-y-4 shadow-2xl relative">
       <button onclick="closeAddReminderModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-2">
         <i data-lucide="x" class="w-5 h-5"></i>
@@ -2648,7 +2648,7 @@
   </div>
 
   <!-- INTERACTIVE MEDICATION DUE NOW ALARM MODAL -->
-  <div id="modal-medication-alarm" class="hidden fixed inset-0 z-[100005] bg-slate-950/90 backdrop-blur-lg flex items-center justify-center p-4">
+  <div id="modal-medication-alarm" class="hidden fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-lg flex items-center justify-center p-4" style="z-index: 99999;">
     <div class="glass-panel w-full max-w-md rounded-3xl p-6 sm:p-7 border-2 border-teal-400 shadow-[0_0_50px_rgba(20,184,166,0.35)] space-y-5 relative animate-pulse-slow">
       <div class="text-center space-y-2">
         <div class="inline-flex p-4 rounded-3xl bg-teal-500/20 text-teal-300 border border-teal-400/40 shadow-lg shadow-teal-500/20 animate-bounce">

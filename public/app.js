@@ -1656,6 +1656,7 @@ function triggerMedicationAlarm(item) {
     if (refEl) refEl.innerText = `${item.refillsLeft ?? item.refills_left ?? 30} refills remaining`;
 
     modal.classList.remove('hidden');
+    modal.style.display = 'flex';
     if (window.lucide) lucide.createIcons();
   }
 }
@@ -1704,7 +1705,10 @@ function dismissMedicationAlarm() {
     dismissedAlarmsToday.add(`${activeAlarmItem.id}-${new Date().toDateString()}`);
   }
   const modal = document.getElementById('modal-medication-alarm');
-  if (modal) modal.classList.add('hidden');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.style.display = 'none';
+  }
   activeAlarmItem = null;
 }
 
@@ -1715,18 +1719,24 @@ function setQuickMedName(name) {
 
 function openAddReminderModal() {
   // Prepopulate with 1 minute ahead for quick testing
-  setQuickTimeOffset(1);
+  try {
+    setQuickTimeOffset(1);
+  } catch (e) {}
 
   const modal = document.getElementById('modal-add-reminder');
   if (modal) {
     modal.classList.remove('hidden');
+    modal.style.display = 'flex';
     if (window.lucide) lucide.createIcons();
   }
 }
 
 function closeAddReminderModal() {
   const modal = document.getElementById('modal-add-reminder');
-  if (modal) modal.classList.add('hidden');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.style.display = 'none';
+  }
 }
 
 async function saveNewReminder() {
