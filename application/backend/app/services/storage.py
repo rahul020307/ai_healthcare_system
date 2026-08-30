@@ -154,3 +154,50 @@ def upload_base64_to_supabase(
         content_type=mime,
         bucket_name=bucket_name,
     )
+
+
+def upload_avatar_to_supabase(
+    base64_data: str,
+    user_id: str,
+    filename: str = "avatar.jpg",
+) -> str:
+    """Upload user avatar to the public avatars bucket and return permanent public URL."""
+    clean_user_id = "".join(c for c in user_id if c.isalnum() or c in "-_")
+    ext = os.path.splitext(filename)[1].lower() or ".jpg"
+    if ext not in [".jpg", ".jpeg", ".png", ".webp", ".gif"]:
+        ext = ".jpg"
+    storage_path = f"{clean_user_id}/avatar{ext}"
+
+    if "," in base64_data:
+        header, encoded = base64_data.split(",", 1)
+        mime = header.split(";")[0].replace("data:", "") if "data:" in header else "image/jpeg"
+    else:
+        encoded = base64_data
+        mime = "image/jpeg"
+
+    try:
+        file_bytes = base64.b64decode(encoded)
+    except Exception as exc:
+        raise ValueError("Invalid base64 string provided for avatar") from exc
+
+    if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY and not ("placeholder" in SUPABASE_URL):
+        try:
+            upload_url = f"{SUPABASE_URL}/storage/v1/object/avatars/{storage_path}"
+            headers = _headers(mime)
+            headers["x-upsert"] = "true"
+
+            response = requests.post(
+                upload_url,
+                data=file_bytes,
+                headers=headers,
+                timeout=15,
+            )
+            response.raise_for_status()
+            import time
+            public_url = f"{SUPABASE_URL}/storage/v1/object/public/avatars/{storage_path}?v={int(time.time())}"
+            return public_url
+        except Exception as e:
+            print("[Storage] Supabase avatar upload failed, using data URL fallback:", e)
+
+    # Fallback to data URL
+    return f"data:{mime};base64,{encoded}"

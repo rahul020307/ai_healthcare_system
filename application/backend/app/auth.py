@@ -135,17 +135,34 @@ def get_current_user(identity: Dict[str, Any] = Depends(get_current_identity)):
             # Check by email
             user = session.query(UserModel).filter_by(email=identity["email"]).first()
 
+        meta = identity.get("claims", {}).get("user_metadata", {}) or {}
         if not user:
-            name_val = identity.get("claims", {}).get("name") or identity["email"].split("@", 1)[0]
+            name_val = meta.get("name") or identity.get("claims", {}).get("name") or identity["email"].split("@", 1)[0]
             user = UserModel(
                 id=identity["sub"],
                 name=name_val,
                 email=identity["email"],
+                phone=meta.get("phone") or "",
+                blood_group=meta.get("blood") or meta.get("bloodGroup") or "O+",
+                location=meta.get("city") or meta.get("location") or "Hyderabad, Telangana",
+                age=int(meta.get("age", 30)) if str(meta.get("age", "")).isdigit() else 30,
+                avatar_url=meta.get("avatar_url"),
                 role="Patient",
             )
             session.add(user)
             session.commit()
             session.refresh(user)
+        else:
+            updated = False
+            if meta.get("avatar_url") and user.avatar_url != meta["avatar_url"]:
+                user.avatar_url = meta["avatar_url"]
+                updated = True
+            if meta.get("phone") and not user.phone:
+                user.phone = meta["phone"]
+                updated = True
+            if updated:
+                session.commit()
+                session.refresh(user)
 
         session.expunge(user)
         return user

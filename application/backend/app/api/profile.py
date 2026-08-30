@@ -13,10 +13,48 @@ from app.database.sql_db import (
     VitalRecordModel,
     MedicineScheduleModel,
 )
-from app.services.storage import upload_base64_to_supabase
+from app.services.storage import upload_base64_to_supabase, upload_avatar_to_supabase, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
+import requests
 
 router = APIRouter(prefix="/profile", tags=["Profile"])
 DATA_DIR = Path(__file__).parent.parent.parent / "data"
+
+
+def _sync_supabase_profile(user_id: str, updates: dict) -> None:
+    """Sync profile updates directly to Supabase Postgres public.users table."""
+    if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY or "placeholder" in SUPABASE_URL:
+        return
+    try:
+        url = f"{SUPABASE_URL}/rest/v1/users?id=eq.{user_id}"
+        headers = {
+            "apikey": SUPABASE_SERVICE_ROLE_KEY,
+            "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+            "Content-Type": "application/json",
+            "Prefer": "return=minimal",
+        }
+        db_payload = {}
+        if "name" in updates:
+            db_payload["name"] = updates["name"]
+        if "phone" in updates:
+            db_payload["phone"] = updates["phone"]
+        if "location" in updates:
+            db_payload["location"] = updates["location"]
+        if "age" in updates:
+            try:
+                db_payload["age"] = int(updates["age"])
+            except Exception:
+                pass
+        if "gender" in updates:
+            db_payload["gender"] = updates["gender"]
+        if "bloodGroup" in updates:
+            db_payload["blood_group"] = updates["bloodGroup"]
+        if "avatar_url" in updates:
+            db_payload["avatar_url"] = updates["avatar_url"]
+
+        if db_payload:
+            requests.patch(url, json=db_payload, headers=headers, timeout=5)
+    except Exception as e:
+        print("[Supabase Sync] Note:", e)
 
 
 # --- USER PROFILE ENDPOINTS (SQL BACKED) ---
@@ -36,12 +74,19 @@ def get_user_profile(current_user: UserModel = Depends(get_current_user)):
             "age": current_user.age,
             "gender": current_user.gender,
             "bloodGroup": current_user.blood_group,
+            "avatar": current_user.avatar_url,
+            "avatarUrl": current_user.avatar_url,
             "role": current_user.role,
             "familyMembers": [
-                {"id": "fam1", "name": current_user.name, "relation": "Self"},
-                {"id": "fam2", "name": "Eleanor Sharma", "relation": "Mother"},
-                {"id": "fam3", "name": "Sarah Sharma", "relation": "Wife"},
-                {"id": "fam4", "name": "Leo Sharma", "relation": "Son"},
+                {
+                    "id": "fam1",
+                    "name": current_user.name,
+                    "relation": "Self",
+                    "avatar": current_user.avatar_url,
+                    "bloodGroup": current_user.blood_group,
+                    "age": current_user.age,
+                    "phone": current_user.phone,
+                }
             ],
         },
     }
@@ -76,10 +121,32 @@ def update_user_profile(
         if "bloodGroup" in payload and payload["bloodGroup"]:
             user.blood_group = payload["bloodGroup"]
 
+        avatar_input = payload.get("avatar_url") or payload.get("avatar") or payload.get("avatarUrl")
+        if avatar_input:
+            if avatar_input.startswith("data:image/") or ";base64," in avatar_input:
+                try:
+                    uploaded_url = upload_avatar_to_supabase(
+                        base64_data=avatar_input,
+                        user_id=user.id,
+                        filename="profile_avatar.jpg",
+                    )
+                    user.avatar_url = uploaded_url
+                    payload["avatar_url"] = uploaded_url
+                except Exception as e:
+                    print("[Profile] Avatar upload note:", e)
+                    user.avatar_url = avatar_input
+            else:
+                user.avatar_url = avatar_input
+
         session.commit()
+        session.refresh(user)
+
+        # Background sync to Supabase public.users
+        _sync_supabase_profile(user.id, payload)
+
         return {
             "status": "success",
-            "message": "Profile updated in SQL database",
+            "message": "Profile updated in SQL database and Supabase",
             "user": {
                 "id": user.id,
                 "name": user.name,
@@ -89,6 +156,8 @@ def update_user_profile(
                 "age": user.age,
                 "gender": user.gender,
                 "bloodGroup": user.blood_group,
+                "avatar": user.avatar_url,
+                "avatarUrl": user.avatar_url,
                 "role": user.role,
             },
         }

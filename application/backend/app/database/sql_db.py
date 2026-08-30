@@ -49,6 +49,7 @@ class UserModel(Base):
     gender = Column(String, default="Male")
     blood_group = Column(String, default="O+")
     role = Column(String, default="Patient")
+    avatar_url = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 

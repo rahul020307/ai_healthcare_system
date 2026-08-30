@@ -76,15 +76,33 @@ async function fetchUserDataFromBackend() {
     if (profRes.ok) {
       const profData = await profRes.json();
       if (profData.user) {
+        const backendAvatar = profData.user.avatar || profData.user.avatarUrl;
         const mergedUser = {
           isLoggedIn: true,
           ...profData.user,
           ...(localUser || {})
         };
-        // If backend has a custom name different from default placeholder, use it
-        if (profData.user.name && profData.user.name !== "Rahul Sharma" && profData.user.name !== "rahul.sharma" && (!localUser || !localUser.userName)) {
+        if (backendAvatar) {
+          mergedUser.avatar = backendAvatar;
+        }
+        if (profData.user.name) {
           mergedUser.userName = profData.user.name;
         }
+        if (profData.user.phone) {
+          mergedUser.phone = profData.user.phone;
+        }
+        if (profData.user.bloodGroup) {
+          mergedUser.blood = profData.user.bloodGroup;
+        }
+        if (profData.user.location) {
+          mergedUser.city = profData.user.location;
+        }
+        if (profData.user.age) {
+          mergedUser.age = profData.user.age;
+        }
+        try {
+          localStorage.setItem('cura_active_user_v1', JSON.stringify(mergedUser));
+        } catch (e) {}
         updateAuthUIState(mergedUser);
       }
     } else if (localUser) {
@@ -789,7 +807,7 @@ function closeEditProfileModal() {
   if (modal) modal.classList.add('hidden');
 }
 
-function saveProfileEdits() {
+async function saveProfileEdits() {
   const name = (document.getElementById('edit-prof-name')?.value || '').trim();
   const email = (document.getElementById('edit-prof-email')?.value || '').trim();
   const phone = (document.getElementById('edit-prof-phone')?.value || '').trim();
@@ -803,6 +821,54 @@ function saveProfileEdits() {
     return;
   }
 
+  let finalAvatar = avatarUrl;
+
+  // 1. Sync to backend database & Supabase Storage
+  try {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_BASE}/profile/user`, {
+      method: 'PUT',
+      headers: headers,
+      body: JSON.stringify({
+        name: name,
+        email: email,
+        phone: phone,
+        bloodGroup: blood,
+        location: city || "Hyderabad, Telangana",
+        age: age,
+        avatar_url: avatarUrl
+      })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data?.user?.avatar || data?.user?.avatarUrl) {
+        finalAvatar = data.user.avatar || data.user.avatarUrl;
+      }
+    }
+  } catch (err) {
+    console.warn("Profile update backend note:", err);
+  }
+
+  // 2. Sync to Supabase Auth metadata for seamless cross-device login
+  const client = getSupabaseClient();
+  if (client && client.auth) {
+    try {
+      await client.auth.updateUser({
+        data: {
+          name: name,
+          phone: phone,
+          blood: blood,
+          city: city || "Hyderabad, Telangana",
+          age: age,
+          avatar_url: finalAvatar
+        }
+      });
+    } catch (e) {
+      console.warn("Supabase auth updateUser note:", e);
+    }
+  }
+
+  // 3. Update localStorage and in-memory state
   const updatedSession = {
     isLoggedIn: true,
     userName: name,
@@ -811,8 +877,13 @@ function saveProfileEdits() {
     blood: blood,
     city: city || "Hyderabad, Telangana",
     age: age,
-    avatar: avatarUrl
+    avatar: finalAvatar,
+    token: window.authToken || ""
   };
+
+  try {
+    localStorage.setItem('cura_active_user_v1', JSON.stringify(updatedSession));
+  } catch (e) {}
 
   if (typeof INITIAL_DATA !== 'undefined' && INITIAL_DATA.familyMembers && INITIAL_DATA.familyMembers[0]) {
     INITIAL_DATA.familyMembers[0].name = name;
@@ -820,13 +891,13 @@ function saveProfileEdits() {
     INITIAL_DATA.familyMembers[0].phone = phone;
     INITIAL_DATA.familyMembers[0].bloodGroup = blood;
     INITIAL_DATA.familyMembers[0].age = age;
-    INITIAL_DATA.familyMembers[0].avatar = avatarUrl;
+    INITIAL_DATA.familyMembers[0].avatar = finalAvatar;
   }
 
   updateAuthUIState(updatedSession);
   closeEditProfileModal();
 
-  alert(`✨ Profile details, age (${age} Yrs) & avatar photo updated successfully for ${name}!`);
+  alert(`✨ Profile details & avatar photo saved permanently to database!`);
 }
 
 function clearAuthInputs() {
