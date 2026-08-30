@@ -641,6 +641,16 @@ async function submitAuth(message, overrideName, mode = 'login') {
         age: userSessionData.age
       })
     });
+    // Trigger background security login email notification
+    fetch(`${API_BASE}/auth/notify-login`, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify({
+        userName: userSessionData.userName,
+        email: userSessionData.email,
+        userAgent: navigator.userAgent
+      })
+    }).catch(() => {});
   } catch (syncErr) {
     console.warn("[CuraAssist] Profile backend sync note:", syncErr);
   }
