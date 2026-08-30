@@ -28,13 +28,14 @@ def notify_user_login(
     identity: dict = Depends(get_current_identity),
 ):
     """Trigger an asynchronous security notification email to the user upon sign-in."""
-    recipient_email = identity.get("email") or payload.get("email")
+    recipient_email = payload.get("email") or identity.get("email")
     user_name = payload.get("userName") or identity.get("claims", {}).get("name") or "User"
     user_agent = payload.get("userAgent") or request.headers.get("user-agent") or "Web Browser"
     client_ip = request.client.host if request.client else "127.0.0.1"
     now_str = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
 
     if recipient_email:
+        print(f"[Auth] Queueing login security alert to recipient: {recipient_email}")
         background_tasks.add_task(
             send_security_login_email,
             recipient_email=recipient_email,
