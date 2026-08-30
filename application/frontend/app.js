@@ -1126,62 +1126,502 @@ function renderActiveFamilyContext() {
   renderRecords();
 }
 
-// MEDICINE SCHEDULE ENGINE
+// ==========================================
+// REAL-TIME MEDICINE REMINDER & ADHERENCE ENGINE
+// ==========================================
+
+let activeAlarmItem = null;
+let triggeredAlarmsToday = new Set();
+let reminderTickerInterval = null;
+
+// Synthesize pleasant two-tone medical chime using Web Audio API
+function playMedicationChime() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    if (ctx.state === 'suspended') ctx.resume();
+
+    const now = ctx.currentTime;
+    
+    // Tone 1: 587.33 Hz (D5)
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(587.33, now);
+    gain1.gain.setValueAtTime(0.3, now);
+    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+    osc1.connect(gain1);
+    gain1.connect(ctx.destination);
+    osc1.start(now);
+    osc1.stop(now + 0.35);
+
+    // Tone 2: 880.00 Hz (A5)
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(880.00, now + 0.15);
+    gain2.gain.setValueAtTime(0.35, now + 0.15);
+    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+    osc2.start(now + 0.15);
+    osc2.stop(now + 0.55);
+
+    // Tone 3: 1174.66 Hz (D6)
+    const osc3 = ctx.createOscillator();
+    const gain3 = ctx.createGain();
+    osc3.type = 'triangle';
+    osc3.frequency.setValueAtTime(1174.66, now + 0.3);
+    gain3.gain.setValueAtTime(0.4, now + 0.3);
+    gain3.gain.exponentialRampToValueAtTime(0.001, now + 0.85);
+    osc3.connect(gain3);
+    gain3.connect(ctx.destination);
+    osc3.start(now + 0.3);
+    osc3.stop(now + 0.85);
+  } catch (e) {
+    console.warn("[CuraAssist Audio] Chime note:", e);
+  }
+}
+
+async function enablePushNotifications() {
+  if (!("Notification" in window)) {
+    return alert("Desktop push notifications are not supported in this browser.");
+  }
+  if (Notification.permission === "granted") {
+    alert("✅ Real-Time Medication Notifications are already ACTIVE!");
+    updateNotificationBtnState();
+    return;
+  }
+  try {
+    const perm = await Notification.requestPermission();
+    if (perm === "granted") {
+      new Notification("🔔 CuraAssist Alerts Enabled", {
+        body: "Real-time audio & push notifications will alert you when your medicine is due.",
+        icon: "https://cdn-icons-png.flaticon.com/512/883/883360.png"
+      });
+      updateNotificationBtnState();
+    } else {
+      alert("Notification permission denied. You will still receive in-app audio & modal popups.");
+    }
+  } catch (e) {
+    console.warn("Notification request note:", e);
+  }
+}
+
+function updateNotificationBtnState() {
+  const btn = document.getElementById('btn-enable-notif');
+  if (!btn) return;
+  if (window.Notification && Notification.permission === "granted") {
+    btn.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Alerts Active`;
+    btn.className = "bg-emerald-950/40 text-emerald-300 border border-emerald-500/40 font-semibold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5";
+    if (window.lucide) lucide.createIcons();
+  }
+}
+
+function testReminderAlarm() {
+  playMedicationChime();
+  const testItem = {
+    id: 'test-alarm',
+    name: 'Sample Medication (Test)',
+    dosage: '1 Tablet (500mg)',
+    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    mealInstruction: '🍽️ After Meals',
+    refillsLeft: 28,
+  };
+  triggerMedicationAlarm(testItem);
+}
+
+function getActiveSchedules() {
+  if (Array.isArray(state.schedule)) {
+    return state.schedule;
+  }
+  if (state.schedule && typeof state.schedule === 'object') {
+    return state.schedule[state.activeFamilyId] || [];
+  }
+  return [];
+}
+
+// Convert "08:00 AM" or "14:30" or "08:00" to minutes from midnight
+function parseTimeToMinutes(timeStr) {
+  if (!timeStr) return null;
+  const s = timeStr.trim();
+  const match12 = s.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (match12) {
+    let hours = parseInt(match12[1], 10);
+    const mins = parseInt(match12[2], 10);
+    const meridian = match12[3].toUpperCase();
+    if (meridian === 'PM' && hours < 12) hours += 12;
+    if (meridian === 'AM' && hours === 12) hours = 0;
+    return hours * 60 + mins;
+  }
+  const match24 = s.match(/^(\d{1,2}):(\d{2})$/);
+  if (match24) {
+    return parseInt(match24[1], 10) * 60 + parseInt(match24[2], 10);
+  }
+  return null;
+}
+
+function formatMinutesToAMPM(totalMins) {
+  if (totalMins === null || isNaN(totalMins)) return "08:00 AM";
+  let hours = Math.floor(totalMins / 60) % 24;
+  const mins = totalMins % 60;
+  const meridian = hours >= 12 ? "PM" : "AM";
+  if (hours > 12) hours -= 12;
+  if (hours === 0) hours = 12;
+  return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')} ${meridian}`;
+}
+
+function calculateDoseStatus(item) {
+  if (item.taken) {
+    return {
+      status: 'taken',
+      badgeClass: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+      label: 'Taken ✓'
+    };
+  }
+
+  // Check snooze
+  if (item.snoozeUntil) {
+    const snoozeTime = new Date(item.snoozeUntil).getTime();
+    if (Date.now() < snoozeTime) {
+      const remainingMins = Math.max(1, Math.round((snoozeTime - Date.now()) / 60000));
+      return {
+        status: 'snoozed',
+        badgeClass: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+        label: `⏰ Snoozed (${remainingMins}m left)`
+      };
+    }
+  }
+
+  const doseMins = parseTimeToMinutes(item.time);
+  if (doseMins === null) {
+    return {
+      status: 'upcoming',
+      badgeClass: 'bg-slate-800 text-teal-300 border-slate-700',
+      label: item.time || 'Scheduled'
+    };
+  }
+
+  const now = new Date();
+  const nowMins = now.getHours() * 60 + now.getMinutes();
+  const diff = doseMins - nowMins;
+
+  if (diff === 0 || (diff < 0 && diff >= -15)) {
+    return {
+      status: 'due_now',
+      badgeClass: 'bg-red-500/20 text-red-300 border-red-500/40 animate-pulse',
+      label: '⚡ DUE NOW!'
+    };
+  } else if (diff < -15) {
+    const overdueMins = Math.abs(diff);
+    return {
+      status: 'overdue',
+      badgeClass: 'bg-rose-500/20 text-rose-300 border-rose-500/30',
+      label: `⚠️ Overdue by ${overdueMins > 60 ? Math.round(overdueMins / 60) + 'h' : overdueMins + 'm'}`
+    };
+  } else {
+    return {
+      status: 'upcoming',
+      badgeClass: 'bg-slate-800 text-teal-300 border-slate-700',
+      label: `In ${diff > 60 ? Math.floor(diff / 60) + 'h ' + (diff % 60) + 'm' : diff + 'm'}`
+    };
+  }
+}
+
 function renderSchedule() {
   const container = document.getElementById('schedule-container');
   if (!container) return;
 
-  const memberSchedule = state.schedule[state.activeFamilyId] || [];
+  const schedules = getActiveSchedules();
 
-  if (memberSchedule.length === 0) {
-    container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400">No scheduled medicine reminders for this member. Click "+ Add Reminder" to create one.</div>`;
+  if (schedules.length === 0) {
+    container.innerHTML = `
+      <div class="p-8 text-center glass-card rounded-2xl border border-slate-800/80 space-y-3">
+        <div class="p-3 bg-teal-500/10 text-teal-400 rounded-2xl inline-block">
+          <i data-lucide="calendar-plus" class="w-8 h-8"></i>
+        </div>
+        <p class="text-sm font-semibold text-white">No Active Medicine Reminders</p>
+        <p class="text-xs text-slate-400 max-w-sm mx-auto">Add your daily prescriptions, vitamins, or syrups with exact alarm times and refill thresholds.</p>
+        <button onclick="openAddReminderModal()" class="bg-teal-600 hover:bg-teal-500 text-white font-bold px-4 py-2 rounded-xl text-xs inline-flex items-center gap-1.5 shadow-lg shadow-teal-900/30">
+          <i data-lucide="plus" class="w-4 h-4"></i> Create First Reminder
+        </button>
+      </div>`;
+    if (window.lucide) lucide.createIcons();
+    updateAdherenceStats(schedules);
     return;
   }
 
-  container.innerHTML = memberSchedule.map(item => `
-    <div class="p-4 rounded-2xl glass-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 border ${item.taken ? 'border-emerald-500/30 opacity-75' : 'border-slate-800'} transition-all">
-      <div class="flex items-center gap-3">
-        <button onclick="togglePillTaken('${item.id}')" class="w-6 h-6 rounded-lg border flex items-center justify-center transition-colors ${item.taken ? 'bg-emerald-500 border-emerald-400 text-slate-950 font-bold' : 'border-slate-600 text-transparent hover:border-teal-400'}">
-          ✓
-        </button>
-        <div>
-          <div class="flex items-center gap-2">
-            <h4 class="text-sm font-bold text-white ${item.taken ? 'line-through text-slate-400' : ''}">${item.name}</h4>
-            <span class="text-[10px] bg-slate-800 text-teal-300 font-semibold px-2 py-0.5 rounded-full">${item.time}</span>
+  container.innerHTML = schedules.map(item => {
+    const doseState = calculateDoseStatus(item);
+    const refills = item.refillsLeft ?? item.refills_left ?? 30;
+    const isLowRefill = refills <= 5;
+    const meal = item.mealInstruction || item.meal_instruction || 'After Meals';
+
+    return `
+      <div class="p-4 rounded-2xl glass-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 border ${item.taken ? 'border-emerald-500/30 bg-emerald-950/10 opacity-80' : doseState.status === 'due_now' ? 'border-teal-400 bg-teal-950/20 shadow-lg shadow-teal-950/50' : 'border-slate-800'} transition-all duration-300">
+        <div class="flex items-center gap-3">
+          <button onclick="togglePillTaken('${item.id}')" title="${item.taken ? 'Mark as Pending' : 'Mark as Taken'}" class="w-7 h-7 rounded-xl border flex items-center justify-center transition-all ${item.taken ? 'bg-emerald-500 border-emerald-400 text-slate-950 font-extrabold shadow-md shadow-emerald-500/30' : 'border-slate-700 bg-slate-900 text-transparent hover:border-teal-400 hover:text-teal-400'}">
+            ✓
+          </button>
+          <div class="space-y-0.5">
+            <div class="flex items-center gap-2 flex-wrap">
+              <h4 class="text-sm font-bold text-white ${item.taken ? 'line-through text-slate-400' : ''}">${item.name}</h4>
+              <span class="text-[10px] font-mono border px-2 py-0.5 rounded-full font-bold ${doseState.badgeClass}">
+                ${doseState.label}
+              </span>
+              <span class="text-[10px] bg-slate-900 text-teal-300 border border-slate-800 font-semibold px-2 py-0.5 rounded-full">
+                ${item.time}
+              </span>
+            </div>
+            <div class="flex items-center gap-2 text-xs text-slate-400 flex-wrap">
+              <span>${item.dosage || '1 Tablet'}</span>
+              <span>•</span>
+              <span class="text-amber-300 font-medium">${meal}</span>
+              <span>•</span>
+              <span class="${isLowRefill ? 'text-rose-400 font-bold' : 'text-slate-400'}">${refills} refills left</span>
+            </div>
           </div>
-          <p class="text-xs text-slate-400">${item.dose} • <span class="text-amber-400 font-medium">${item.refillsLeft} refills left</span></p>
+        </div>
+
+        <div class="flex items-center gap-2 self-end sm:self-center flex-wrap">
+          ${!item.taken ? `
+            <button onclick="snoozePill('${item.id}', 10)" class="px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs border border-slate-700 font-medium flex items-center gap-1 transition-colors">
+              ⏰ +10m
+            </button>
+            <button onclick="snoozePill('${item.id}', 30)" class="px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs border border-slate-700 font-medium flex items-center gap-1 transition-colors">
+              ⏰ +30m
+            </button>
+          ` : ''}
+          <button onclick="togglePillTaken('${item.id}')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shadow-md ${item.taken ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30' : 'bg-teal-600 hover:bg-teal-500 text-white shadow-teal-900/30'}">
+            ${item.taken ? 'Taken ✓' : 'Mark Taken'}
+          </button>
+          <button onclick="deleteReminder('${item.id}')" title="Delete Reminder" class="px-2.5 py-1.5 rounded-xl bg-red-950/30 hover:bg-red-900/50 text-red-400 hover:text-red-300 text-xs border border-red-800/40 transition-colors">
+            🗑️
+          </button>
         </div>
       </div>
+    `;
+  }).join('');
 
-      <div class="flex items-center gap-2 self-end sm:self-center">
-        <button onclick="snoozePill('${item.id}')" class="px-2.5 py-1 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs border border-slate-700 font-medium">
-          ⏰ Snooze 30m
-        </button>
-        <button onclick="togglePillTaken('${item.id}')" class="px-3 py-1 rounded-xl text-xs font-bold transition-colors ${item.taken ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-teal-600 hover:bg-teal-500 text-white'}">
-          ${item.taken ? 'Taken ✓' : 'Mark Taken'}
-        </button>
-        <button onclick="deleteReminder('${item.id}')" title="Delete Reminder" class="px-2 py-1 rounded-xl bg-red-950/40 hover:bg-red-900/60 text-red-400 hover:text-red-300 text-xs border border-red-800/40">
-          🗑️
-        </button>
-      </div>
-    </div>
-  `).join('');
+  if (window.lucide) lucide.createIcons();
+  updateAdherenceStats(schedules);
 }
 
-function togglePillTaken(id) {
-  const memberSchedule = state.schedule[state.activeFamilyId] || [];
-  const pill = memberSchedule.find(p => p.id === id);
-  if (pill) {
-    pill.taken = !pill.taken;
-    if (pill.taken && window.confetti) {
-      confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
+function updateAdherenceStats(schedules) {
+  const total = schedules.length;
+  const takenCount = schedules.filter(s => s.taken).length;
+  const percent = total === 0 ? 100 : Math.round((takenCount / total) * 100);
+
+  const scoreEl = document.getElementById('adherence-score-text');
+  if (scoreEl) scoreEl.innerText = `${percent}%`;
+
+  const barEl = document.getElementById('adherence-progress-bar');
+  if (barEl) barEl.style.width = `${percent}%`;
+
+  const countEl = document.getElementById('adherence-doses-count');
+  if (countEl) countEl.innerText = `${takenCount} of ${total} doses taken today`;
+
+  // Next dose calculation
+  const nextDoseEl = document.getElementById('next-dose-countdown');
+  if (nextDoseEl) {
+    const upcoming = schedules.filter(s => !s.taken);
+    if (upcoming.length === 0) {
+      nextDoseEl.innerText = total > 0 ? "All doses completed! 🎉" : "No scheduled doses";
+    } else {
+      const firstUpcoming = upcoming[0];
+      nextDoseEl.innerText = `${firstUpcoming.name} (${firstUpcoming.time})`;
     }
-    saveStateToStorage();
+  }
+
+  // Refills summary
+  const refillsEl = document.getElementById('refills-summary-text');
+  if (refillsEl) {
+    const lowSupplies = schedules.filter(s => (s.refillsLeft ?? s.refills_left ?? 30) <= 5);
+    if (lowSupplies.length > 0) {
+      refillsEl.innerHTML = `<span class="text-rose-400 font-bold">${lowSupplies.length} Low (${lowSupplies.map(s => s.name).join(', ')})</span>`;
+    } else {
+      refillsEl.innerText = "All supplies adequate";
+    }
+  }
+}
+
+async function togglePillTaken(id) {
+  const schedules = getActiveSchedules();
+  const pill = schedules.find(p => p.id === id);
+  if (!pill) return;
+
+  pill.taken = !pill.taken;
+  if (pill.taken) {
+    if (pill.refillsLeft && pill.refillsLeft > 0) pill.refillsLeft -= 1;
+    pill.snoozeUntil = null;
+    if (window.confetti) {
+      confetti({ particleCount: 60, spread: 70, origin: { y: 0.65 } });
+    }
+  }
+
+  saveStateToStorage();
+  renderSchedule();
+
+  try {
+    const headers = await getAuthHeaders();
+    await fetch(`${API_BASE}/profile/schedules/${id}/toggle-taken`, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify({ taken: pill.taken })
+    });
+  } catch (e) {
+    console.warn("Toggle pill taken note:", e);
+  }
+}
+
+function triggerMedicationAlarm(item) {
+  activeAlarmItem = item;
+  playMedicationChime();
+
+  // Desktop OS Push Notification
+  if (window.Notification && Notification.permission === "granted") {
+    try {
+      new Notification(`⏰ Medicine Due: ${item.name}`, {
+        body: `${item.dosage || '1 Tablet'} • ${item.mealInstruction || item.meal_instruction || 'After Meals'} • Time: ${item.time}`,
+        icon: "https://cdn-icons-png.flaticon.com/512/883/883360.png",
+        requireInteraction: true
+      });
+    } catch (e) {}
+  }
+
+  // Populate & Display Modal
+  const modal = document.getElementById('modal-medication-alarm');
+  if (modal) {
+    const nameEl = document.getElementById('alarm-med-name');
+    if (nameEl) nameEl.innerText = item.name;
+
+    const doseEl = document.getElementById('alarm-med-dose');
+    if (doseEl) doseEl.innerText = `${item.dosage || '1 Tablet'} • ${item.time}`;
+
+    const mealEl = document.getElementById('alarm-med-meal');
+    if (mealEl) mealEl.innerText = item.mealInstruction || item.meal_instruction || '🍽️ After Meals';
+
+    const timeEl = document.getElementById('alarm-med-time');
+    if (timeEl) timeEl.innerText = item.time;
+
+    const refEl = document.getElementById('alarm-med-refills');
+    if (refEl) refEl.innerText = `${item.refillsLeft ?? item.refills_left ?? 30} refills remaining`;
+
+    modal.classList.remove('hidden');
+    if (window.lucide) lucide.createIcons();
+  }
+}
+
+function takeMedicationFromAlarm() {
+  if (activeAlarmItem) {
+    togglePillTaken(activeAlarmItem.id);
+  }
+  dismissMedicationAlarm();
+}
+
+async function snoozeCurrentAlarm(minutes) {
+  if (!activeAlarmItem) return dismissMedicationAlarm();
+  await snoozePill(activeAlarmItem.id, minutes);
+  dismissMedicationAlarm();
+}
+
+async function snoozePill(id, minutes = 15) {
+  const schedules = getActiveSchedules();
+  const pill = schedules.find(p => p.id === id);
+  if (pill) {
+    const snoozeUntil = new Date(Date.now() + minutes * 60000).toISOString();
+    pill.snoozeUntil = snoozeUntil;
     renderSchedule();
+
+    try {
+      const headers = await getAuthHeaders();
+      await fetch(`${API_BASE}/profile/schedules/${id}`, {
+        method: 'PUT',
+        headers: headers,
+        body: JSON.stringify({ snoozeUntil: snoozeUntil })
+      });
+    } catch (e) {
+      console.warn("Snooze API sync note:", e);
+    }
+  }
+}
+
+function dismissMedicationAlarm() {
+  const modal = document.getElementById('modal-medication-alarm');
+  if (modal) modal.classList.add('hidden');
+  activeAlarmItem = null;
+}
+
+function setQuickMedName(name) {
+  const input = document.getElementById('rem-name');
+  if (input) input.value = name;
+}
+
+function openAddReminderModal() {
+  const modal = document.getElementById('modal-add-reminder');
+  if (modal) modal.classList.remove('hidden');
+}
+
+function closeAddReminderModal() {
+  const modal = document.getElementById('modal-add-reminder');
+  if (modal) modal.classList.add('hidden');
+}
+
+async function saveNewReminder() {
+  const name = document.getElementById('rem-name')?.value?.trim();
+  const dose = document.getElementById('rem-dose')?.value?.trim() || "1 Tablet";
+  const rawTime = document.getElementById('rem-time')?.value?.trim() || "08:00";
+  const mealInst = document.getElementById('rem-meal-inst')?.value || "After Meals";
+  const freq = document.getElementById('rem-frequency')?.value || "Daily";
+  const totalPills = parseInt(document.getElementById('rem-total-pills')?.value || "30", 10);
+  const refillsLeft = parseInt(document.getElementById('rem-refills-left')?.value || "30", 10);
+
+  if (!name) return alert("Please enter the medication name.");
+
+  // Convert "08:00" to "08:00 AM" or "14:30" to "02:30 PM"
+  const totalMins = parseTimeToMinutes(rawTime);
+  const formattedTime = formatMinutesToAMPM(totalMins);
+
+  const newItem = {
+    id: `sch-${Date.now()}`,
+    name,
+    dosage: dose,
+    time: formattedTime,
+    mealInstruction: mealInst,
+    frequency: freq,
+    totalPills: totalPills,
+    refillsLeft: refillsLeft,
+    category: "General",
+    status: "Active",
+    taken: false
+  };
+
+  if (Array.isArray(state.schedule)) {
+    state.schedule.unshift(newItem);
+  } else {
+    if (!state.schedule[state.activeFamilyId]) state.schedule[state.activeFamilyId] = [];
+    state.schedule[state.activeFamilyId].unshift(newItem);
+  }
+
+  closeAddReminderModal();
+  renderSchedule();
+
+  try {
+    const headers = await getAuthHeaders();
+    await fetch(`${API_BASE}/profile/schedules`, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify(newItem)
+    });
+  } catch (e) {
+    console.warn("Save reminder note:", e);
   }
 }
 
 async function deleteReminder(id) {
+  if (!confirm("Are you sure you want to remove this medication reminder?")) return;
+
   if (Array.isArray(state.schedule)) {
     state.schedule = state.schedule.filter(p => p.id !== id);
   } else if (state.schedule[state.activeFamilyId]) {
@@ -1200,53 +1640,61 @@ async function deleteReminder(id) {
   }
 }
 
-function snoozePill(id) {
-  alert("Reminder snoozed for 30 minutes. Notification set.");
-}
+// REAL-TIME TICKER & ALARM DISPATCHER (Runs every 10 seconds)
+function initRealtimeReminderTicker() {
+  if (reminderTickerInterval) clearInterval(reminderTickerInterval);
 
-function openAddReminderModal() {
-  document.getElementById('modal-add-reminder').classList.remove('hidden');
-}
-function closeAddReminderModal() {
-  document.getElementById('modal-add-reminder').classList.add('hidden');
-}
+  updateNotificationBtnState();
 
-async function saveNewReminder() {
-  const name = document.getElementById('rem-name').value;
-  const dose = document.getElementById('rem-dose').value;
-  const slot = document.getElementById('rem-slot').value;
+  reminderTickerInterval = setInterval(() => {
+    const now = new Date();
+    
+    // 1. Update Live Clock in Header
+    const clockEl = document.getElementById('rem-clock-text');
+    if (clockEl) {
+      clockEl.innerText = now.toLocaleTimeString([], { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
 
-  if (!name) return alert("Please enter medicine name");
+    // 2. Check for due medications
+    const schedules = getActiveSchedules();
+    const nowMins = now.getHours() * 60 + now.getMinutes();
 
-  const newItem = {
-    id: `sch-${Date.now()}`,
-    name,
-    dosage: dose || "1 Tablet",
-    time: `${(slot || 'Morning').toUpperCase()} Slot`,
-    category: "General",
-    status: "Active"
-  };
+    schedules.forEach(item => {
+      if (item.taken) return;
 
-  if (Array.isArray(state.schedule)) {
-    state.schedule.unshift(newItem);
-  } else {
-    if (!state.schedule[state.activeFamilyId]) state.schedule[state.activeFamilyId] = [];
-    state.schedule[state.activeFamilyId].push(newItem);
-  }
+      let isDue = false;
 
-  closeAddReminderModal();
-  renderSchedule();
+      // Check snooze expiration
+      if (item.snoozeUntil) {
+        const snoozeDate = new Date(item.snoozeUntil);
+        if (now.getTime() >= snoozeDate.getTime()) {
+          isDue = true;
+          item.snoozeUntil = null; // reset snooze once fired
+        }
+      } else {
+        const doseMins = parseTimeToMinutes(item.time);
+        if (doseMins !== null && doseMins === nowMins) {
+          isDue = true;
+        }
+      }
 
-  try {
-    const headers = await getAuthHeaders();
-    await fetch(`${API_BASE}/profile/schedules`, {
-      method: 'POST',
-      headers: headers,
-      body: JSON.stringify(newItem)
+      if (isDue) {
+        const alarmKey = `${item.id}-${now.toDateString()}-${now.getHours()}:${now.getMinutes()}`;
+        if (!triggeredAlarmsToday.has(alarmKey)) {
+          triggeredAlarmsToday.add(alarmKey);
+          triggerMedicationAlarm(item);
+          renderSchedule();
+        }
+      }
     });
-  } catch (e) {
-    console.warn("Save reminder note:", e);
-  }
+  }, 10000);
+}
+
+// Auto-start ticker
+if (typeof window !== 'undefined') {
+  setTimeout(() => {
+    initRealtimeReminderTicker();
+  }, 1000);
 }
 
 // MODULE 8: PRESCRIPTION MANAGEMENT & OCR EXTRACTION

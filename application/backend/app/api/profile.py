@@ -609,6 +609,46 @@ def delete_user_upload(
 
 # --- MEDICINE SCHEDULE ENDPOINTS (SQL / SUPABASE BACKED) ---
 
+def _sync_supabase_schedule(item: MedicineScheduleModel, action: str = "upsert") -> None:
+    if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY or "placeholder" in SUPABASE_URL:
+        return
+    try:
+        headers = {
+            "apikey": SUPABASE_SERVICE_ROLE_KEY,
+            "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+            "Content-Type": "application/json",
+            "Prefer": "return=minimal",
+        }
+        if action == "delete":
+            url = f"{SUPABASE_URL}/rest/v1/schedules?id=eq.{item.id}"
+            requests.delete(url, headers=headers, timeout=5)
+        else:
+            url = f"{SUPABASE_URL}/rest/v1/schedules"
+            payload = {
+                "id": item.id,
+                "owner_user_id": item.owner_user_id,
+                "user_email": item.user_email,
+                "name": item.name,
+                "dosage": item.dosage,
+                "frequency": item.frequency,
+                "time": item.time,
+                "meal_instruction": item.meal_instruction,
+                "category": item.category,
+                "next_dose": item.next_dose,
+                "refills_left": item.refills_left,
+                "total_pills": item.total_pills,
+                "taken": item.taken,
+                "last_taken_at": item.last_taken_at.isoformat() if item.last_taken_at else None,
+                "snooze_until": item.snooze_until,
+                "status": item.status,
+            }
+            # Upsert
+            headers["Prefer"] = "resolution=merge-duplicates"
+            requests.post(url, json=payload, headers=headers, timeout=5)
+    except Exception as e:
+        print("[Supabase Schedule Sync] Note:", e)
+
+
 @router.get("/schedules")
 def get_medicine_schedules(current_user: UserModel = Depends(get_current_user)):
     session = get_db_session()
@@ -627,8 +667,14 @@ def get_medicine_schedules(current_user: UserModel = Depends(get_current_user)):
                 "dosage": s.dosage,
                 "frequency": s.frequency,
                 "time": s.time,
+                "mealInstruction": s.meal_instruction or "After Meals",
                 "category": s.category,
                 "nextDose": s.next_dose,
+                "refillsLeft": s.refills_left if s.refills_left is not None else 30,
+                "totalPills": s.total_pills if s.total_pills is not None else 30,
+                "taken": bool(s.taken),
+                "lastTakenAt": s.last_taken_at.isoformat() if s.last_taken_at else None,
+                "snoozeUntil": s.snooze_until,
                 "status": s.status,
             })
         return {
@@ -649,6 +695,9 @@ def add_medicine_schedule(
     session = get_db_session()
     try:
         sch_id = payload.get("id") or f"sch-{int(datetime.datetime.utcnow().timestamp() * 1000)}"
+        refills = int(payload.get("refillsLeft") or payload.get("refills_left") or 30)
+        total = int(payload.get("totalPills") or payload.get("total_pills") or 30)
+        
         item = MedicineScheduleModel(
             id=sch_id,
             owner_user_id=current_user.id,
@@ -657,15 +706,161 @@ def add_medicine_schedule(
             dosage=payload.get("dosage", "1 Tablet"),
             frequency=payload.get("frequency", "Daily"),
             time=payload.get("time", "08:00 AM"),
+            meal_instruction=payload.get("mealInstruction") or payload.get("meal_instruction") or "After Meals",
             category=payload.get("category", "General"),
-            next_dose=payload.get("nextDose") or payload.get("next_dose", "Today, 08:00 AM"),
+            next_dose=payload.get("nextDose") or payload.get("next_dose", f"Today, {payload.get('time', '08:00 AM')}"),
+            refills_left=refills,
+            total_pills=total,
+            taken=bool(payload.get("taken", False)),
             status=payload.get("status", "Active"),
         )
         session.add(item)
         session.commit()
-        out_payload = dict(payload)
-        out_payload["id"] = sch_id
+        session.refresh(item)
+
+        _sync_supabase_schedule(item, action="upsert")
+
+        out_payload = {
+            "id": item.id,
+            "name": item.name,
+            "dosage": item.dosage,
+            "frequency": item.frequency,
+            "time": item.time,
+            "mealInstruction": item.meal_instruction,
+            "category": item.category,
+            "nextDose": item.next_dose,
+            "refillsLeft": item.refills_left,
+            "totalPills": item.total_pills,
+            "taken": item.taken,
+            "status": item.status,
+        }
         return {"status": "success", "message": "Medicine schedule saved", "schedule": out_payload}
+    except Exception as e:
+        session.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        session.close()
+
+
+@router.put("/schedules/{schedule_id}")
+def update_medicine_schedule(
+    schedule_id: str,
+    payload: dict = Body(...),
+    current_user: UserModel = Depends(get_current_user),
+):
+    session = get_db_session()
+    try:
+        item = (
+            session.query(MedicineScheduleModel)
+            .filter(
+                MedicineScheduleModel.id == schedule_id,
+                MedicineScheduleModel.owner_user_id == current_user.id,
+            )
+            .first()
+        )
+        if not item:
+            raise HTTPException(status_code=404, detail="Schedule entry not found or unauthorized")
+
+        if "name" in payload:
+            item.name = payload["name"]
+        if "dosage" in payload:
+            item.dosage = payload["dosage"]
+        if "time" in payload:
+            item.time = payload["time"]
+        if "frequency" in payload:
+            item.frequency = payload["frequency"]
+        if "mealInstruction" in payload or "meal_instruction" in payload:
+            item.meal_instruction = payload.get("mealInstruction") or payload.get("meal_instruction")
+        if "refillsLeft" in payload or "refills_left" in payload:
+            item.refills_left = int(payload.get("refillsLeft") or payload.get("refills_left"))
+        if "totalPills" in payload or "total_pills" in payload:
+            item.total_pills = int(payload.get("totalPills") or payload.get("total_pills"))
+        if "snoozeUntil" in payload or "snooze_until" in payload:
+            item.snooze_until = payload.get("snoozeUntil") or payload.get("snooze_until")
+        if "taken" in payload:
+            item.taken = bool(payload["taken"])
+
+        session.commit()
+        session.refresh(item)
+
+        _sync_supabase_schedule(item, action="upsert")
+
+        return {
+            "status": "success",
+            "message": "Medicine schedule updated",
+            "schedule": {
+                "id": item.id,
+                "name": item.name,
+                "dosage": item.dosage,
+                "time": item.time,
+                "mealInstruction": item.meal_instruction,
+                "refillsLeft": item.refills_left,
+                "taken": item.taken,
+                "snoozeUntil": item.snooze_until,
+            },
+        }
+    except HTTPException:
+        session.rollback()
+        raise
+    except Exception as e:
+        session.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        session.close()
+
+
+@router.post("/schedules/{schedule_id}/toggle-taken")
+def toggle_medicine_taken(
+    schedule_id: str,
+    payload: dict = Body(default={}),
+    current_user: UserModel = Depends(get_current_user),
+):
+    session = get_db_session()
+    try:
+        item = (
+            session.query(MedicineScheduleModel)
+            .filter(
+                MedicineScheduleModel.id == schedule_id,
+                MedicineScheduleModel.owner_user_id == current_user.id,
+            )
+            .first()
+        )
+        if not item:
+            raise HTTPException(status_code=404, detail="Schedule entry not found or unauthorized")
+
+        # Toggle taken state or use explicitly provided value
+        if "taken" in payload:
+            item.taken = bool(payload["taken"])
+        else:
+            item.taken = not item.taken
+
+        if item.taken:
+            item.last_taken_at = datetime.datetime.utcnow()
+            item.snooze_until = None
+            if item.refills_left and item.refills_left > 0:
+                item.refills_left -= 1
+        else:
+            item.last_taken_at = None
+
+        session.commit()
+        session.refresh(item)
+
+        _sync_supabase_schedule(item, action="upsert")
+
+        return {
+            "status": "success",
+            "message": f"Dose marked as {'Taken' if item.taken else 'Pending'}",
+            "schedule": {
+                "id": item.id,
+                "name": item.name,
+                "taken": item.taken,
+                "refillsLeft": item.refills_left,
+                "lastTakenAt": item.last_taken_at.isoformat() if item.last_taken_at else None,
+            },
+        }
+    except HTTPException:
+        session.rollback()
+        raise
     except Exception as e:
         session.rollback()
         raise HTTPException(status_code=500, detail=str(e))
@@ -690,6 +885,9 @@ def delete_medicine_schedule(
         )
         if not item:
             raise HTTPException(status_code=404, detail="Schedule entry not found or unauthorized")
+        
+        _sync_supabase_schedule(item, action="delete")
+
         session.delete(item)
         session.commit()
         return {"status": "success", "message": "Schedule entry deleted", "id": schedule_id}

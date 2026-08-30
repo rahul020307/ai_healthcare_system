@@ -119,13 +119,19 @@ class MedicineScheduleModel(Base):
     __tablename__ = "schedules"
     id = Column(String, primary_key=True, index=True)
     owner_user_id = Column(String, ForeignKey("users.id"), index=True, nullable=False)
-    user_email = Column(String, index=True, default="rahul.sharma@email.com")
+    user_email = Column(String, index=True, default="user@curaassist.health")
     name = Column(String, nullable=False)
     dosage = Column(String, default="1 Tablet")
     frequency = Column(String, default="Daily")
     time = Column(String, default="08:00 AM")
+    meal_instruction = Column(String, default="After Meals")
     category = Column(String, default="General")
     next_dose = Column(String, default="Today, 08:00 AM")
+    refills_left = Column(Integer, default=30)
+    total_pills = Column(Integer, default=30)
+    taken = Column(Boolean, default=False)
+    last_taken_at = Column(DateTime, nullable=True)
+    snooze_until = Column(String, nullable=True)
     status = Column(String, default="Active")
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
@@ -206,11 +212,18 @@ def init_db():
         try:
             with engine.connect() as conn:
                 for table_name, col_name, col_type in [
+                    ("users", "avatar_url", "VARCHAR"),
                     ("health_records", "owner_user_id", "VARCHAR"),
                     ("appointments", "owner_user_id", "VARCHAR"),
                     ("orders", "owner_user_id", "VARCHAR"),
                     ("vitals", "owner_user_id", "VARCHAR"),
                     ("schedules", "owner_user_id", "VARCHAR"),
+                    ("schedules", "meal_instruction", "VARCHAR DEFAULT 'After Meals'"),
+                    ("schedules", "refills_left", "INTEGER DEFAULT 30"),
+                    ("schedules", "total_pills", "INTEGER DEFAULT 30"),
+                    ("schedules", "taken", "BOOLEAN DEFAULT 0"),
+                    ("schedules", "last_taken_at", "DATETIME"),
+                    ("schedules", "snooze_until", "VARCHAR"),
                 ]:
                     try:
                         res = conn.execute(sqlalchemy.text(f"PRAGMA table_info({table_name})")).fetchall()
