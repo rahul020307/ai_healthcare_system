@@ -25,10 +25,20 @@ def on_startup():
     except Exception as e:
         print("[Startup] SQL Database init note:", e)
 
+import os
+
+cors_origins_str = os.getenv(
+    "CORS_ORIGINS",
+    "http://localhost:3000,http://localhost:8000,http://127.0.0.1:8000,http://localhost:5173,"
+    "https://ai-healthcare-system-eta.vercel.app,https://curaassist-carehub-backend-2.fastapicloud.dev"
+)
+cors_origins = [o.strip() for o in cors_origins_str.split(",") if o.strip()]
+allow_all_origins = "*" in cors_origins
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=["*"] if allow_all_origins else cors_origins,
+    allow_credentials=not allow_all_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )

@@ -130,3 +130,16 @@ def get_current_user(identity: Dict[str, Any] = Depends(get_current_identity)):
         ) from exc
     finally:
         session.close()
+
+
+def get_optional_current_user(
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+):
+    """Optionally resolves a verified Supabase user if Bearer token is provided, else returns None."""
+    if not credentials or not credentials.credentials:
+        return None
+    try:
+        identity = get_current_identity(credentials)
+        return get_current_user(identity)
+    except Exception:
+        return None

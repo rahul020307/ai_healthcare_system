@@ -3,10 +3,12 @@ import os
 import re
 import urllib.request
 import urllib.error
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 
+from app.auth import get_optional_current_user
+from app.database.sql_db import UserModel
 from app.utils.ocr_processor import (
     process_prescription_ocr,
     generate_prescription_summary,
@@ -66,7 +68,7 @@ def get_openai_key() -> Optional[str]:
     return get_env_variable("OPENAI_API_KEY")
 
 
-def call_remote_ai(user_prompt: str, patient_context: str = "Rahul Sharma (Age 34)", system_instruction: Optional[str] = None) -> Optional[str]:
+def call_remote_ai(user_prompt: str, patient_context: str = "Patient", system_instruction: Optional[str] = None) -> Optional[str]:
     """Calls Google Gemini API or OpenAI API using runtime environment keys."""
     gemini_key = get_gemini_key()
     openai_key = get_openai_key()
@@ -141,7 +143,7 @@ def call_remote_ai(user_prompt: str, patient_context: str = "Rahul Sharma (Age 3
 
 class ChatRequest(BaseModel):
     message: str
-    patientContext: Optional[str] = "Rahul Sharma (Age 34)"
+    patientContext: Optional[str] = "Patient"
     conversationHistory: Optional[List[Dict[str, str]]] = None
 
 
@@ -217,8 +219,14 @@ def generate_fallback_chat_reply(message: str, patient_context: str) -> str:
 
 
 @router.post("/ask")
-def ask_ai_assistant(request: ChatRequest):
-    patient_ctx = request.patientContext or "Rahul Sharma (Age 34)"
+def ask_ai_assistant(
+    request: ChatRequest,
+    current_user: Optional[UserModel] = Depends(get_optional_current_user),
+):
+    if current_user:
+        patient_ctx = f"{current_user.name} (Age {current_user.age or 30})"
+    else:
+        patient_ctx = request.patientContext or "Patient"
 
     remote_reply = call_remote_ai(request.message, patient_ctx)
     if remote_reply:

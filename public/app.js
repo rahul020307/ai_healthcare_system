@@ -50,8 +50,8 @@ async function getAuthToken() {
   return null;
 }
 
-function getAuthHeaders() {
-  const token = getAuthToken();
+async function getAuthHeaders() {
+  const token = await getAuthToken();
   const headers = { 'Content-Type': 'application/json' };
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
@@ -60,7 +60,7 @@ function getAuthHeaders() {
 }
 
 async function fetchUserDataFromBackend() {
-  const headers = getAuthHeaders();
+  const headers = await getAuthHeaders();
   if (!headers['Authorization']) return;
 
   try {
@@ -152,12 +152,14 @@ document.addEventListener('DOMContentLoaded', () => {
   safeRun(() => renderFirstAidGuide(), 'renderFirstAidGuide');
   safeRun(() => renderGenericDropdown(), 'renderGenericDropdown');
   safeRun(() => updateUploadsBadgeCount(), 'updateUploadsBadgeCount');
-  safeRun(() => syncDatabaseRecordsWithBackend(), 'syncDatabaseRecordsWithBackend');
 });
 
 async function syncDatabaseRecordsWithBackend() {
+  const headers = await getAuthHeaders();
+  if (!headers['Authorization']) return;
+
   try {
-    const res = await fetch(`${API_BASE}/profile/health-records`);
+    const res = await fetch(`${API_BASE}/profile/health-records`, { headers });
     if (res.ok) {
       const data = await res.json();
       if (data && data.records && data.records.length > 0) {
@@ -170,7 +172,7 @@ async function syncDatabaseRecordsWithBackend() {
             added = true;
           }
         });
-        if (added) {
+        if (added && typeof renderRecords === 'function') {
           renderRecords();
         }
       }
@@ -399,24 +401,7 @@ async function submitAuth(message, overrideName, mode = 'login') {
     token: session.access_token
   };
 
-  // Sync authenticated user profile on FastAPI backend
-  try {
-    await fetch(`${API_BASE}/profile/register`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: JSON.stringify({
-        identity: identity || userEmail,
-        email: userEmail,
-        name: userName,
-        phone: userPhone,
-        blood_group: blood,
-        city: city,
-        age: age
-      })
-    });
-  } catch (err) {
-    console.warn("Backend auth profile sync note:", err);
-  }
+
 
   // Update App State & Dataset
   if (typeof INITIAL_DATA !== 'undefined') {
@@ -791,9 +776,10 @@ async function deleteReminder(id) {
   renderSchedule();
 
   try {
+    const headers = await getAuthHeaders();
     await fetch(`${API_BASE}/profile/schedules/${id}`, {
       method: 'DELETE',
-      headers: getAuthHeaders()
+      headers: headers
     });
   } catch (e) {
     console.warn("Delete reminder note:", e);
@@ -838,9 +824,10 @@ async function saveNewReminder() {
   renderSchedule();
 
   try {
+    const headers = await getAuthHeaders();
     await fetch(`${API_BASE}/profile/schedules`, {
       method: 'POST',
-      headers: getAuthHeaders(),
+      headers: headers,
       body: JSON.stringify(newItem)
     });
   } catch (e) {
@@ -1024,9 +1011,10 @@ async function deleteHealthRecord(recId) {
     renderRecords();
 
     try {
+      const headers = await getAuthHeaders();
       await fetch(`${API_BASE}/profile/health-records/${recId}`, {
         method: 'DELETE',
-        headers: getAuthHeaders()
+        headers: headers
       });
     } catch (e) {
       console.warn("Delete health record note:", e);
@@ -1602,9 +1590,10 @@ async function processCheckout() {
   }));
 
   try {
+    const headers = await getAuthHeaders();
     const res = await fetch(`${API_BASE}/store/orders`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: headers,
       body: JSON.stringify({
         userId: userId,
         items: items,
@@ -4461,9 +4450,10 @@ async function simulatePrescriptionOCR() {
 
   // 3. Save in backend dataset file (health_records.json)
   try {
+    const headers = await getAuthHeaders();
     await fetch(`${API_BASE}/profile/upload-record`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: headers,
       body: JSON.stringify(newRec)
     });
   } catch (err) {
