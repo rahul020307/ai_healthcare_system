@@ -579,11 +579,11 @@ async function submitAuth(message, overrideName, mode = 'login') {
     isLoggedIn: true,
     userName: userName,
     email: userEmail,
-    phone: mode === 'register' ? userPhone : (existingUser.phone || userPhone),
-    blood: mode === 'register' ? blood : (existingUser.blood || blood),
-    city: mode === 'register' ? city : (existingUser.city || city),
-    age: mode === 'register' ? age : (existingUser.age || age),
-    avatar: existingUser.avatar || (typeof INITIAL_DATA !== 'undefined' && INITIAL_DATA.familyMembers?.[0]?.avatar) || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250",
+    phone: phone || existingUser.phone || "",
+    blood: blood || existingUser.blood || "O+",
+    city: city || existingUser.city || "Hyderabad, Telangana",
+    age: age || existingUser.age || "30",
+    avatar: session.user?.user_metadata?.avatar_url || existingUser.avatar || (typeof INITIAL_DATA !== 'undefined' && INITIAL_DATA.familyMembers?.[0]?.avatar) || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250",
     token: session.access_token
   };
 
@@ -883,15 +883,23 @@ async function checkSavedSession() {
       const { data: { session } } = await client.auth.getSession();
       if (session?.access_token) {
         window.authToken = session.access_token;
+        const meta = session.user?.user_metadata || {};
         const userEmail = session.user?.email || "User";
-        const userName = session.user?.user_metadata?.name || session.user?.user_metadata?.user_name || userEmail.split('@')[0];
-        const userAvatar = session.user?.user_metadata?.avatar_url || null;
+        const userName = meta.name || meta.user_name || userEmail.split('@')[0];
+        const userPhone = meta.phone || "";
+        const userBlood = meta.blood || "O+";
+        const userCity = meta.city || "Hyderabad, Telangana";
+        const userAge = meta.age || "30";
+        const userAvatar = meta.avatar_url || null;
         
         if (typeof INITIAL_DATA !== 'undefined') {
           INITIAL_DATA.userAuth.isLoggedIn = true;
           INITIAL_DATA.userAuth.user.name = userName;
           if (INITIAL_DATA.familyMembers && INITIAL_DATA.familyMembers[0]) {
             INITIAL_DATA.familyMembers[0].name = userName;
+            INITIAL_DATA.familyMembers[0].phone = userPhone;
+            INITIAL_DATA.familyMembers[0].bloodGroup = userBlood;
+            INITIAL_DATA.familyMembers[0].age = userAge;
             if (userAvatar) INITIAL_DATA.familyMembers[0].avatar = userAvatar;
           }
         }
@@ -899,9 +907,16 @@ async function checkSavedSession() {
           isLoggedIn: true, 
           userName: userName, 
           email: userEmail, 
+          phone: userPhone,
+          blood: userBlood,
+          city: userCity,
+          age: userAge,
           avatar: userAvatar,
           token: session.access_token 
         };
+        try {
+          localStorage.setItem('cura_active_user_v1', JSON.stringify(sessionPayload));
+        } catch (e) {}
         updateAuthUIState(sessionPayload);
         if (overlay) overlay.classList.add('hidden');
 
