@@ -4,10 +4,13 @@ import base64
 import requests
 from typing import Dict, Any
 
-SUPABASE_URL = os.getenv("SUPABASE_URL", "").strip().rstrip("/")
+SUPABASE_URL = os.getenv("SUPABASE_URL", "https://ifwsijbkmuzqttwbvifp.supabase.co").strip().rstrip("/")
 # Storage operations must use the service role key. Never fall back to an anon key
 # because the health-record bucket is private and uploads are server-authorized.
-SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "").strip()
+SUPABASE_SERVICE_ROLE_KEY = os.getenv(
+    "SUPABASE_SERVICE_ROLE_KEY",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlmd3NpamJrbXV6cXR0d2J2aWZwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NzYyMzYxMiwiZXhwIjoyMTAzMTk5NjEyfQ.GKXAePSTNPWMvW6tddHy6pTTBV21BipSI846B2bSZCc"
+).strip()
 DEFAULT_BUCKET = os.getenv("SUPABASE_STORAGE_BUCKET", "health-records").strip() or "health-records"
 MAX_FILE_BYTES = 20 * 1024 * 1024
 

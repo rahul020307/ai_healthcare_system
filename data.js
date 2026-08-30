@@ -40,83 +40,10 @@ const INITIAL_DATA = {
   ],
 
   // Medicine Schedule per member
-  medicineSchedule: {
-    "mem-1": [
-      { id: "sch-1", name: "Lipitor (Atorvastatin)", dose: "20mg - 1 Pill", time: "Morning (08:00 AM)", slot: "morning", taken: true, icon: "pill", refillsLeft: 12, total: 30 },
-      { id: "sch-2", name: "Vitamin D3 Supplement", dose: "1000 IU", time: "Afternoon (01:00 PM)", slot: "afternoon", taken: true, icon: "sun", refillsLeft: 25, total: 60 },
-      { id: "sch-3", name: "Metoprolol Succinate", dose: "25mg - 1 Tablet", time: "Evening (08:00 PM)", slot: "evening", taken: false, icon: "heart", refillsLeft: 4, total: 30 },
-      { id: "sch-4", name: "Melatonin Sleep Aid", dose: "5mg", time: "Night (10:30 PM)", slot: "night", taken: false, icon: "moon", refillsLeft: 18, total: 30 }
-    ],
-    "mem-2": [
-      { id: "sch-10", name: "Metformin XR", dose: "500mg - 2 Tablets", time: "Morning (08:30 AM)", slot: "morning", taken: true, icon: "activity", refillsLeft: 15, total: 60 },
-      { id: "sch-11", name: "Glimepiride", dose: "2mg - 1 Tablet", time: "Afternoon (01:30 PM)", slot: "afternoon", taken: false, icon: "pill", refillsLeft: 5, total: 30 }
-    ]
-  },
+  medicineSchedule: {},
 
   // Health Records
-  healthRecords: [
-    {
-      id: "rec-1",
-      memberId: "mem-1",
-      title: "Annual Cardiovascular Evaluation",
-      category: "Prescriptions",
-      date: "2026-07-15",
-      doctor: "Dr. Robert Chen, MD",
-      facility: "Metro Heart Care Institute",
-      tags: ["Cardiology", "Hypertension"],
-      fileType: "PDF",
-      fileUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-      summary: "Patient shows stable BP response to Metoprolol. Cholesterol levels within normal range."
-    },
-    {
-      id: "rec-2",
-      memberId: "mem-1",
-      title: "Comprehensive Metabolic & Lipid Panel",
-      category: "Lab Reports",
-      date: "2026-06-28",
-      doctor: "Dr. Sarah Jenkins",
-      facility: "Quest Diagnostics Lab",
-      tags: ["Blood Test", "Cholesterol", "HbA1c"],
-      fileType: "PDF",
-      summary: "Fasting Blood Sugar: 95 mg/dL. Total Cholesterol: 175 mg/dL. HbA1c: 5.4% (Normal)."
-    },
-    {
-      id: "rec-3",
-      memberId: "mem-1",
-      title: "COVID-19 Booster & Flu Vaccine Cert",
-      category: "Vaccination",
-      date: "2025-11-10",
-      doctor: "City Health Clinic",
-      facility: "Central Immunization Hub",
-      tags: ["Vaccine", "Immunization"],
-      fileType: "PDF",
-      summary: "Updated Quadrivalent Influenza and Pfizer updated Spikevax vaccine administered."
-    },
-    {
-      id: "rec-5",
-      memberId: "mem-1",
-      title: "Chest X-Ray (PA View) Radiology Report",
-      category: "Medical Reports",
-      date: "2026-08-01",
-      doctor: "Dr. Vikram Sethi, DMRD",
-      facility: "Apollo Diagnostics Center",
-      tags: ["Radiology", "X-Ray", "Lungs"],
-      fileType: "PDF",
-      summary: "PA View Chest X-Ray: Clear lung fields bilaterally. Normal cardiac size and contour. No pleural effusion or consolidation."
-    },
-    {
-      id: "rec-6",
-      memberId: "mem-1",
-      title: "Full Body Diagnostic MRI & Spine Evaluation",
-      category: "Medical Reports",
-      date: "2026-07-02",
-      doctor: "Dr. Meera Nambiar, MD",
-      facility: "Max Imaging & MRI Scans",
-      tags: ["MRI Scan", "Spine", "Diagnostic"],
-      fileType: "PDF",
-      summary: "Lumbar Spine MRI: L4-L5 disc space preserved. No nerve root compression or spinal stenosis."
-    }
-  ],
+  healthRecords: [],
 
   // Detailed Medicines List with Barcode, Usage, Side Effects & Warnings
   medicines: [

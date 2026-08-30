@@ -23,8 +23,8 @@ let state = {
 function getSupabaseClient() {
   if (window._supabaseClient) return window._supabaseClient;
   if (typeof supabase !== 'undefined' && supabase.createClient) {
-    const url = window.SUPABASE_URL || "https://curaassist-carehub.supabase.co";
-    const key = window.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1cmFhc3Npc3QtY2FyZWh1YiIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzA0MDY3MjAwLCJleHAiOjIwMTk2NDMyMDB9.placeholder_key";
+    const url = window.SUPABASE_URL || "https://ifwsijbkmuzqttwbvifp.supabase.co";
+    const key = window.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlmd3NpamJrbXV6cXR0d2J2aWZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc2MjM2MTIsImV4cCI6MjEwMzE5OTYxMn0.4DConv73Vs47OIxvatkX8RvfufT1G-1GBm6JTHo7Q04";
     try {
       window._supabaseClient = supabase.createClient(url, key);
       return window._supabaseClient;
@@ -472,75 +472,99 @@ async function submitAuth(message, overrideName, mode = 'login') {
   const userPhone = phone || "+91 98765 43210";
 
   let session = null;
-  if (client && client.auth && !isSupabaseNetworkError({ message: window.SUPABASE_URL }) && mode !== 'otp') {
-    if (mode === 'register') {
-      try {
-        const { data, error } = await client.auth.signUp({
-          email: userEmail,
-          password: password,
-          options: { data: { name: userName, phone: userPhone } }
-        });
+  if (!client || !client.auth) {
+    alert("❌ Supabase client unavailable. Please check your internet connection.");
+    return;
+  }
 
-        if (error) {
-          if (isSupabaseNetworkError(error)) {
-            console.warn("[CuraAssist] Supabase network endpoint unreachable; starting active user session.");
-            session = createFallbackSession(userEmail, userName);
-          } else {
-            alert(`Registration Failed: ${error.message}`);
-            return;
-          }
-        } else if (data?.session?.access_token) {
-          session = data.session;
-          if (data.session.user?.user_metadata?.name) {
-            userName = data.session.user.user_metadata.name;
-          }
-        } else {
-          session = createFallbackSession(userEmail, userName);
+  if (mode === 'register') {
+    try {
+      const { data, error } = await client.auth.signUp({
+        email: userEmail,
+        password: password,
+        options: { 
+          data: { 
+            name: userName, 
+            phone: userPhone,
+            blood: blood,
+            city: city,
+            age: age
+          } 
         }
-      } catch (err) {
-        if (isSupabaseNetworkError(err)) {
-          console.warn("[CuraAssist] Supabase fetch error; starting active user session.");
-          session = createFallbackSession(userEmail, userName);
-        } else {
-          alert(`Registration Error: ${err.message || err}`);
-          return;
-        }
+      });
+
+      if (error) {
+        alert(`❌ Registration Failed: ${error.message}`);
+        return;
       }
-    } else {
-      try {
-        const { data, error } = await client.auth.signInWithPassword({
+
+      if (data?.session?.access_token) {
+        session = data.session;
+      } else {
+        const loginRes = await client.auth.signInWithPassword({
           email: userEmail,
           password: password
         });
-
-        if (error) {
-          if (isSupabaseNetworkError(error)) {
-            console.warn("[CuraAssist] Supabase network endpoint unreachable; starting active user session.");
-            session = createFallbackSession(userEmail, userName);
-          } else {
-            alert(`Login Failed: ${error.message}`);
-            return;
-          }
-        } else if (data?.session?.access_token) {
-          session = data.session;
-          if (data.session.user?.user_metadata?.name) {
-            userName = data.session.user.user_metadata.name;
-          }
-        } else {
-          session = createFallbackSession(userEmail, userName);
-        }
-      } catch (err) {
-        if (isSupabaseNetworkError(err)) {
-          console.warn("[CuraAssist] Supabase fetch error; starting active user session.");
-          session = createFallbackSession(userEmail, userName);
-        } else {
-          alert(`Login Error: ${err.message || err}`);
+        if (loginRes.error) {
+          alert(`❌ Registration complete, but sign-in note: ${loginRes.error.message}`);
+          switchAuthTab('login');
           return;
         }
+        session = loginRes.data?.session;
       }
+
+      if (!session?.access_token) {
+        alert("❌ Could not establish verified session. Please log in with your registered credentials.");
+        switchAuthTab('login');
+        return;
+      }
+    } catch (err) {
+      alert(`❌ Registration Error: ${err.message || err}`);
+      return;
+    }
+  } else if (mode === 'login') {
+    try {
+      const { data, error } = await client.auth.signInWithPassword({
+        email: userEmail,
+        password: password
+      });
+
+      if (error) {
+        alert(`❌ Invalid Credentials: ${error.message || 'Incorrect email or password. Please verify or register a new account.'}`);
+        return;
+      }
+
+      if (!data?.session?.access_token) {
+        alert("❌ Login failed: No active session token returned from Supabase.");
+        return;
+      }
+
+      session = data.session;
+      if (session.user?.user_metadata?.name) {
+        userName = session.user.user_metadata.name;
+      }
+      if (session.user?.user_metadata?.phone) {
+        phone = session.user.user_metadata.phone;
+      }
+      if (session.user?.user_metadata?.blood) {
+        blood = session.user.user_metadata.blood;
+      }
+      if (session.user?.user_metadata?.city) {
+        city = session.user.user_metadata.city;
+      }
+      if (session.user?.user_metadata?.age) {
+        age = session.user.user_metadata.age;
+      }
+    } catch (err) {
+      alert(`❌ Login Error: ${err.message || err}`);
+      return;
     }
   } else {
-    session = createFallbackSession(userEmail, userName);
+    // Mode === 'otp'
+    session = {
+      access_token: `otp-token-${Date.now()}`,
+      user: { email: userEmail, user_metadata: { name: userName } }
+    };
   }
 
   window.authToken = session.access_token;

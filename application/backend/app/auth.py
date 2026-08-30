@@ -12,7 +12,7 @@ _JWKS_CACHE: dict[str, Any] = {"expires_at": 0.0, "keys": []}
 
 
 def _supabase_url() -> str:
-    return os.getenv("SUPABASE_URL", "").strip().rstrip("/")
+    return os.getenv("SUPABASE_URL", "https://ifwsijbkmuzqttwbvifp.supabase.co").strip().rstrip("/")
 
 
 def _jwks() -> list[dict[str, Any]]:
@@ -21,7 +21,7 @@ def _jwks() -> list[dict[str, Any]]:
         return _JWKS_CACHE["keys"]
 
     base_url = _supabase_url()
-    if not base_url or "placeholder" in base_url or "curaassist-carehub.supabase.co" in base_url:
+    if not base_url or "placeholder" in base_url:
         return []
 
     url = f"{base_url}/auth/v1/.well-known/jwks.json"
