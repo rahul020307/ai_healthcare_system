@@ -2,21 +2,41 @@ import os
 import smtplib
 import datetime
 from email.message import EmailMessage
+from pathlib import Path
 from typing import Optional
 from dotenv import load_dotenv
 
-load_dotenv()
+# Search and load .env from backend or workspace root
+env_paths = [
+    Path(__file__).resolve().parent.parent.parent / ".env",
+    Path(__file__).resolve().parent.parent.parent.parent / ".env",
+    Path("/workspaces/ai_healthcare_system/.env"),
+]
+for p in env_paths:
+    if p.exists():
+        load_dotenv(p, override=True)
 
 
 def _get_smtp_config():
-    load_dotenv()
+    for p in env_paths:
+        if p.exists():
+            load_dotenv(p, override=True)
+
+    user = os.getenv("SMTP_USER", "").strip()
+    raw_pass = os.getenv("SMTP_PASS", "").strip()
+    clean_pass = raw_pass.replace(" ", "")
+    host = os.getenv("SMTP_HOST", "smtp.gmail.com").strip() or "smtp.gmail.com"
+    port = int(os.getenv("SMTP_PORT", "587"))
+    sender = os.getenv("SMTP_FROM", "").strip() or f"CuraAssist Security <{user or 'security@curaassist.health'}>"
+    use_ssl = os.getenv("SMTP_USE_SSL", "false").lower() in ["true", "1", "yes"] or port == 465
+
     return {
-        "host": os.getenv("SMTP_HOST", "smtp.gmail.com").strip() if (os.getenv("SMTP_USER") or os.getenv("SMTP_HOST")) else "",
-        "port": int(os.getenv("SMTP_PORT", "587")),
-        "user": os.getenv("SMTP_USER", "").strip(),
-        "pass": os.getenv("SMTP_PASS", "").strip().replace(" ", ""),
-        "from": os.getenv("SMTP_FROM", "").strip() or f"CuraAssist Security <{os.getenv('SMTP_USER', 'security@curaassist.health')}>",
-        "use_ssl": os.getenv("SMTP_USE_SSL", "false").lower() in ["true", "1", "yes"] or os.getenv("SMTP_PORT") == "465",
+        "host": host,
+        "port": port,
+        "user": user,
+        "pass": clean_pass,
+        "from": sender,
+        "use_ssl": use_ssl,
     }
 
 
@@ -119,11 +139,11 @@ CuraAssist CareHub Automated Security System
     if config["host"] and config["user"] and config["pass"]:
         try:
             if config["use_ssl"] or config["port"] == 465:
-                with smtplib.SMTP_SSL(config["host"], config["port"], timeout=10) as server:
+                with smtplib.SMTP_SSL(config["host"], config["port"], timeout=15) as server:
                     server.login(config["user"], config["pass"])
                     server.send_message(msg)
             else:
-                with smtplib.SMTP(config["host"], config["port"], timeout=10) as server:
+                with smtplib.SMTP(config["host"], config["port"], timeout=15) as server:
                     server.starttls()
                     server.login(config["user"], config["pass"])
                     server.send_message(msg)
