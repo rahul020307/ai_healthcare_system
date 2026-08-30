@@ -199,6 +199,29 @@ def init_db():
     """Initializes tables and seeds reference/demo dataset only in explicit demo mode."""
     engine = get_engine()
     Base.metadata.create_all(bind=engine)
+    
+    # Ensure missing columns in existing SQLite tables are safely added
+    if str(engine.url).startswith("sqlite"):
+        try:
+            with engine.connect() as conn:
+                for table_name, col_name, col_type in [
+                    ("health_records", "owner_user_id", "VARCHAR"),
+                    ("appointments", "owner_user_id", "VARCHAR"),
+                    ("orders", "owner_user_id", "VARCHAR"),
+                    ("vitals", "owner_user_id", "VARCHAR"),
+                    ("schedules", "owner_user_id", "VARCHAR"),
+                ]:
+                    try:
+                        res = conn.execute(sqlalchemy.text(f"PRAGMA table_info({table_name})")).fetchall()
+                        existing_cols = [r[1] for r in res]
+                        if existing_cols and col_name not in existing_cols:
+                            conn.execute(sqlalchemy.text(f"ALTER TABLE {table_name} ADD COLUMN {col_name} {col_type}"))
+                            conn.commit()
+                    except Exception:
+                        pass
+        except Exception:
+            pass
+
     seed_initial_sql_data()
 
 

@@ -1217,6 +1217,21 @@
         <button onclick="switchAuthTab('otp')" id="btn-auth-otp" class="flex-1 py-2.5 rounded-xl text-slate-400 hover:text-white transition-all">📱 OTP</button>
       </div>
 
+      <!-- Social / GitHub Fast Auth Option -->
+      <div class="space-y-2">
+        <button onclick="loginWithGitHub()" type="button" class="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-teal-500/50 text-white font-semibold text-xs transition-all flex items-center justify-center gap-2.5 shadow-sm hover:scale-[1.01]">
+          <svg class="w-4 h-4 fill-current text-white" viewBox="0 0 24 24">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+          </svg>
+          <span>Continue with GitHub (OAuth)</span>
+        </button>
+        <div class="flex items-center gap-3 text-slate-500 text-[10px] uppercase font-bold tracking-wider">
+          <div class="flex-1 h-px bg-slate-800"></div>
+          <span>or credentials</span>
+          <div class="flex-1 h-px bg-slate-800"></div>
+        </div>
+      </div>
+
       <!-- REGISTER FORM -->
       <div id="auth-form-register" class="hidden space-y-3.5 text-xs">
         <div>
@@ -1226,7 +1241,7 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label class="block text-[11px] font-bold text-slate-300 mb-1">Email / Username</label>
+            <label class="block text-[11px] font-bold text-slate-300 mb-1">Email Address</label>
             <input type="email" id="auth-reg-email" placeholder="rahul@curahealth.in" class="w-full glass-input rounded-xl px-4 py-2.5 text-xs text-white focus:ring-2 focus:ring-teal-500">
           </div>
           <div>
@@ -1236,7 +1251,10 @@
         </div>
 
         <div>
-          <label class="block text-[11px] font-bold text-slate-300 mb-1">Account Password</label>
+          <div class="flex items-center justify-between mb-1">
+            <label class="block text-[11px] font-bold text-slate-300">Account Password</label>
+            <span class="text-[10px] text-slate-400">Min. 6 characters</span>
+          </div>
           <div class="relative">
             <input type="password" id="auth-reg-password" placeholder="Create a strong password" class="w-full glass-input rounded-xl px-4 py-2.5 text-xs text-white pr-10 focus:ring-2 focus:ring-teal-500">
             <button type="button" onclick="togglePasswordVisibility('auth-reg-password')" class="absolute right-3 top-2.5 text-slate-400 hover:text-white">
@@ -1278,7 +1296,7 @@
       <div id="auth-form-login" class="space-y-3.5 text-xs">
         <div>
           <label class="block text-[11px] font-bold text-slate-300 mb-1">Email, Phone, or Identity</label>
-          <input type="text" id="auth-login-identity" placeholder="Enter your registered email or phone" class="w-full glass-input rounded-xl px-4 py-2.5 text-xs text-white focus:ring-2 focus:ring-teal-500">
+          <input type="text" id="auth-login-identity" placeholder="Enter your registered email, phone or username" class="w-full glass-input rounded-xl px-4 py-2.5 text-xs text-white focus:ring-2 focus:ring-teal-500">
         </div>
 
         <div>
@@ -1298,10 +1316,14 @@
 
       <!-- OTP FORM -->
       <div id="auth-form-otp" class="hidden space-y-3.5 text-xs text-center">
-        <p class="text-slate-300">Enter the 6-Digit Verification Code sent to your mobile:</p>
-        <input type="text" id="auth-otp-input" placeholder="123456" maxlength="6" class="w-full glass-input rounded-xl px-4 py-3 text-center text-xl font-bold tracking-widest text-teal-300">
-        <button onclick="submitAuth('📱 Phone OTP Verified! Access Granted.', null, 'otp')" class="w-full bg-gradient-to-r from-indigo-500 to-cyan-500 text-white font-extrabold py-3 rounded-xl text-xs">
-          Verify OTP & Enter
+        <p class="text-slate-300">Enter the 6-Digit Verification Code sent to your mobile or test with demo code:</p>
+        <input type="text" id="auth-otp-input" placeholder="123456" maxlength="6" value="123456" class="w-full glass-input rounded-xl px-4 py-3 text-center text-xl font-bold tracking-widest text-teal-300">
+        <div class="flex items-center justify-center gap-2 text-[11px] text-slate-400">
+          <span>Demo verification code:</span>
+          <code class="px-1.5 py-0.5 bg-slate-900 border border-slate-800 rounded text-teal-400 font-mono">123456</code>
+        </div>
+        <button onclick="submitAuth('📱 Phone OTP Verified! Access Granted.', null, 'otp')" class="w-full bg-gradient-to-r from-indigo-500 to-cyan-500 text-white font-extrabold py-3 rounded-xl text-xs hover:scale-[1.01] transition-all shadow-lg flex items-center justify-center gap-2">
+          <i data-lucide="shield-check" class="w-4 h-4"></i> Verify OTP & Enter
         </button>
       </div>
     </div>
