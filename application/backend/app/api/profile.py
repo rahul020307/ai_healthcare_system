@@ -103,12 +103,27 @@ def update_user_profile(
         if not user:
             raise HTTPException(status_code=404, detail="Authenticated user profile not found")
 
-        if "name" in payload and payload["name"]:
-            user.name = payload["name"]
         if "email" in payload and payload["email"]:
-            user.email = payload["email"]
+            new_email = payload["email"].strip().lower()
+            if new_email and new_email != (user.email or "").lower():
+                existing = session.query(UserModel).filter(UserModel.email == new_email, UserModel.id != user.id).first()
+                if existing:
+                    # If this is a transient session user stub, adopt the existing profile and update its ID
+                    transient_id = user.id
+                    if transient_id.startswith("usr-sess-") or transient_id.startswith("usr-demo-") or transient_id.startswith("usr-oauth-"):
+                        session.delete(user)
+                        session.flush()
+                        existing.id = transient_id
+                        user = existing
+                    else:
+                        user = existing
+                else:
+                    user.email = new_email
+
+        if "name" in payload and payload["name"]:
+            user.name = payload["name"].strip()
         if "phone" in payload and payload["phone"]:
-            user.phone = payload["phone"]
+            user.phone = payload["phone"].strip()
         if "location" in payload and payload["location"]:
             user.location = payload["location"]
         if "age" in payload and payload["age"]:

@@ -1432,23 +1432,24 @@
           <span>or credentials</span>
           <div class="flex-1 h-px bg-slate-800"></div>
         </div>
-      </div>
+      <!-- Inline Status/Error Feedback Banner -->
+      <div id="auth-inline-msg" class="hidden text-xs py-2.5 px-3.5 rounded-xl border text-center font-semibold transition-all"></div>
 
       <!-- REGISTER FORM -->
       <div id="auth-form-register" class="hidden space-y-3.5 text-xs">
         <div>
           <label class="block text-[11px] font-bold text-slate-300 mb-1">Full Name</label>
-          <input type="text" id="auth-reg-name" placeholder="e.g. Rahul Sharma" class="w-full glass-input rounded-xl px-4 py-2.5 text-xs text-white focus:ring-2 focus:ring-teal-500">
+          <input type="text" id="auth-reg-name" onkeydown="if(event.key==='Enter') submitAuth('🎉 Registration Successful! Welcome to your AI Healthcare Portal.', null, 'register')" placeholder="e.g. Rahul Sharma" class="w-full glass-input rounded-xl px-4 py-2.5 text-xs text-white focus:ring-2 focus:ring-teal-500">
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-[11px] font-bold text-slate-300 mb-1">Email Address</label>
-            <input type="email" id="auth-reg-email" placeholder="rahul@curahealth.in" class="w-full glass-input rounded-xl px-4 py-2.5 text-xs text-white focus:ring-2 focus:ring-teal-500">
+            <input type="email" id="auth-reg-email" onkeydown="if(event.key==='Enter') submitAuth('🎉 Registration Successful! Welcome to your AI Healthcare Portal.', null, 'register')" placeholder="rahul@curahealth.in" class="w-full glass-input rounded-xl px-4 py-2.5 text-xs text-white focus:ring-2 focus:ring-teal-500">
           </div>
           <div>
             <label class="block text-[11px] font-bold text-slate-300 mb-1">Mobile Number</label>
-            <input type="tel" id="auth-reg-phone" placeholder="+91 98765 43210" class="w-full glass-input rounded-xl px-4 py-2.5 text-xs text-white focus:ring-2 focus:ring-teal-500">
+            <input type="tel" id="auth-reg-phone" onkeydown="if(event.key==='Enter') submitAuth('🎉 Registration Successful! Welcome to your AI Healthcare Portal.', null, 'register')" placeholder="+91 98765 43210" class="w-full glass-input rounded-xl px-4 py-2.5 text-xs text-white focus:ring-2 focus:ring-teal-500">
           </div>
         </div>
 
@@ -1458,7 +1459,7 @@
             <span class="text-[10px] text-slate-400">Min. 6 characters</span>
           </div>
           <div class="relative">
-            <input type="password" id="auth-reg-password" placeholder="Create a strong password" class="w-full glass-input rounded-xl px-4 py-2.5 text-xs text-white pr-10 focus:ring-2 focus:ring-teal-500">
+            <input type="password" id="auth-reg-password" onkeydown="if(event.key==='Enter') submitAuth('🎉 Registration Successful! Welcome to your AI Healthcare Portal.', null, 'register')" placeholder="Create a strong password" class="w-full glass-input rounded-xl px-4 py-2.5 text-xs text-white pr-10 focus:ring-2 focus:ring-teal-500">
             <button type="button" onclick="togglePasswordVisibility('auth-reg-password')" class="absolute right-3 top-2.5 text-slate-400 hover:text-white">
               <i data-lucide="eye" class="w-4 h-4"></i>
             </button>
@@ -1468,7 +1469,7 @@
         <div class="grid grid-cols-3 gap-2">
           <div>
             <label class="block text-[11px] font-bold text-slate-300 mb-1">Age</label>
-            <input type="number" id="auth-reg-age" placeholder="30" min="1" max="120" value="30" class="w-full glass-input rounded-xl px-3 py-2.5 text-xs text-white">
+            <input type="number" id="auth-reg-age" onkeydown="if(event.key==='Enter') submitAuth('🎉 Registration Successful! Welcome to your AI Healthcare Portal.', null, 'register')" placeholder="30" min="1" max="120" value="30" class="w-full glass-input rounded-xl px-3 py-2.5 text-xs text-white">
           </div>
           <div>
             <label class="block text-[11px] font-bold text-slate-300 mb-1">Blood Group</label>
@@ -1485,11 +1486,11 @@
           </div>
           <div>
             <label class="block text-[11px] font-bold text-slate-300 mb-1">City / Region</label>
-            <input type="text" id="auth-reg-city" value="Hyderabad" class="w-full glass-input rounded-xl px-3 py-2.5 text-xs text-white">
+            <input type="text" id="auth-reg-city" onkeydown="if(event.key==='Enter') submitAuth('🎉 Registration Successful! Welcome to your AI Healthcare Portal.', null, 'register')" value="Hyderabad" class="w-full glass-input rounded-xl px-3 py-2.5 text-xs text-white">
           </div>
         </div>
 
-        <button onclick="submitAuth('🎉 Registration Successful! Welcome to your AI Healthcare Portal.', null, 'register')" class="w-full bg-gradient-to-r from-teal-500 via-cyan-500 to-teal-400 text-slate-950 font-black py-3 rounded-xl shadow-lg shadow-teal-500/20 text-xs hover:scale-[1.01] transition-all flex items-center justify-center gap-1.5">
+        <button id="btn-submit-reg" onclick="submitAuth('🎉 Registration Successful! Welcome to your AI Healthcare Portal.', null, 'register')" class="w-full bg-gradient-to-r from-teal-500 via-cyan-500 to-teal-400 text-slate-950 font-black py-3 rounded-xl shadow-lg shadow-teal-500/20 text-xs hover:scale-[1.01] transition-all flex items-center justify-center gap-1.5">
           <i data-lucide="user-plus" class="w-4 h-4"></i> Register & Launch Care Workspace
         </button>
       </div>
@@ -1498,20 +1499,20 @@
       <div id="auth-form-login" class="space-y-3.5 text-xs">
         <div>
           <label class="block text-[11px] font-bold text-slate-300 mb-1">Email, Phone, or Identity</label>
-          <input type="text" id="auth-login-identity" placeholder="Enter your registered email, phone or username" class="w-full glass-input rounded-xl px-4 py-2.5 text-xs text-white focus:ring-2 focus:ring-teal-500">
+          <input type="text" id="auth-login-identity" onkeydown="if(event.key==='Enter') submitAuth('🔑 Login Successful! Session Active.', null, 'login')" placeholder="Enter your registered email, phone or username" class="w-full glass-input rounded-xl px-4 py-2.5 text-xs text-white focus:ring-2 focus:ring-teal-500">
         </div>
 
         <div>
           <label class="block text-[11px] font-bold text-slate-300 mb-1">Password</label>
           <div class="relative">
-            <input type="password" id="auth-login-password" placeholder="Enter your password" class="w-full glass-input rounded-xl px-4 py-2.5 text-xs text-white pr-10 focus:ring-2 focus:ring-teal-500">
+            <input type="password" id="auth-login-password" onkeydown="if(event.key==='Enter') submitAuth('🔑 Login Successful! Session Active.', null, 'login')" placeholder="Enter your password" class="w-full glass-input rounded-xl px-4 py-2.5 text-xs text-white pr-10 focus:ring-2 focus:ring-teal-500">
             <button type="button" onclick="togglePasswordVisibility('auth-login-password')" class="absolute right-3 top-2.5 text-slate-400 hover:text-white">
               <i data-lucide="eye" class="w-4 h-4"></i>
             </button>
           </div>
         </div>
 
-        <button onclick="submitAuth('🔑 Login Successful! Session Active.', null, 'login')" class="w-full bg-gradient-to-r from-cyan-500 to-teal-500 text-slate-950 font-black py-3 rounded-xl shadow-lg text-xs hover:scale-[1.01] transition-all flex items-center justify-center gap-1.5">
+        <button id="btn-submit-login" onclick="submitAuth('🔑 Login Successful! Session Active.', null, 'login')" class="w-full bg-gradient-to-r from-cyan-500 to-teal-500 text-slate-950 font-black py-3 rounded-xl shadow-lg text-xs hover:scale-[1.01] transition-all flex items-center justify-center gap-1.5">
           <i data-lucide="log-in" class="w-4 h-4"></i> Sign In to Healthcare Portal
         </button>
       </div>
@@ -1519,12 +1520,12 @@
       <!-- OTP FORM -->
       <div id="auth-form-otp" class="hidden space-y-3.5 text-xs text-center">
         <p class="text-slate-300">Enter the 6-Digit Verification Code sent to your mobile or test with demo code:</p>
-        <input type="text" id="auth-otp-input" placeholder="123456" maxlength="6" value="123456" class="w-full glass-input rounded-xl px-4 py-3 text-center text-xl font-bold tracking-widest text-teal-300">
+        <input type="text" id="auth-otp-input" onkeydown="if(event.key==='Enter') submitAuth('📱 Phone OTP Verified! Access Granted.', null, 'otp')" placeholder="123456" maxlength="6" value="123456" class="w-full glass-input rounded-xl px-4 py-3 text-center text-xl font-bold tracking-widest text-teal-300">
         <div class="flex items-center justify-center gap-2 text-[11px] text-slate-400">
           <span>Demo verification code:</span>
           <code class="px-1.5 py-0.5 bg-slate-900 border border-slate-800 rounded text-teal-400 font-mono">123456</code>
         </div>
-        <button onclick="submitAuth('📱 Phone OTP Verified! Access Granted.', null, 'otp')" class="w-full bg-gradient-to-r from-indigo-500 to-cyan-500 text-white font-extrabold py-3 rounded-xl text-xs hover:scale-[1.01] transition-all shadow-lg flex items-center justify-center gap-2">
+        <button id="btn-submit-otp" onclick="submitAuth('📱 Phone OTP Verified! Access Granted.', null, 'otp')" class="w-full bg-gradient-to-r from-indigo-500 to-cyan-500 text-white font-extrabold py-3 rounded-xl text-xs hover:scale-[1.01] transition-all shadow-lg flex items-center justify-center gap-2">
           <i data-lucide="shield-check" class="w-4 h-4"></i> Verify OTP & Enter
         </button>
       </div>

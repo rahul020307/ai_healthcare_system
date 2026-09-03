@@ -36,7 +36,6 @@ function getSupabaseClient() {
 }
 
 async function getAuthToken() {
-  if (window.authToken) return window.authToken;
   const client = getSupabaseClient();
   if (client && client.auth) {
     try {
@@ -47,6 +46,7 @@ async function getAuthToken() {
       }
     } catch (e) {}
   }
+  if (window.authToken) return window.authToken;
   return null;
 }
 
@@ -361,7 +361,27 @@ function togglePasswordVisibility(fieldId) {
   input.type = input.type === 'password' ? 'text' : 'password';
 }
 
+function showAuthInlineMessage(text, type = 'error') {
+  const el = document.getElementById('auth-inline-msg');
+  if (!el) return;
+  if (!text) {
+    el.classList.add('hidden');
+    el.innerText = '';
+    return;
+  }
+  el.classList.remove('hidden', 'bg-rose-500/10', 'border-rose-500/30', 'text-rose-300', 'bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-300', 'bg-teal-500/10', 'border-teal-500/30', 'text-teal-300');
+  if (type === 'success') {
+    el.classList.add('bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-300');
+  } else if (type === 'loading') {
+    el.classList.add('bg-teal-500/10', 'border-teal-500/30', 'text-teal-300');
+  } else {
+    el.classList.add('bg-rose-500/10', 'border-rose-500/30', 'text-rose-300');
+  }
+  el.innerText = text;
+}
+
 function switchAuthTab(mode) {
+  showAuthInlineMessage(null);
   ['login', 'register', 'otp'].forEach(m => {
     document.getElementById(`auth-form-${m}`)?.classList.add('hidden');
     const btn = document.getElementById(`btn-auth-${m === 'register' ? 'reg' : m}`);
@@ -468,6 +488,21 @@ function handleFallbackOAuth(provider = 'github') {
 }
 
 async function submitAuth(message, overrideName, mode = 'login') {
+  const activeBtn = document.getElementById(mode === 'register' ? 'btn-submit-reg' : mode === 'login' ? 'btn-submit-login' : 'btn-submit-otp');
+  const originalBtnHtml = activeBtn ? activeBtn.innerHTML : '';
+  const setBtnLoading = (loading, loadingText) => {
+    if (!activeBtn) return;
+    activeBtn.disabled = loading;
+    if (loading) {
+      activeBtn.innerHTML = `<span class="inline-block animate-spin mr-1.5">⏳</span> ${loadingText || 'Processing...'}`;
+      activeBtn.style.opacity = '0.75';
+    } else {
+      activeBtn.innerHTML = originalBtnHtml;
+      activeBtn.style.opacity = '1';
+      if (window.lucide) lucide.createIcons();
+    }
+  };
+
   let userName = overrideName;
   let identity = (document.getElementById('auth-login-identity')?.value || '').trim();
   let email = (document.getElementById('auth-reg-email')?.value || '').trim();
@@ -485,23 +520,25 @@ async function submitAuth(message, overrideName, mode = 'login') {
   const client = getSupabaseClient();
   let userEmail = "";
 
+  showAuthInlineMessage(null);
+
   if (mode === 'otp') {
     const code = otpInput || "123456";
     if (code.length < 4) {
-      alert("Please enter a valid verification code.");
-      return;
+      showAuthInlineMessage("Please enter a valid verification code.", "error");
+      return alert("Please enter a valid verification code.");
     }
     userName = userName || "Rahul Sharma (Phone Verified)";
     userEmail = "user.phone@curaassist.health";
   } else if (mode === 'register') {
     userEmail = email;
     if (!userEmail || !password) {
-      alert("Please enter a valid email address and password to register.");
-      return;
+      showAuthInlineMessage("Please enter a valid email address and password to register.", "error");
+      return alert("Please enter a valid email address and password to register.");
     }
     if (password.length < 6) {
-      alert("Password must be at least 6 characters long.");
-      return;
+      showAuthInlineMessage("Password must be at least 6 characters long.", "error");
+      return alert("Password must be at least 6 characters long.");
     }
     if (!userName) {
       userName = name || (userEmail ? userEmail.split('@')[0] : "User");
@@ -509,8 +546,8 @@ async function submitAuth(message, overrideName, mode = 'login') {
   } else {
     // Mode === 'login'
     if (!identity || !password) {
-      alert("Please enter your email/username and password to log in.");
-      return;
+      showAuthInlineMessage("Please enter your email/username and password to log in.", "error");
+      return alert("Please enter your email/username and password to log in.");
     }
     if (identity.includes('@')) {
       userEmail = identity;
@@ -527,12 +564,14 @@ async function submitAuth(message, overrideName, mode = 'login') {
 
   let session = null;
   if (!client || !client.auth) {
-    alert("❌ Supabase client unavailable. Please check your internet connection.");
-    return;
+    showAuthInlineMessage("Supabase client unavailable. Please check internet connection.", "error");
+    return alert("❌ Supabase client unavailable. Please check your internet connection.");
   }
 
-  if (mode === 'register') {
-    try {
+  setBtnLoading(true, mode === 'register' ? 'Creating account...' : 'Authenticating...');
+
+  try {
+    if (mode === 'register') {
       const { data, error } = await client.auth.signUp({
         email: userEmail,
         password: password,
@@ -548,6 +587,7 @@ async function submitAuth(message, overrideName, mode = 'login') {
       });
 
       if (error) {
+        showAuthInlineMessage(`Registration Failed: ${error.message}`, "error");
         alert(`❌ Registration Failed: ${error.message}`);
         return;
       }
@@ -560,6 +600,7 @@ async function submitAuth(message, overrideName, mode = 'login') {
           password: password
         });
         if (loginRes.error) {
+          showAuthInlineMessage(`Registration note: ${loginRes.error.message}`, "error");
           alert(`❌ Registration complete, but sign-in note: ${loginRes.error.message}`);
           switchAuthTab('login');
           return;
@@ -568,27 +609,26 @@ async function submitAuth(message, overrideName, mode = 'login') {
       }
 
       if (!session?.access_token) {
+        showAuthInlineMessage("Could not establish verified session. Please sign in.", "error");
         alert("❌ Could not establish verified session. Please log in with your registered credentials.");
         switchAuthTab('login');
         return;
       }
-    } catch (err) {
-      alert(`❌ Registration Error: ${err.message || err}`);
-      return;
-    }
-  } else if (mode === 'login') {
-    try {
+    } else if (mode === 'login') {
       const { data, error } = await client.auth.signInWithPassword({
         email: userEmail,
         password: password
       });
 
       if (error) {
-        alert(`❌ Invalid Credentials: ${error.message || 'Incorrect email or password. Please verify or register a new account.'}`);
+        const msg = error.message || 'Incorrect email or password. Please verify or register a new account.';
+        showAuthInlineMessage(`Invalid Credentials: ${msg}`, "error");
+        alert(`❌ Invalid Credentials: ${msg}`);
         return;
       }
 
       if (!data?.session?.access_token) {
+        showAuthInlineMessage("Login failed: No active session token returned.", "error");
         alert("❌ Login failed: No active session token returned from Supabase.");
         return;
       }
@@ -609,96 +649,100 @@ async function submitAuth(message, overrideName, mode = 'login') {
       if (session.user?.user_metadata?.age) {
         age = session.user.user_metadata.age;
       }
-    } catch (err) {
-      alert(`❌ Login Error: ${err.message || err}`);
-      return;
+    } else {
+      // Mode === 'otp'
+      session = {
+        access_token: `otp-token-${Date.now()}`,
+        user: { email: userEmail, user_metadata: { name: userName } }
+      };
     }
-  } else {
-    // Mode === 'otp'
-    session = {
-      access_token: `otp-token-${Date.now()}`,
-      user: { email: userEmail, user_metadata: { name: userName } }
+
+    window.authToken = session.access_token;
+
+    let existingUser = {};
+    try {
+      const prev = localStorage.getItem('cura_active_user_v1');
+      if (prev) existingUser = JSON.parse(prev) || {};
+    } catch (e) {}
+
+    const userSessionData = {
+      isLoggedIn: true,
+      userName: userName,
+      email: userEmail,
+      phone: phone || existingUser.phone || "",
+      blood: blood || existingUser.blood || "O+",
+      city: city || existingUser.city || "Hyderabad, Telangana",
+      age: age || existingUser.age || "30",
+      avatar: session.user?.user_metadata?.avatar_url || existingUser.avatar || (typeof INITIAL_DATA !== 'undefined' && INITIAL_DATA.familyMembers?.[0]?.avatar) || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250",
+      token: session.access_token
     };
-  }
 
-  window.authToken = session.access_token;
+    try {
+      localStorage.setItem('cura_active_user_v1', JSON.stringify(userSessionData));
+    } catch (e) {}
 
-  let existingUser = {};
-  try {
-    const prev = localStorage.getItem('cura_active_user_v1');
-    if (prev) existingUser = JSON.parse(prev) || {};
-  } catch (e) {}
-
-  const userSessionData = {
-    isLoggedIn: true,
-    userName: userName,
-    email: userEmail,
-    phone: phone || existingUser.phone || "",
-    blood: blood || existingUser.blood || "O+",
-    city: city || existingUser.city || "Hyderabad, Telangana",
-    age: age || existingUser.age || "30",
-    avatar: session.user?.user_metadata?.avatar_url || existingUser.avatar || (typeof INITIAL_DATA !== 'undefined' && INITIAL_DATA.familyMembers?.[0]?.avatar) || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250",
-    token: session.access_token
-  };
-
-  try {
-    localStorage.setItem('cura_active_user_v1', JSON.stringify(userSessionData));
-  } catch (e) {}
-
-  // Update App State & Dataset
-  if (typeof INITIAL_DATA !== 'undefined') {
-    INITIAL_DATA.userAuth.isLoggedIn = true;
-    INITIAL_DATA.userAuth.user.name = userName;
-    if (INITIAL_DATA.familyMembers && INITIAL_DATA.familyMembers[0]) {
-      INITIAL_DATA.familyMembers[0].name = userName;
-      INITIAL_DATA.familyMembers[0].phone = userSessionData.phone;
-      INITIAL_DATA.familyMembers[0].email = userEmail;
-      INITIAL_DATA.familyMembers[0].bloodGroup = userSessionData.blood;
-      INITIAL_DATA.familyMembers[0].age = userSessionData.age;
-      if (userSessionData.avatar) INITIAL_DATA.familyMembers[0].avatar = userSessionData.avatar;
+    // Update App State & Dataset
+    if (typeof INITIAL_DATA !== 'undefined') {
+      INITIAL_DATA.userAuth.isLoggedIn = true;
+      INITIAL_DATA.userAuth.user.name = userName;
+      if (INITIAL_DATA.familyMembers && INITIAL_DATA.familyMembers[0]) {
+        INITIAL_DATA.familyMembers[0].name = userName;
+        INITIAL_DATA.familyMembers[0].phone = userSessionData.phone;
+        INITIAL_DATA.familyMembers[0].email = userEmail;
+        INITIAL_DATA.familyMembers[0].bloodGroup = userSessionData.blood;
+        INITIAL_DATA.familyMembers[0].age = userSessionData.age;
+        if (userSessionData.avatar) INITIAL_DATA.familyMembers[0].avatar = userSessionData.avatar;
+      }
     }
+
+    // Update UI Elements across the application
+    updateAuthUIState(userSessionData);
+
+    // Sync profile details to backend database immediately
+    try {
+      const headers = await getAuthHeaders();
+      await fetch(`${API_BASE}/profile/user`, {
+        method: 'PUT',
+        headers: headers,
+        body: JSON.stringify({
+          name: userSessionData.userName,
+          email: userSessionData.email,
+          phone: userSessionData.phone,
+          bloodGroup: userSessionData.blood,
+          location: userSessionData.city,
+          age: userSessionData.age
+        })
+      });
+      // Trigger background security login email notification
+      fetch(`${API_BASE}/auth/notify-login`, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({
+          userName: userSessionData.userName,
+          email: userSessionData.email,
+          userAgent: navigator.userAgent
+        })
+      }).catch(() => {});
+    } catch (syncErr) {
+      console.warn("[CuraAssist] Profile backend sync note:", syncErr);
+    }
+
+    // Unlock application overlay
+    const overlay = document.getElementById('auth-guard-overlay');
+    if (overlay) overlay.classList.add('hidden');
+
+    // Fetch real persistent healthcare data from backend for authenticated user
+    await fetchUserDataFromBackend();
+
+    showAuthInlineMessage("✨ Authenticated successfully! Welcome to CuraAssist.", "success");
+    alert(message || `Welcome to CuraAssist Healthcare, ${userName}! Your profile is connected.`);
+  } catch (err) {
+    console.error("[CuraAssist] submitAuth unexpected error:", err);
+    showAuthInlineMessage(`Authentication Error: ${err.message || err}`, "error");
+    alert(`❌ Authentication Error: ${err.message || err}`);
+  } finally {
+    setBtnLoading(false);
   }
-
-  // Update UI Elements across the application
-  updateAuthUIState(userSessionData);
-
-  // Sync profile details to backend database immediately
-  try {
-    const headers = await getAuthHeaders();
-    await fetch(`${API_BASE}/profile/user`, {
-      method: 'PUT',
-      headers: headers,
-      body: JSON.stringify({
-        name: userSessionData.userName,
-        email: userSessionData.email,
-        phone: userSessionData.phone,
-        bloodGroup: userSessionData.blood,
-        location: userSessionData.city,
-        age: userSessionData.age
-      })
-    });
-    // Trigger background security login email notification
-    fetch(`${API_BASE}/auth/notify-login`, {
-      method: 'POST',
-      headers: headers,
-      body: JSON.stringify({
-        userName: userSessionData.userName,
-        email: userSessionData.email,
-        userAgent: navigator.userAgent
-      })
-    }).catch(() => {});
-  } catch (syncErr) {
-    console.warn("[CuraAssist] Profile backend sync note:", syncErr);
-  }
-
-  // Unlock application overlay
-  const overlay = document.getElementById('auth-guard-overlay');
-  if (overlay) overlay.classList.add('hidden');
-
-  // Fetch real persistent healthcare data from backend for authenticated user
-  await fetchUserDataFromBackend();
-
-  alert(message || `Welcome to CuraAssist Healthcare, ${userName}! Your profile is connected.`);
 }
 
 let currentPendingAvatarUrl = null;
