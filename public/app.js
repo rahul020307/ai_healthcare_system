@@ -250,14 +250,32 @@ async function syncDatabaseRecordsWithBackend() {
   }
 }
 
+function toggleMobileMenuDrawer() {
+  const drawer = document.getElementById('mobile-menu-drawer');
+  if (!drawer) return;
+  const isHidden = drawer.style.display === 'none' || drawer.classList.contains('hidden');
+  if (isHidden) {
+    drawer.style.display = 'flex';
+    drawer.classList.remove('hidden');
+    if (window.lucide) lucide.createIcons();
+  } else {
+    drawer.style.display = 'none';
+    drawer.classList.add('hidden');
+  }
+}
+
 // TAB SWITCHING ENGINE
 function switchTab(tabName) {
   state.currentTab = tabName;
   
-  // Update sidebar & mobile bottom nav active highlights
+  // Update sidebar, header nav & mobile bottom nav active highlights
   document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.mobile-nav-btn').forEach(el => {
     el.classList.remove('text-teal-400', 'font-black', 'scale-105');
+    el.classList.add('text-slate-400');
+  });
+  document.querySelectorAll('.header-nav-btn').forEach(el => {
+    el.classList.remove('active', 'text-teal-400', 'bg-teal-500/20', 'border', 'border-teal-500/40');
     el.classList.add('text-slate-400');
   });
 
@@ -268,6 +286,12 @@ function switchTab(tabName) {
   if (activeMobileNav) {
     activeMobileNav.classList.remove('text-slate-400');
     activeMobileNav.classList.add('text-teal-400', 'font-black', 'scale-105');
+  }
+
+  const activeHeaderNav = document.getElementById(`header-nav-${tabName}`);
+  if (activeHeaderNav) {
+    activeHeaderNav.classList.remove('text-slate-400');
+    activeHeaderNav.classList.add('active', 'text-teal-400', 'bg-teal-500/20', 'border', 'border-teal-500/40');
   }
 
   // Toggle Header visibility (Remove top header in Maps tab for full screen map view)
@@ -770,7 +794,7 @@ function updateAuthUIState(userData) {
   const isGuest = userData === "Login / Register" || (typeof userData === 'object' && userData !== null && userData.isLoggedIn === false);
   const user = (typeof userData === 'object' && userData !== null) ? userData : { userName: userData };
   
-  const bottomNav = document.getElementById('bottom-mobile-nav');
+  const bottomNav = document.getElementById('mobile-bottom-nav') || document.getElementById('bottom-mobile-nav');
   const floatingBtn = document.getElementById('floating-ai-chat-btn');
   const overlay = document.getElementById('auth-guard-overlay');
 
@@ -834,9 +858,15 @@ function updateAuthUIState(userData) {
   const activeFamilyAvatar = document.getElementById('active-family-avatar');
   if (activeFamilyAvatar) activeFamilyAvatar.src = userAvatar;
 
+  const drawerAvatar = document.getElementById('drawer-user-avatar');
+  if (drawerAvatar) drawerAvatar.src = userAvatar;
+
   // Profile Card Dynamic Sync
   const profMainName = document.getElementById('profile-main-name');
   if (profMainName) profMainName.innerText = userName;
+
+  const drawerName = document.getElementById('drawer-user-name');
+  if (drawerName) drawerName.innerText = userName;
 
   const profMainPhone = document.getElementById('profile-main-phone');
   if (profMainPhone) profMainPhone.innerText = userPhone;
@@ -1632,9 +1662,11 @@ function updateAdherenceStats(schedules) {
     if (refillsFullEl) refillsFullEl.innerText = "All supplies adequate";
   }
 
-  // Sidebar badge
+  // Sidebar & Header badges
   const sideBadge = document.getElementById('reminders-badge-side');
   if (sideBadge) sideBadge.innerText = upcoming.length;
+  const headerBadge = document.getElementById('reminders-badge-header');
+  if (headerBadge) headerBadge.innerText = upcoming.length;
 }
 
 async function togglePillTaken(id) {
@@ -2823,6 +2855,8 @@ function renderCart() {
   if (countBadge) countBadge.innerText = totalItems;
   if (mobileCountBadge) mobileCountBadge.innerText = totalItems;
   if (btnCount) btnCount.innerText = totalItems;
+  const headerCountBadge = document.getElementById('cart-badge-header');
+  if (headerCountBadge) headerCountBadge.innerText = totalItems;
 
   if (!listContainer) return;
 

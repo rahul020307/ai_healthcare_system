@@ -95,8 +95,8 @@
     
     <!-- Logo & Brand -->
     <div class="flex items-center gap-3">
-      <button id="mobile-menu-btn" style="display: none !important;" class="hidden text-slate-300 hover:text-white p-1 rounded-lg">
-        <i data-lucide="menu" class="w-6 h-6"></i>
+      <button id="mobile-menu-btn" onclick="toggleMobileMenuDrawer()" class="flex lg:hidden text-slate-300 hover:text-white p-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-teal-500/40 transition-colors" title="Toggle Navigation Menu">
+        <i data-lucide="menu" class="w-5 h-5 text-teal-400"></i>
       </button>
       <div class="flex items-center gap-2 cursor-pointer" onclick="switchTab('home')">
         <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-teal-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-teal-500/30">
@@ -112,6 +112,32 @@
         </div>
       </div>
     </div>
+
+    <!-- Prominent Top Header Navigation Menu Bar -->
+    <nav class="hidden md:flex items-center gap-1 bg-slate-900/90 p-1 rounded-2xl border border-slate-800/90 shadow-inner">
+      <button onclick="switchTab('home')" id="header-nav-home" class="header-nav-btn active px-3 py-1.5 rounded-xl text-xs font-semibold text-teal-400 bg-teal-500/20 border border-teal-500/40 transition-all flex items-center gap-1.5">
+        <i data-lucide="home" class="w-3.5 h-3.5"></i>
+        <span>Home</span>
+      </button>
+      <button onclick="switchTab('reminders')" id="header-nav-reminders" class="header-nav-btn px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition-all flex items-center gap-1.5">
+        <i data-lucide="alarm-clock" class="w-3.5 h-3.5 text-amber-400"></i>
+        <span>Reminders</span>
+        <span id="reminders-badge-header" class="bg-amber-500/20 text-amber-300 text-[9px] px-1.5 py-0.5 rounded-full font-bold">0</span>
+      </button>
+      <button onclick="switchTab('store')" id="header-nav-store" class="header-nav-btn px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition-all flex items-center gap-1.5">
+        <i data-lucide="shopping-bag" class="w-3.5 h-3.5 text-cyan-400"></i>
+        <span>Store</span>
+        <span id="cart-badge-header" class="bg-teal-500/20 text-teal-300 text-[9px] px-1.5 py-0.5 rounded-full font-bold">0</span>
+      </button>
+      <button onclick="switchTab('maps')" id="header-nav-maps" class="header-nav-btn px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition-all flex items-center gap-1.5">
+        <i data-lucide="map-pin" class="w-3.5 h-3.5 text-indigo-400"></i>
+        <span>Maps</span>
+      </button>
+      <button onclick="switchTab('profile')" id="header-nav-profile" class="header-nav-btn px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition-all flex items-center gap-1.5">
+        <i data-lucide="user" class="w-3.5 h-3.5 text-rose-400"></i>
+        <span>Profile</span>
+      </button>
+    </nav>
 
     <!-- Header Actions (Auth, Family Switcher, Quick Scan, Language, Emergency, Notifications) -->
     <div class="flex items-center gap-2 sm:gap-3">
@@ -2381,6 +2407,77 @@
       <span>Profile</span>
     </button>
   </nav>
+
+  <!-- MOBILE SLIDE-OUT MENU DRAWER -->
+  <div id="mobile-menu-drawer" class="hidden fixed inset-0 z-[100002] bg-slate-950/85 backdrop-blur-sm lg:hidden flex" style="display: none;">
+    <div class="w-72 max-w-[85vw] bg-slate-900 border-r border-slate-800 p-5 flex flex-col justify-between shadow-2xl h-full overflow-y-auto">
+      <div class="space-y-5">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-xl bg-teal-500/20 text-teal-400 flex items-center justify-center">
+              <i data-lucide="heart-pulse" class="w-5 h-5"></i>
+            </div>
+            <span class="font-extrabold text-sm text-white">Menu Options</span>
+          </div>
+          <button onclick="toggleMobileMenuDrawer()" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <!-- Navigation Links in Drawer -->
+        <nav class="space-y-1.5">
+          <button onclick="switchTab('home'); toggleMobileMenuDrawer();" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold text-xs text-slate-300 hover:text-white hover:bg-slate-800/80 transition-all">
+            <i data-lucide="home" class="w-4 h-4 text-teal-400"></i>
+            <span>Home</span>
+          </button>
+          <button onclick="switchTab('reminders'); toggleMobileMenuDrawer();" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold text-xs text-slate-300 hover:text-white hover:bg-slate-800/80 transition-all">
+            <i data-lucide="alarm-clock" class="w-4 h-4 text-amber-400"></i>
+            <span>Medicine Reminders</span>
+          </button>
+          <button onclick="switchTab('store'); toggleMobileMenuDrawer();" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold text-xs text-slate-300 hover:text-white hover:bg-slate-800/80 transition-all">
+            <i data-lucide="shopping-bag" class="w-4 h-4 text-cyan-400"></i>
+            <span>Pharmacy Store</span>
+          </button>
+          <button onclick="switchTab('maps'); toggleMobileMenuDrawer();" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold text-xs text-slate-300 hover:text-white hover:bg-slate-800/80 transition-all">
+            <i data-lucide="map-pin" class="w-4 h-4 text-indigo-400"></i>
+            <span>Hospital & Clinic Maps</span>
+          </button>
+          <button onclick="switchTab('profile'); toggleMobileMenuDrawer();" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold text-xs text-slate-300 hover:text-white hover:bg-slate-800/80 transition-all">
+            <i data-lucide="user" class="w-4 h-4 text-rose-400"></i>
+            <span>Patient Profile</span>
+          </button>
+        </nav>
+
+        <!-- Quick Action Shortcuts in Drawer -->
+        <div class="pt-3 border-t border-slate-800 space-y-2">
+          <p class="text-[10px] uppercase font-bold tracking-wider text-slate-500">Quick Health Tools</p>
+          <button onclick="openItemScanModal(); toggleMobileMenuDrawer();" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl bg-slate-800/50 hover:bg-slate-800 text-teal-300 text-xs font-semibold">
+            <i data-lucide="scan-line" class="w-4 h-4"></i>
+            <span>Scan Medicine / OCR</span>
+          </button>
+          <button onclick="openAIAssistantModal(); toggleMobileMenuDrawer();" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl bg-slate-800/50 hover:bg-slate-800 text-cyan-300 text-xs font-semibold">
+            <i data-lucide="bot" class="w-4 h-4"></i>
+            <span>Ask CuraBot AI</span>
+          </button>
+          <button onclick="triggerEmergencySOS(); toggleMobileMenuDrawer();" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-xs font-semibold border border-rose-500/30">
+            <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+            <span>Emergency SOS</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="pt-4 border-t border-slate-800">
+        <div class="flex items-center gap-3">
+          <img id="drawer-user-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250" class="w-9 h-9 rounded-full object-cover border border-teal-400">
+          <div>
+            <p id="drawer-user-name" class="text-xs font-bold text-white">Active Patient</p>
+            <p class="text-[10px] text-teal-400">CuraAssist Protected</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="flex-1" onclick="toggleMobileMenuDrawer()"></div>
+  </div>
 
   <!-- PERSISTENT FLOATING AI CHAT BUTTON -->
   <button id="floating-ai-chat-btn" onclick="openAIAssistantModal()" style="bottom: 80px !important; right: 16px !important; z-index: 9999 !important;" class="fixed bg-gradient-to-tr from-teal-500 via-cyan-500 to-teal-400 text-slate-950 p-3.5 sm:p-4 rounded-full shadow-2xl hover:scale-110 active:scale-95 transition-all flex items-center justify-center ring-4 ring-teal-500/20 group" title="Open CuraBot AI Assistant">

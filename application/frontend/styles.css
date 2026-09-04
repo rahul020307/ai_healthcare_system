@@ -223,7 +223,7 @@ body.light-theme .bg-slate-800 {
   }
   #mobile-bottom-nav {
     display: grid !important;
-    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
     position: fixed !important;
     bottom: 0 !important;
     left: 0 !important;
@@ -251,7 +251,7 @@ body.light-theme .bg-slate-800 {
     display: none !important;
   }
   #mobile-menu-btn {
-    display: none !important;
+    display: flex !important;
   }
   #floating-ai-chat-btn {
     bottom: 80px !important;
@@ -264,4 +264,20 @@ body.light-theme .bg-slate-800 {
   #mobile-bottom-nav {
     display: none !important;
   }
+  #mobile-menu-btn {
+    display: none !important;
+  }
+}
+
+.header-nav-btn {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.header-nav-btn:hover {
+  color: #ffffff;
+  background-color: rgba(30, 41, 59, 0.8);
+}
+.header-nav-btn.active {
+  color: #2dd4bf !important;
+  background-color: rgba(13, 148, 136, 0.2) !important;
+  border: 1px solid rgba(13, 148, 136, 0.4) !important;
 }
