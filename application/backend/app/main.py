@@ -25,20 +25,12 @@ def on_startup():
     except Exception as e:
         print("[Startup] SQL Database init note:", e)
 
-import os
-
-cors_origins_str = os.getenv(
-    "CORS_ORIGINS",
-    "http://localhost:3000,http://localhost:8000,http://127.0.0.1:8000,http://localhost:5173,"
-    "https://ai-healthcare-system-eta.vercel.app,https://curaassist-carehub-backend-2.fastapicloud.dev"
-)
-cors_origins = [o.strip() for o in cors_origins_str.split(",") if o.strip()]
-allow_all_origins = "*" in cors_origins
+from app.core.config import settings
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"] if allow_all_origins else cors_origins,
-    allow_credentials=not allow_all_origins,
+    allow_origins=["*"] if settings.ALLOW_ALL_ORIGINS else settings.CORS_ORIGINS,
+    allow_credentials=not settings.ALLOW_ALL_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -54,11 +46,19 @@ app.include_router(auth_router)
 
 
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 
 root_dir = Path(__file__).resolve().parent.parent.parent
 public_dir = root_dir / "public"
 frontend_dir = Path(__file__).resolve().parent.parent / "frontend"
+backend_dir = Path(__file__).resolve().parent.parent
+app_dir = backend_dir.parent
+frontend_dir = app_dir / "frontend"
+
+# Mount frontend css directory if present
+if (frontend_dir / "css").exists():
+    app.mount("/css", StaticFiles(directory=str(frontend_dir / "css")), name="css")
 
 @app.get("/")
 @app.get("/index.html")
@@ -68,6 +68,7 @@ def serve_index():
         index_file = root_dir / "index.html"
     if not index_file.exists():
         index_file = frontend_dir / "index.html"
+    index_file = frontend_dir / "index.html"
     if index_file.exists():
         return FileResponse(index_file)
     return {
@@ -97,6 +98,7 @@ def serve_styles_css():
         f = root_dir / "styles.css"
     if not f.exists():
         f = frontend_dir / "styles.css"
+    f = frontend_dir / "styles.css"
     if f.exists():
         return FileResponse(f, media_type="text/css")
     return {"detail": "Not Found"}

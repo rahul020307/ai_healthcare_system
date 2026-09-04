@@ -1,0 +1,90 @@
+/* =========================================================
+   CURAASSIST CAREHUB - LAYOUT STYLESHEET
+   Shell, App Header, Navigation Tabs, Light Mode, Print View
+   ========================================================= */
+
+#app-header, main {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Header & Sidebar Navigation Controls */
+.header-nav-btn {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s var(--spring-snappy);
+}
+.header-nav-btn:hover {
+  color: #ffffff;
+  background-color: rgba(30, 41, 59, 0.8);
+  transform: translateY(-1px);
+}
+.header-nav-btn:active {
+  transform: scale(0.96);
+}
+.header-nav-btn.active {
+  color: #2dd4bf !important;
+  background-color: rgba(13, 148, 136, 0.2) !important;
+  border: 1px solid rgba(13, 148, 136, 0.4) !important;
+}
+
+.nav-link {
+  transition: all 0.2s ease;
+}
+.nav-link.active {
+  background: linear-gradient(135deg, rgba(13, 148, 136, 0.25) 0%, rgba(6, 182, 212, 0.15) 100%);
+  border-left: 3px solid #0d9488;
+  color: #2dd4bf;
+}
+
+/* Light Theme Theme Overrides */
+body.light-theme {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+body.light-theme .glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(226, 232, 240, 0.8);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+}
+body.light-theme .glass-card {
+  background: rgba(241, 245, 249, 0.7);
+  border-color: rgba(203, 213, 225, 0.6);
+}
+body.light-theme .glass-input {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+body.light-theme .text-slate-400 {
+  color: #64748b !important;
+}
+body.light-theme .text-slate-300 {
+  color: #475569 !important;
+}
+body.light-theme .text-white {
+  color: #0f172a !important;
+}
+body.light-theme .bg-slate-900\/80,
+body.light-theme .bg-slate-900,
+body.light-theme .bg-slate-800 {
+  background-color: #ffffff !important;
+}
+
+/* Printable Report Stylesheet */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #printable-report, #printable-report * {
+    visibility: visible;
+  }
+  #printable-report {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    color: #000;
+    background: #fff;
+  }
+}

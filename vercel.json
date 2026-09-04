@@ -1,4 +1,5 @@
 {
+  "outputDirectory": "application/frontend",
   "cleanUrls": true,
   "rewrites": [
     {

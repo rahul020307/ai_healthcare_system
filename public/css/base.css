@@ -1,0 +1,71 @@
+/* =========================================================
+   CURAASSIST CAREHUB - BASE STYLESHEET
+   Typography, Tokens, Spring Physics, Resets, Accessibility
+   ========================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* Brand Color Tokens */
+  --primary: #0d9488;
+  --primary-hover: #0f766e;
+  --secondary: #06b6d4;
+  --accent: #6366f1;
+  --danger: #f43f5e;
+  --success: #10b981;
+  --warning: #f59e0b;
+
+  /* Spring Physics Easing Curves (Anime.js / Motion Dev Inspired) */
+  --spring-bounce: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --spring-snappy: cubic-bezier(0.2, 0.9, 0.3, 1.15);
+  --spring-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+  --spring-soft: cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+html, body {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background-color: #0f172a;
+  color: #f8fafc;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Outfit', sans-serif;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.6);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.25);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.4);
+}
+
+/* Accessibility: Respect Reduced Motion Preference */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .kokonut-card:hover {
+    transform: none !important;
+  }
+  .scroll-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  #scroll-progress-bar {
+    display: none !important;
+  }
+}

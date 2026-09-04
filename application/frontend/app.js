@@ -290,6 +290,9 @@ document.addEventListener('DOMContentLoaded', () => {
   safeRun(() => initSpotlightCards(), 'initSpotlightCards');
   safeRun(() => initScrollProgress(), 'initScrollProgress');
   safeRun(() => initScrollReveals(), 'initScrollReveals');
+  safeRun(() => typeof AppModal !== 'undefined' && AppModal.init(), 'AppModal.init');
+  safeRun(() => typeof AppAlarms !== 'undefined' && AppAlarms.start(), 'AppAlarms.start');
+  safeRun(() => typeof AppState !== 'undefined' && AppState.init(typeof INITIAL_DATA !== 'undefined' ? INITIAL_DATA : {}), 'AppState.init');
 });
 
 async function syncDatabaseRecordsWithBackend() {

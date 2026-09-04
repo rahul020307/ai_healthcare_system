@@ -86,6 +86,11 @@
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
   <!-- Custom Stylesheet -->
+  <!-- Modular Design System Stylesheets -->
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/responsive.css">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-teal-500 selection:text-white">
@@ -3323,6 +3328,21 @@
     window.SUPABASE_URL = "https://ifwsijbkmuzqttwbvifp.supabase.co";
     window.SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlmd3NpamJrbXV6cXR0d2J2aWZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc2MjM2MTIsImV4cCI6MjEwMzE5OTYxMn0.4DConv73Vs47OIxvatkX8RvfufT1G-1GBm6JTHo7Q04";
   </script>
+
+  <!-- Core Architecture Layer -->
+  <script src="js/core/events.js"></script>
+  <script src="js/core/storage.js"></script>
+  <script src="js/core/state.js"></script>
+  <script src="js/core/api.js"></script>
+  <script src="js/core/alarms.js"></script>
+
+  <!-- UI Presentation Layer -->
+  <script src="js/ui/modal.js"></script>
+  <script src="js/ui/toast.js"></script>
+  <script src="js/ui/loading.js"></script>
+  <script src="js/ui/header.js"></script>
+  <script src="js/ui/sidebar.js"></script>
+
   <!-- OCR Image Processing Module - Enhanced prescription scanning -->
   <script src="ocr-image-processor.js?v=1.0.0"></script>
   <!-- Application Data & Logic -->
