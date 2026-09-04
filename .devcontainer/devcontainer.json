@@ -1,1 +1,32 @@
-{"image":"mcr.microsoft.com/devcontainers/universal:2"}
+{
+  "name": "CuraAssist CareHub",
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "forwardPorts": [3000, 8000, 8080, 5500],
+  "portsAttributes": {
+    "3000": {
+      "label": "Frontend Web App",
+      "onAutoForward": "openPreview"
+    },
+    "8000": {
+      "label": "FastAPI Backend & API Docs",
+      "onAutoForward": "notify"
+    },
+    "8080": {
+      "label": "Frontend (Alt Port)",
+      "onAutoForward": "silent"
+    },
+    "5500": {
+      "label": "Live Server",
+      "onAutoForward": "silent"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ritwickdey.LiveServer"
+      ]
+    }
+  }
+}
