@@ -196,6 +196,73 @@ function ensureLucideIcons() {
 }
 window.addEventListener('load', ensureLucideIcons);
 
+// =========================================================
+// KOKONUT UI & MOTION DEV ANIMATION ENGINES
+// =========================================================
+
+// Kokonut UI: Spotlight Cursor Tracking for .kokonut-card
+function initSpotlightCards() {
+  document.addEventListener('mousemove', (e) => {
+    const cards = document.querySelectorAll('.kokonut-card');
+    cards.forEach(card => {
+      const rect = card.getBoundingClientRect();
+      if (
+        e.clientX >= rect.left - 60 &&
+        e.clientX <= rect.right + 60 &&
+        e.clientY >= rect.top - 60 &&
+        e.clientY <= rect.bottom + 60
+      ) {
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        card.style.setProperty('--mouse-x', `${x}px`);
+        card.style.setProperty('--mouse-y', `${y}px`);
+      }
+    });
+  }, { passive: true });
+}
+
+// Motion Dev: Real-Time Scroll Progress Indicator
+function initScrollProgress() {
+  const bar = document.getElementById('scroll-progress-bar');
+  if (!bar) return;
+
+  const handleScroll = (scroller) => {
+    const docEl = document.documentElement;
+    const st = scroller.scrollTop || window.scrollY || docEl.scrollTop || 0;
+    const sh = (scroller.scrollHeight || docEl.scrollHeight) - (scroller.clientHeight || window.innerHeight);
+    const pct = sh > 0 ? (st / sh) * 100 : 0;
+    bar.style.width = `${Math.min(100, Math.max(0, pct))}%`;
+  };
+
+  window.addEventListener('scroll', () => handleScroll(document.documentElement), { passive: true });
+  document.addEventListener('scroll', () => handleScroll(document.documentElement), { passive: true });
+  const main = document.querySelector('main');
+  if (main) {
+    main.addEventListener('scroll', () => handleScroll(main), { passive: true });
+  }
+}
+
+// Scroll-Driven Entry Reveals (IntersectionObserver)
+function initScrollReveals() {
+  const reveals = document.querySelectorAll('.scroll-reveal:not(.is-revealed)');
+  if (!reveals.length) return;
+
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-revealed');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -30px 0px' });
+
+    reveals.forEach(el => observer.observe(el));
+  } else {
+    reveals.forEach(el => el.classList.add('is-revealed'));
+  }
+}
+
 // Initialize app when DOM is ready safely
 document.addEventListener('DOMContentLoaded', () => {
   const safeRun = (fn, name) => {
@@ -220,6 +287,9 @@ document.addEventListener('DOMContentLoaded', () => {
   safeRun(() => renderFirstAidGuide(), 'renderFirstAidGuide');
   safeRun(() => renderGenericDropdown(), 'renderGenericDropdown');
   safeRun(() => updateUploadsBadgeCount(), 'updateUploadsBadgeCount');
+  safeRun(() => initSpotlightCards(), 'initSpotlightCards');
+  safeRun(() => initScrollProgress(), 'initScrollProgress');
+  safeRun(() => initScrollReveals(), 'initScrollReveals');
 });
 
 async function syncDatabaseRecordsWithBackend() {
@@ -330,6 +400,7 @@ function switchTab(tabName) {
   const mainContent = document.querySelector('main');
   if (mainContent) mainContent.scrollTop = 0;
   window.scrollTo({ top: 0, behavior: 'smooth' });
+  setTimeout(initScrollReveals, 100);
 }
 
 function toggleNearbyPlacesLayout() {

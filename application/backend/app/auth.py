@@ -40,7 +40,7 @@ def _jwks() -> list[dict[str, Any]]:
 def get_current_identity(
     credentials: HTTPAuthorizationCredentials | None = Depends(security),
 ) -> Dict[str, Any]:
-    if credentials is None or not credentials.credentials:
+    if credentials is None or not credentials.credentials or credentials.scheme.lower() != "bearer":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Bearer authentication required",
