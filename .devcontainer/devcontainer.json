@@ -20,6 +20,7 @@
   "customizations": {
     "vscode": {
       "extensions": [
+        "Google.antigravity",
         "GitHub.vscode-pull-request-github",
         "ms-python.python",
         "ms-python.vscode-pylance"
@@ -59,6 +60,6 @@
     }
   },
 
-  // Post-create setup: install python requirements, install Antigravity Tunnel edition, and bridge GitHub tokens
-  "postCreateCommand": "git config --global --add safe.directory ${containerWorkspaceFolder} && pip install -r requirements.txt && mkdir -p ~/.gemini/bin && (curl -fsSL https://antigravity.google/install.sh | bash -s -- --tunnel || true) && echo 'if [ -z \"$GH_PERSONAL_ACCESS_TOKEN\" ] && [ -n \"$GITHUB_TOKEN\" ]; then export GH_PERSONAL_ACCESS_TOKEN=\"$GITHUB_TOKEN\"; fi' >> ~/.bashrc"
+  // Post-create setup: install python requirements, install Antigravity Tunnel edition & VS Code Extension, and bridge GitHub tokens
+  "postCreateCommand": "git config --global --add safe.directory ${containerWorkspaceFolder} && pip install -r requirements.txt && mkdir -p ~/.gemini/bin && (curl -fsSL https://antigravity.google/install.sh | bash -s -- --tunnel || true) && (code --install-extension Google.antigravity || true) && echo 'if [ -z \"$GH_PERSONAL_ACCESS_TOKEN\" ] && [ -n \"$GITHUB_TOKEN\" ]; then export GH_PERSONAL_ACCESS_TOKEN=\"$GITHUB_TOKEN\"; fi' >> ~/.bashrc"
 }
