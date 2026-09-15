@@ -1,1 +1,62 @@
-{"image":"mcr.microsoft.com/devcontainers/universal:2"}
+{
+  "name": "AI Healthcare System (Codespaces + Antigravity)",
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+
+  // Ensure latest GitHub CLI tooling is installed
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+
+  // Environment variables for Antigravity & GitHub connection
+  "remoteEnv": {
+    "PATH": "${containerEnv:PATH}:/home/codespace/.gemini/bin",
+    // Bridge Codespaces GITHUB_TOKEN to GH_PERSONAL_ACCESS_TOKEN for Antigravity MCP
+    "GH_PERSONAL_ACCESS_TOKEN": "${localEnv:GH_PERSONAL_ACCESS_TOKEN:${localEnv:GITHUB_TOKEN}}"
+  },
+
+  // VS Code customizations optimized for GitHub Codespaces & Android Chrome Browser
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "GitHub.vscode-pull-request-github",
+        "ms-python.python",
+        "ms-python.vscode-pylance"
+      ],
+      "settings": {
+        // --- Android Chrome / Mobile Screen Optimizations ---
+        "editor.wordWrap": "on",
+        "editor.minimap.enabled": false,
+        "editor.glyphMargin": false,
+        "editor.fontSize": 14,
+        "terminal.integrated.fontSize": 13,
+        "workbench.navigationControl.enabled": true,
+        "workbench.sideBar.location": "left",
+
+        // --- Python & Workspace Configuration ---
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "githubPullRequests.remotes": [
+          "origin"
+        ]
+      }
+    }
+  },
+
+  // Forward web & backend service ports with mobile-friendly labels
+  "forwardPorts": [
+    8000,
+    3000
+  ],
+  "portsAttributes": {
+    "8000": {
+      "label": "FastAPI Backend",
+      "onAutoForward": "notify"
+    },
+    "3000": {
+      "label": "Web Frontend",
+      "onAutoForward": "openPreview"
+    }
+  },
+
+  // Post-create setup: install python requirements and guarantee GitHub token bridging
+  "postCreateCommand": "git config --global --add safe.directory ${containerWorkspaceFolder} && pip install -r requirements.txt && echo 'if [ -z \"$GH_PERSONAL_ACCESS_TOKEN\" ] && [ -n \"$GITHUB_TOKEN\" ]; then export GH_PERSONAL_ACCESS_TOKEN=\"$GITHUB_TOKEN\"; fi' >> ~/.bashrc"
+}
