@@ -1,6 +1,6 @@
 {
   "name": "AI Healthcare System (Codespaces + Antigravity)",
-  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "image": "mcr.microsoft.com/devcontainers/python:3.11",
 
   // Ensure latest GitHub CLI tooling is installed
   "features": {
