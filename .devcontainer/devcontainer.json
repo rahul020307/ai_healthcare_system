@@ -4,7 +4,10 @@
 
   // Ensure latest GitHub CLI tooling is installed
   "features": {
-    "ghcr.io/devcontainers/features/github-cli:1": {}
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/sshd:1": {
+      "version": "latest"
+    }
   },
 
   // Environment variables for Antigravity & GitHub connection with Tunnel support
@@ -60,6 +63,6 @@
     }
   },
 
-  // Post-create setup: install python requirements, install Antigravity CLI into ~/.gemini/bin, and bridge GitHub tokens
-  "postCreateCommand": "git config --global --add safe.directory ${containerWorkspaceFolder} && pip install -r requirements.txt && mkdir -p ~/.gemini/bin && (curl -fsSL https://antigravity.google/install.sh | bash || true) && echo 'if [ -z \"$GH_PERSONAL_ACCESS_TOKEN\" ] && [ -n \"$GITHUB_TOKEN\" ]; then export GH_PERSONAL_ACCESS_TOKEN=\"$GITHUB_TOKEN\"; fi' >> ~/.bashrc"
+  // Post-create setup: install Python requirements, install Antigravity CLI into ~/.gemini/bin, and bridge GitHub tokens
+  "postCreateCommand": "git config --global --add safe.directory ${containerWorkspaceFolder} && pip install -r requirements.txt && mkdir -p ~/.gemini/bin && bash -o pipefail -c 'curl -fsSL https://antigravity.google/install.sh | bash' && echo 'if [ -z \"$GH_PERSONAL_ACCESS_TOKEN\" ] && [ -n \"$GITHUB_TOKEN\" ]; then export GH_PERSONAL_ACCESS_TOKEN=\"$GITHUB_TOKEN\"; fi' >> ~/.bashrc"
 }

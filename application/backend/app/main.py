@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -11,19 +13,23 @@ from .api.db import router as db_router
 from .api.auth import router as auth_router
 from .database.sql_db import init_db
 
-app = FastAPI(
-    title="CuraAssist CareHub API",
-    description="HIPAA Compliant AI Healthcare Backend Platform",
-    version="2.4.0"
-)
 
-@app.on_event("startup")
-def on_startup():
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
     try:
         init_db()
         print("[Startup] SQL Database initialized and ready.")
     except Exception as e:
         print("[Startup] SQL Database init note:", e)
+    yield
+
+
+app = FastAPI(
+    title="CuraAssist CareHub API",
+    description="HIPAA Compliant AI Healthcare Backend Platform",
+    version="2.4.0",
+    lifespan=lifespan,
+)
 
 from app.core.config import settings
 
