@@ -2114,28 +2114,28 @@
   <script src="data.js?v=14.0.0"></script>
   <script src="app.js?v=14.0.0"></script>
 <script>
-  async function initStandaloneProfilePage() {
-    const profile = document.getElementById('view-profile');
-    if (profile) profile.classList.remove('hidden');
+  // Standalone Profile page bootstrap
+  window.CuraAssistProfilePage = true;
+  document.addEventListener("DOMContentLoaded", async function () {
+    const profile = document.getElementById("view-profile");
+    if (profile) profile.classList.remove("hidden");
 
-    if (typeof checkSavedSession === 'function') {
+    if (typeof checkSavedSession === "function") {
       const ok = await checkSavedSession();
-      if (!ok) return false;
+      if (!ok) return;
     }
 
-    if (typeof updateAuthUIState === 'function') {
-      let saved = null;
-      try { saved = JSON.parse(localStorage.getItem('cura_active_user_v1') || 'null'); } catch (e) {}
-      if (saved && saved.isLoggedIn) updateAuthUIState(saved);
-    }
+    try {
+      const saved = JSON.parse(localStorage.getItem("cura_active_user_v1") || "null");
+      if (saved && saved.isLoggedIn && typeof updateAuthUIState === "function") {
+        updateAuthUIState(saved);
+      }
+    } catch (e) {}
 
-    if (typeof lucide !== 'undefined' && lucide.createIcons) {
-      try { lucide.createIcons(); } catch (e) {}
+    if (typeof ensureLucideIcons === "function") {
+      ensureLucideIcons();
     }
-    return true;
-  }
-
-  document.addEventListener('DOMContentLoaded', initStandaloneProfilePage);
+  });
 </script>
   
 </body>
