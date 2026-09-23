@@ -43,3 +43,4 @@ def _sync_supabase_profile(user_id: str, updates: dict) -> None:
             try:
                 db_payload["age"] = int(updates["age"])
             except Exception:
+                pass
