@@ -205,6 +205,11 @@ function openAuthModal() {
   window.location.href = 'login.html';
 }
 
+// Dedicated page navigation for the profile module.
+function openProfilePage() {
+  window.location.href = 'profile.html';
+}
+
 async function closeAuthModal() {
   const token = window.authToken || (await getAuthToken());
   if (token) { const overlay = document.getElementById('auth-guard-overlay'); if (overlay) overlay.classList.add('hidden'); }
