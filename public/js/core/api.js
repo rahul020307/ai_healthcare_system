@@ -16,18 +16,17 @@ const AppApi = {
       }
     }
 
-    // GitHub Pages cannot proxy /chat, /profile, /store, etc. to FastAPI.
-    // Keep the production API explicit so browser requests bypass the retired Vercel proxy.
+    // GitHub Pages cannot proxy the FastAPI routes. Use the production API directly.
     return 'https://curaassist-carehub-backend-2.fastapicloud.dev';
   },
 
   async getHeaders(customHeaders = {}) {
     const headers = {
-      'Content-Type': 'application/json',
       ...customHeaders
     };
 
-    // Inject Supabase / session token if available
+    // Inject Supabase / session token if available. Do not force a JSON content type
+    // for every request because FormData uploads need the browser-generated boundary.
     let token = null;
     if (typeof supabaseClient !== 'undefined' && supabaseClient?.auth) {
       try {
@@ -60,6 +59,9 @@ const AppApi = {
 
     if (config.body && typeof config.body === 'object' && !(config.body instanceof FormData)) {
       config.body = JSON.stringify(config.body);
+      if (!config.headers['Content-Type']) {
+        config.headers['Content-Type'] = 'application/json';
+      }
     }
 
     try {
