@@ -16,7 +16,7 @@ const AppApi = {
       }
     }
 
-    // GitHub Pages cannot proxy the FastAPI routes. Use the production API directly.
+    // GitHub Pages calls the FastAPI service directly.
     return 'https://curaassist-carehub-backend-2.fastapicloud.dev';
   },
 
