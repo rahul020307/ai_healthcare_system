@@ -17,7 +17,7 @@ def test_ai_chatbot():
     print("="*60)
     r = client.post("/chat/ask", json={
         "message": "What is Dolo 650 used for and what are its side effects?",
-        "patientContext": "Rahul Sharma (Age 34)"
+        "patientContext": "Test User (Age 34)"
     })
     assert r.status_code == 200, f"Expected 200, got {r.status_code}"
     data = r.json()
