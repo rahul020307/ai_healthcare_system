@@ -18,8 +18,8 @@ import app.api.store as store_api
 
 
 def test_medicine_schedule_reads_and_writes_are_scoped_to_authenticated_owner(monkeypatch, db_session):
-    owner_a = UserModel(id="owner-a", name="A", email="a@example.com")
-    owner_b = UserModel(id="owner-b", name="B", email="b@example.com")
+    owner_a = UserModel(id="owner-a", auth_user_id="11111111-1111-1111-1111-111111111111", name="A", email="a@example.com")
+    owner_b = UserModel(id="owner-b", auth_user_id="22222222-2222-2222-2222-222222222222", name="B", email="b@example.com")
     db_session.add_all([owner_a, owner_b])
     db_session.add_all([
         MedicineScheduleModel(id="sch-a", owner_user_id="owner-a", user_email="a@example.com", name="Amoxicillin"),
@@ -76,7 +76,7 @@ def db_session():
 
 
 def test_verified_supabase_identity_resolves_existing_user(monkeypatch, db_session):
-    existing = UserModel(id="usr-internal", name="Existing User", email="user@example.com")
+    existing = UserModel(id="usr-internal", auth_user_id="supabase-user-id", name="Existing User", email="user@example.com")
     db_session.add(existing)
     db_session.commit()
 
@@ -85,6 +85,7 @@ def test_verified_supabase_identity_resolves_existing_user(monkeypatch, db_sessi
     user = get_current_user({"sub": "supabase-user-id", "email": "user@example.com"})
 
     assert user.id == "usr-internal"
+    assert user.auth_user_id == "supabase-user-id"
     assert user.email == "user@example.com"
 
 
@@ -94,6 +95,7 @@ def test_verified_supabase_identity_creates_missing_user(monkeypatch, db_session
     user = get_current_user({"sub": "supabase-new-user", "email": "new@example.com"})
 
     assert user.id == "supabase-new-user"
+    assert user.auth_user_id == "supabase-new-user"
     assert user.email == "new@example.com"
     assert db_session.query(UserModel).filter_by(id="supabase-new-user").one()
 
