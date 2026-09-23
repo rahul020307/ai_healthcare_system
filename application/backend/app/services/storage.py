@@ -51,7 +51,7 @@ def upload_file_to_supabase(
     content_type: str = "image/jpeg",
     bucket_name: str = DEFAULT_BUCKET,
 ) -> Dict[str, Any]:
-    """Upload a private health document under users/<user_id>/ and return a signed URL (or local URL fallback)."""
+    """Upload a private health document under users/<user_id>/."""
     if len(file_bytes) > MAX_FILE_BYTES:
         raise ValueError("File exceeds the 20 MB health-record upload limit")
 
@@ -59,8 +59,13 @@ def upload_file_to_supabase(
     file_id = f"file-{uuid.uuid4().hex[:8]}"
     storage_path = f"users/{user_id}/{file_id}_{clean_filename}"
 
-    # 1. Upload to Supabase Storage if configured
-    if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY and not ("placeholder" in SUPABASE_URL or "curaassist-carehub.supabase.co" in SUPABASE_URL):
+    # Production must use Supabase Storage. Local fallback is development-only.
+    is_production_supabase = bool(
+        SUPABASE_URL
+        and SUPABASE_SERVICE_ROLE_KEY
+        and not ("placeholder" in SUPABASE_URL or "curaassist-carehub.supabase.co" in SUPABASE_URL)
+    )
+    if is_production_supabase:
         try:
             upload_url = f"{SUPABASE_URL}/storage/v1/object/{bucket_name}/{storage_path}"
             headers = _headers(content_type)
@@ -83,7 +88,10 @@ def upload_file_to_supabase(
                 "filename": filename,
             }
         except Exception as e:
-            print("[Storage] Supabase upload failed, falling back to local:", e)
+            raise RuntimeError("Unable to store health record document in Supabase Storage") from e
+
+    if SUPABASE_URL and not ("placeholder" in SUPABASE_URL or "curaassist-carehub.supabase.co" in SUPABASE_URL) and not SUPABASE_SERVICE_ROLE_KEY:
+        raise RuntimeError("SUPABASE_SERVICE_ROLE_KEY is required for production health-record storage")
 
     # 2. Local resilient storage fallback for offline / development
     try:
@@ -177,7 +185,7 @@ def upload_avatar_to_supabase(
     except Exception as exc:
         raise ValueError("Invalid base64 string provided for avatar") from exc
 
-    if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY and not ("placeholder" in SUPABASE_URL):
+    if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY and not ("placeholder" in SUPABASE_URL or "curaassist-carehub.supabase.co" in SUPABASE_URL):
         try:
             upload_url = f"{SUPABASE_URL}/storage/v1/object/avatars/{storage_path}"
             headers = _headers(mime)
@@ -194,7 +202,10 @@ def upload_avatar_to_supabase(
             public_url = f"{SUPABASE_URL}/storage/v1/object/public/avatars/{storage_path}?v={int(time.time())}"
             return public_url
         except Exception as e:
-            print("[Storage] Supabase avatar upload failed, using data URL fallback:", e)
+            raise RuntimeError("Unable to store avatar in Supabase Storage") from e
+
+    if SUPABASE_URL and not ("placeholder" in SUPABASE_URL or "curaassist-carehub.supabase.co" in SUPABASE_URL) and not SUPABASE_SERVICE_ROLE_KEY:
+        raise RuntimeError("SUPABASE_SERVICE_ROLE_KEY is required for production avatar storage")
 
     # Fallback to data URL
     return f"data:{mime};base64,{encoded}"
