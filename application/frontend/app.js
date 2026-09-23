@@ -201,7 +201,9 @@ function toggleNearbyPlacesLayout() {
 
 function scrollToSection(secId) { switchTab('home'); setTimeout(() => document.getElementById(secId)?.scrollIntoView({ behavior: 'smooth' }), 100); }
 
-function openAuthModal() { switchAuthTab('login'); const overlay = document.getElementById('auth-guard-overlay'); if (overlay) overlay.classList.remove('hidden'); }
+function openAuthModal() {
+  window.location.href = 'login.html';
+}
 
 async function closeAuthModal() {
   const token = window.authToken || (await getAuthToken());
