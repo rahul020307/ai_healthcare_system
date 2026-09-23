@@ -447,7 +447,7 @@ class LabReportExplainerRequest(BaseModel):
     report_type: Optional[str] = "Complete Blood Count (CBC)"
     report_text: Optional[str] = ""
     biomarkers: Optional[List[BiomarkerInput]] = None
-    patient_context: Optional[str] = "Rahul Sharma (Age 34)"
+    patient_context: Optional[str] = None
 
 
 @router.get("/lab-test-templates")
@@ -624,7 +624,7 @@ def explain_medical_lab_report(req: LabReportExplainerRequest):
 
 class PrescriptionAnalysisRequest(BaseModel):
     prescription_text: str
-    patient_context: Optional[str] = "Rahul Sharma (Age 34)"
+    patient_context: Optional[str] = None
 
 
 @router.post("/analyze-prescription")
