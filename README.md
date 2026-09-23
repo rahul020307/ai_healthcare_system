@@ -56,7 +56,7 @@
 
 ```mermaid
 graph TD
-    A[Web Client / PWA / Mobile View] -->|Static Hosting & Rewrites| B[Vercel / Frontend Server]
+    A[Web Client / PWA / Mobile View] -->|Static Hosting| B[GitHub Pages]
     A -->|Auth & Storage Requests| C[Supabase Cloud]
     C -->|JWT & Session Tokens| A
     C -->|Avatars & Report Storage| A
@@ -73,8 +73,6 @@ graph TD
 
 ```text
 ai_healthcare_system/
-├── api/                                # Vercel Serverless Function entrypoint
-│   └── index.py                        # Serverless bridge importing FastAPI app
 ├── application/
 │   ├── backend/                        # High-performance FastAPI backend
 │   │   ├── app/
@@ -103,7 +101,6 @@ ai_healthcare_system/
 │       └── robots.txt                  # Search engine crawler policies
 ├── public/                             # Production build assets (mirrored frontend)
 ├── supabase/                           # Supabase configurations & database definitions
-├── vercel.json                         # Vercel deployment rewrites & serverless routes
 ├── requirements.txt                    # Root Python dependencies
 └── README.md                           # Project documentation
 ```
@@ -119,7 +116,7 @@ ai_healthcare_system/
 | **Authentication** | Supabase Auth (Email/Password, GitHub OAuth, JWT validation) |
 | **Database & Storage** | PostgreSQL, Supabase Storage Buckets (Avatars, Medical Documents), SQLite/JSON datasets |
 | **Security & Email** | Python `smtplib`, `email.mime`, Gmail App Passwords, CORS protection, JWT token decoding |
-| **Hosting & Deployment** | Vercel (Frontend & Serverless API), FastAPI Cloud Engine |
+| **Hosting & Deployment** | GitHub Pages (Frontend), FastAPI Cloud Engine |
 
 ---
 
