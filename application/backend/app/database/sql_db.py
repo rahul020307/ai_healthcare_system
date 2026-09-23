@@ -58,7 +58,7 @@ class UserModel(Base):
 class HealthRecordModel(Base):
     __tablename__ = "health_records"
     id = Column(String, primary_key=True, index=True)
-    owner_user_id = Column(String, ForeignKey("auth.users.id"), index=True, nullable=False)
+    owner_user_id = Column(String, index=True, nullable=False)
     member_id = Column(String, index=True, default="fam1")
     user_email = Column(String, index=True, default=None)
     title = Column(String, nullable=False)
