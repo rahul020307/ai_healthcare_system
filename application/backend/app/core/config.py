@@ -17,7 +17,7 @@ class Settings:
     CORS_ORIGINS_STR: str = os.getenv(
         "CORS_ORIGINS",
         "http://localhost:3000,http://localhost:8000,http://127.0.0.1:8000,http://localhost:5173,"
-        "https://rahul020307.github.io,https://ai-healthcare-system-eta.vercel.app,https://curaassist-carehub-backend-2.fastapicloud.dev"
+        "https://rahul020307.github.io,https://curaassist-carehub-backend-2.fastapicloud.dev"
     )
     
     @property
