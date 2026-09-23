@@ -58,7 +58,7 @@ class HealthRecordModel(Base):
     id = Column(String, primary_key=True, index=True)
     owner_user_id = Column(String, ForeignKey("users.id"), index=True, nullable=False)
     member_id = Column(String, index=True, default="fam1")
-    user_email = Column(String, index=True, default="rahul.sharma@email.com")
+    user_email = Column(String, index=True, default=None)
     title = Column(String, nullable=False)
     category = Column(String, index=True, default="Medical Reports")
     date = Column(String, default=lambda: datetime.date.today().isoformat())
@@ -74,7 +74,7 @@ class AppointmentModel(Base):
     __tablename__ = "appointments"
     id = Column(String, primary_key=True, index=True)
     owner_user_id = Column(String, ForeignKey("users.id"), index=True, nullable=False)
-    user_email = Column(String, index=True, default="rahul.sharma@email.com")
+    user_email = Column(String, index=True, default=None)
     doctor_id = Column(String, index=True)
     doctor_name = Column(String, nullable=False)
     specialty = Column(String, default="General Physician")
@@ -92,7 +92,7 @@ class OrderModel(Base):
     __tablename__ = "orders"
     id = Column(String, primary_key=True, index=True)
     owner_user_id = Column(String, ForeignKey("users.id"), index=True, nullable=False)
-    user_email = Column(String, index=True, default="rahul.sharma@email.com")
+    user_email = Column(String, index=True, default=None)
     patient_name = Column(String, default="Rahul Sharma")
     items_json = Column(Text, nullable=False)
     total_amount = Column(Float, nullable=False)
@@ -106,7 +106,7 @@ class VitalRecordModel(Base):
     __tablename__ = "vitals"
     id = Column(String, primary_key=True, index=True)
     owner_user_id = Column(String, ForeignKey("users.id"), index=True, nullable=False)
-    user_email = Column(String, index=True, default="rahul.sharma@email.com")
+    user_email = Column(String, index=True, default=None)
     systolic = Column(Integer, default=120)
     diastolic = Column(Integer, default=80)
     pulse = Column(Integer, default=72)
@@ -251,11 +251,11 @@ def seed_initial_sql_data():
             if not existing_user:
                 user = UserModel(
                     id="usr-default-01",
-                    name="Rahul Sharma",
-                    email="rahul.sharma@email.com",
-                    phone="+91 98765 43210",
-                    location="Hyderabad, Telangana",
-                    age=34,
+                    name="",
+                    email="",
+                    phone="",
+                    location="",
+                    age=None,
                     gender="Male",
                     blood_group="O+",
                     role="Patient"
