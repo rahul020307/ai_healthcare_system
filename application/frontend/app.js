@@ -480,28 +480,33 @@ function saveProfileEdits() {
   alert(`✨ Profile details, age (${age} Yrs) & avatar photo updated successfully for ${name}!`);
 }
 
-async async function logoutUser() {
+async function logoutUser() {
   const client = getSupabaseClient();
-  if (client?.auth) { try { await client.auth.signOut(); } catch (e) {} }
+  if (client && client.auth) {
+    try { await client.auth.signOut(); } catch (e) {}
+  }
   window.authToken = null;
-  currentPendingAvatarUrl = null;
   state.records = [];
   state.schedule = [];
-  state.cart = [];
-  try {
-    localStorage.removeItem('cura_active_user_v1');
-    localStorage.removeItem('cura_cart_v1');
-    localStorage.removeItem('cura_scanned_uploads');
-    sessionStorage.clear();
-  } catch (e) {}
-  clearAuthInputs();
+
   if (typeof INITIAL_DATA !== 'undefined') {
     INITIAL_DATA.userAuth.isLoggedIn = false;
-    INITIAL_DATA.userAuth.user = { name: 'Guest User', email: '', phone: '', token: '' };
-    INITIAL_DATA.healthRecords = [];
-    INITIAL_DATA.medicineSchedule = {};
-    if (INITIAL_DATA.familyMembers?.[0]) {
-      INITIAL_DATA.familyMembers[async function checkSavedSession() {
+    INITIAL_DATA.userAuth.user.name = "Guest User";
+  }
+  updateAuthUIState("Login / Register");
+  const authText = document.getElementById('auth-btn-text');
+  if (authText) authText.innerText = "Login / Register";
+  
+  switchAuthTab('login');
+
+  // Lock app behind mandatory authentication guard
+  const overlay = document.getElementById('auth-guard-overlay');
+  if (overlay) overlay.classList.remove('hidden');
+
+  alert("🔒 Logged out successfully. Please sign up or log in to access CuraAssist.");
+}
+
+async function checkSavedSession() {
   const overlay = document.getElementById('auth-guard-overlay');
   const client = getSupabaseClient();
   if (client && client.auth) {
@@ -554,30 +559,6 @@ async async function logoutUser() {
   return false;
 }
 
-          if (INITIAL_DATA.familyMembers && INITIAL_DATA.familyMembers[0]) {
-            INITIAL_DATA.familyMembers[0].name = userName;
-          }
-        }
-        updateAuthUIState({ isLoggedIn: true, userName: userName, email: userEmail, token: session.access_token });
-        if (overlay) overlay.classList.add('hidden');
-
-        await fetchUserDataFromBackend();
-        return true;
-      }
-    } catch (e) {
-      console.warn("Session check note:", e);
-    }
-  }
-
-  // Default to Login Gate on startup when no active Supabase session exists
-  switchAuthTab('login');
-  if (overlay) overlay.classList.remove('hidden');
-  return false;
-}
-
-
-
-// FAMILY MEMBER SWITCHER ENGINE
 function initFamilyDropdown() {
   const container = document.getElementById('family-members-list');
   if (!container) return;
