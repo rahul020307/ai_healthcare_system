@@ -44,3 +44,15 @@ def _sync_supabase_profile(user_id: str, updates: dict) -> None:
                 db_payload["age"] = int(updates["age"])
             except Exception:
                 pass
+
+        if "gender" in updates:
+            db_payload["gender"] = updates["gender"]
+        if "bloodGroup" in updates:
+            db_payload["blood_group"] = updates["bloodGroup"]
+        if "avatar_url" in updates:
+            db_payload["avatar_url"] = updates["avatar_url"]
+
+        if db_payload:
+            requests.patch(url, json=db_payload, headers=headers, timeout=5)
+    except Exception as e:
+        print("[Supabase Sync] Note:", e)
