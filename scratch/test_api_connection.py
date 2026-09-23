@@ -1,7 +1,7 @@
 import requests
 import json
 
-BASE_URL = "https://ai-healthcare-system-eta.vercel.app"
+BASE_URL = "https://curaassist-carehub-backend-2.fastapicloud.dev"
 
 def test_api():
     print(f"Testing API connection at {BASE_URL}...")
