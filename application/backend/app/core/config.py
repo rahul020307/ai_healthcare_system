@@ -9,6 +9,7 @@ class Settings:
     SUPABASE_URL: str = os.getenv("SUPABASE_URL", "https://ifwsijbkmuzqttwbvifp.supabase.co").strip().rstrip("/")
     SUPABASE_ANON_KEY: str = os.getenv("SUPABASE_ANON_KEY", "").strip()
     SUPABASE_SERVICE_ROLE_KEY: str = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "").strip()
+    # Production startup validation is performed by services that require the secret.
     
     # Database Configuration
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./curaassist.db")
