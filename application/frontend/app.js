@@ -482,34 +482,58 @@ function saveProfileEdits() {
 
 async function logoutUser() {
   const client = getSupabaseClient();
-  if (client && client.auth) {
-    try { await client.auth.signOut(); } catch (e) {}
+  try {
+    if (client?.auth) await client.auth.signOut();
+  } catch (e) {
+    console.warn('[CuraAssist] Sign-out note:', e);
   }
+
   window.authToken = null;
+  currentPendingAvatarUrl = null;
   state.records = [];
   state.schedule = [];
+  state.cart = [];
+
+  try {
+    localStorage.removeItem('cura_active_user_v1');
+    localStorage.removeItem('cura_cart_v1');
+    localStorage.removeItem('cura_schedules_v1');
+    localStorage.removeItem('cura_scanned_uploads');
+    sessionStorage.clear();
+  } catch (e) {
+    console.warn('[CuraAssist] Session cleanup note:', e);
+  }
 
   if (typeof INITIAL_DATA !== 'undefined') {
     INITIAL_DATA.userAuth.isLoggedIn = false;
-    INITIAL_DATA.userAuth.user.name = "Guest User";
+    INITIAL_DATA.userAuth.user = {
+      name: 'Guest User',
+      email: '',
+      phone: '',
+      token: ''
+    };
+    INITIAL_DATA.healthRecords = [];
+    INITIAL_DATA.medicineSchedule = {};
+    if (INITIAL_DATA.familyMembers?.[0]) {
+      INITIAL_DATA.familyMembers[0].name = 'Guest User';
+      INITIAL_DATA.familyMembers[0].email = '';
+      INITIAL_DATA.familyMembers[0].phone = '';
+    }
   }
-  updateAuthUIState("Login / Register");
-  const authText = document.getElementById('auth-btn-text');
-  if (authText) authText.innerText = "Login / Register";
-  
-  switchAuthTab('login');
 
-  // Lock app behind mandatory authentication guard
+  updateAuthUIState({ isLoggedIn: false, userName: 'Guest User' });
+  if (typeof renderRecords === 'function') renderRecords();
+  if (typeof renderSchedule === 'function') renderSchedule();
+
+  switchAuthTab('login');
   const overlay = document.getElementById('auth-guard-overlay');
   if (overlay) overlay.classList.remove('hidden');
-
-  alert("🔒 Logged out successfully. Please sign up or log in to access CuraAssist.");
 }
-
 async function checkSavedSession() {
   const overlay = document.getElementById('auth-guard-overlay');
   const client = getSupabaseClient();
-  if (client && client.auth) {
+
+  if (client?.auth) {
     try {
       const { data: { session } } = await client.auth.getSession();
       if (session?.access_token) {
@@ -528,7 +552,11 @@ async function checkSavedSession() {
           avatar: meta.avatar_url || null,
           token: session.access_token
         };
-        try { localStorage.setItem('cura_active_user_v1', JSON.stringify(sessionPayload)); } catch (e) {}
+
+        try {
+          localStorage.setItem('cura_active_user_v1', JSON.stringify(sessionPayload));
+        } catch (e) {}
+
         updateAuthUIState(sessionPayload);
         if (overlay) overlay.classList.add('hidden');
         await fetchUserDataFromBackend();
@@ -539,18 +567,11 @@ async function checkSavedSession() {
     }
   }
 
+  // Supabase is the source of truth. A stale localStorage profile must never
+  // recreate an authenticated UI after sign-out.
+  window.authToken = null;
   try {
-    const backupSession = localStorage.getItem('cura_active_user_v1');
-    if (backupSession) {
-      const parsed = JSON.parse(backupSession);
-      if (parsed?.isLoggedIn) {
-        window.authToken = parsed.token || null;
-        updateAuthUIState(parsed);
-        if (overlay) overlay.classList.add('hidden');
-        await fetchUserDataFromBackend();
-        return true;
-      }
-    }
+    localStorage.removeItem('cura_active_user_v1');
   } catch (e) {}
 
   switchAuthTab('login');
