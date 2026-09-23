@@ -497,16 +497,6 @@ function switchAuthTab(mode) {
   }
 }
 
-function createFallbackSession(userEmail, userName) {
-  return {
-    access_token: `sess-token-${Date.now()}`,
-    user: {
-      email: userEmail,
-      user_metadata: { name: userName }
-    }
-  };
-}
-
 function isSupabaseNetworkError(err) {
   if (!err) return false;
   const msg = (err.message || String(err)).toLowerCase();
@@ -527,14 +517,14 @@ async function loginWithOAuth(provider = 'github') {
       });
       if (error) {
         console.warn(`[CuraAssist] ${provider} OAuth note:`, error);
-        handleFallbackOAuth(provider);
+        showAuthInlineMessage("Social sign-in is temporarily unavailable. Please try again.","error");
       }
     } catch (err) {
       console.warn(`[CuraAssist] ${provider} OAuth fetch note:`, err);
-      handleFallbackOAuth(provider);
+      showAuthInlineMessage("Social sign-in is temporarily unavailable. Please try again.","error");
     }
   } else {
-    handleFallbackOAuth(provider);
+    showAuthInlineMessage("Social sign-in is temporarily unavailable. Please try again.","error");
   }
 }
 
@@ -544,8 +534,8 @@ function loginWithGitHub() {
 
 function handleFallbackOAuth(provider = 'github') {
   const isGithub = provider === 'github';
-  const email = isGithub ? "rahul.developer@github.com" : "rahul.sharma@curahealth.in";
-  const name = isGithub ? "Rahul Sharma (GitHub)" : "Rahul Sharma";
+  const email = isGithub ? "" : "";
+  const name = isGithub ? "User" : "User";
   const avatar = isGithub ? "https://avatars.githubusercontent.com/u/9919?v=4" : "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250";
   
   const session = createFallbackSession(email, name);
@@ -555,9 +545,9 @@ function handleFallbackOAuth(provider = 'github') {
     isLoggedIn: true,
     userName: name,
     email: email,
-    phone: "+91 98765 43210",
+    phone: "",
     blood: "O+",
-    city: "Hyderabad, Telangana",
+    city: "",
     age: "30",
     avatar: avatar,
     token: session.access_token,
@@ -658,7 +648,7 @@ async function submitAuth(message, overrideName, mode = 'login') {
   }
 
   userName = userName.charAt(0).toUpperCase() + userName.slice(1);
-  const userPhone = phone || "+91 98765 43210";
+  const userPhone = phone || "";
 
   let session = null;
   if (!client || !client.auth) {
@@ -769,7 +759,7 @@ async function submitAuth(message, overrideName, mode = 'login') {
       email: userEmail,
       phone: phone || existingUser.phone || "",
       blood: blood || existingUser.blood || "O+",
-      city: city || existingUser.city || "Hyderabad, Telangana",
+      city: city || existingUser.city || "",
       age: age || existingUser.age || "30",
       avatar: session.user?.user_metadata?.avatar_url || existingUser.avatar || (typeof INITIAL_DATA !== 'undefined' && INITIAL_DATA.familyMembers?.[0]?.avatar) || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250",
       token: session.access_token
@@ -895,7 +885,7 @@ function updateAuthUIState(userData) {
   const userEmail = isGuest ? "" : (user.email || "");
   const userPhone = isGuest ? "" : (user.phone || "");
   const userBlood = isGuest ? "O+" : (user.blood || user.bloodGroup || "O+");
-  const userCity = isGuest ? "Hyderabad, Telangana" : (user.city || user.location || "Hyderabad, Telangana");
+  const userCity = isGuest ? "" : (user.city || user.location || "");
   const userAge = isGuest ? "30" : String(user.age || "30");
   const userAvatar = isGuest 
     ? "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250"
@@ -977,7 +967,7 @@ function openEditProfileModal() {
   const currentName = document.getElementById('profile-main-name')?.innerText || "User";
   const currentEmail = document.getElementById('profile-main-email')?.innerText || "";
   const currentPhone = document.getElementById('profile-main-phone')?.innerText || "";
-  const currentCity = document.getElementById('profile-main-location')?.innerText || "Hyderabad, Telangana";
+  const currentCity = document.getElementById('profile-main-location')?.innerText || "";
   const currentBlood = document.getElementById('profile-main-blood')?.innerText || "O+";
   const currentAge = document.getElementById('profile-main-age')?.innerText || "30";
   const currentAvatar = document.getElementById('profile-main-avatar')?.src || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250";
@@ -1028,7 +1018,7 @@ async function saveProfileEdits() {
         email: email,
         phone: phone,
         bloodGroup: blood,
-        location: city || "Hyderabad, Telangana",
+        location: city || "",
         age: age,
         avatar_url: avatarUrl
       })
@@ -1052,7 +1042,7 @@ async function saveProfileEdits() {
           name: name,
           phone: phone,
           blood: blood,
-          city: city || "Hyderabad, Telangana",
+          city: city || "",
           age: age,
           avatar_url: finalAvatar
         }
@@ -1069,7 +1059,7 @@ async function saveProfileEdits() {
     email: email,
     phone: phone,
     blood: blood,
-    city: city || "Hyderabad, Telangana",
+    city: city || "",
     age: age,
     avatar: finalAvatar,
     token: window.authToken || ""
@@ -1179,7 +1169,7 @@ async function checkSavedSession() {
         const userName = meta.name || meta.user_name || userEmail.split('@')[0];
         const userPhone = meta.phone || "";
         const userBlood = meta.blood || "O+";
-        const userCity = meta.city || "Hyderabad, Telangana";
+        const userCity = meta.city || "";
         const userAge = meta.age || "30";
         const userAvatar = meta.avatar_url || null;
         
@@ -1228,9 +1218,9 @@ async function checkSavedSession() {
         window.authToken = parsed.token || `sess-token-${Date.now()}`;
         if (typeof INITIAL_DATA !== 'undefined') {
           INITIAL_DATA.userAuth.isLoggedIn = true;
-          INITIAL_DATA.userAuth.user.name = parsed.userName || parsed.name || "Rahul Sharma";
+          INITIAL_DATA.userAuth.user.name = parsed.userName || parsed.name || "User";
           if (INITIAL_DATA.familyMembers && INITIAL_DATA.familyMembers[0]) {
-            INITIAL_DATA.familyMembers[0].name = parsed.userName || parsed.name || "Rahul Sharma";
+            INITIAL_DATA.familyMembers[0].name = parsed.userName || parsed.name || "User";
             if (parsed.avatar) INITIAL_DATA.familyMembers[0].avatar = parsed.avatar;
           }
         }
