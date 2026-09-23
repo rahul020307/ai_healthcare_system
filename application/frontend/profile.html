@@ -395,48 +395,29 @@
   <script src="data.js?v=14.0.0"></script>
   <script src="app.js?v=14.0.0"></script>
 <script>
-    function profileNotImplementedGuard(name) {
-      console.warn('[CuraAssist Profile] Missing legacy home-only action:', name);
+  async function initStandaloneProfilePage() {
+    const profile = document.getElementById('view-profile');
+    if (profile) profile.classList.remove('hidden');
+
+    if (typeof checkSavedSession === 'function') {
+      const ok = await checkSavedSession();
+      if (!ok) return false;
     }
-    function filterProfileRecords(category) {
-      const buttons = {
-        'All': 'All',
-        'Medical Reports': 'Reports',
-        'Lab Reports': 'Labs',
-        'Prescriptions': 'Prescriptions'
-      };
-      const target = buttons[category] || category;
-      document.querySelectorAll('[data-profile-record-filter]').forEach((el) => {
-        el.classList.toggle('ring-2', el.dataset.profileRecordFilter === target);
-      });
-      const heading = document.getElementById('profile-records-heading');
-      if (heading) heading.textContent = category;
+
+    if (typeof updateAuthUIState === 'function') {
+      let saved = null;
+      try { saved = JSON.parse(localStorage.getItem('cura_active_user_v1') || 'null'); } catch (e) {}
+      if (saved && saved.isLoggedIn) updateAuthUIState(saved);
     }
-    function openProfileRecordUpload() {
-      alert('Report upload is being kept on the Profile page and will be wired to the dedicated records UI next.');
+
+    if (typeof lucide !== 'undefined' && lucide.createIcons) {
+      try { lucide.createIcons(); } catch (e) {}
     }
-    document.addEventListener('DOMContentLoaded', () => {
-      document.querySelectorAll('[onclick*="switchTab("]').forEach((el) => {
-        if (el.getAttribute('onclick')?.includes("switchTab('home')")) {
-          el.setAttribute('onclick', "window.location.href='home.html'");
-        }
-      });
-    });
-  </script>
-  <script>
-    document.addEventListener('DOMContentLoaded', async () => {
-      if (typeof lucide !== 'undefined') lucide.createIcons();
-      if (typeof checkSavedSession === 'function') {
-        const ok = await checkSavedSession();
-        if (!ok) return;
-      }
-      if (typeof updateAuthUIState === 'function') {
-        let saved = null;
-        try { saved = JSON.parse(localStorage.getItem('cura_active_user_v1') || 'null'); } catch (e) {}
-        if (saved) updateAuthUIState(saved);
-      }
-      if (typeof renderProfileData === 'function') renderProfileData();
-    });
-  </script>
+    return true;
+  }
+
+  document.addEventListener('DOMContentLoaded', initStandaloneProfilePage);
+</script>
+  
 </body>
 </html>
