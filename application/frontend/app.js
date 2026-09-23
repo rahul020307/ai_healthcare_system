@@ -508,12 +508,7 @@ async function logoutUser() {
 
   if (typeof INITIAL_DATA !== 'undefined') {
     INITIAL_DATA.userAuth.isLoggedIn = false;
-    INITIAL_DATA.userAuth.user = {
-      name: 'Guest User',
-      email: '',
-      phone: '',
-      token: ''
-    };
+    INITIAL_DATA.userAuth.user = { name: 'Guest User', email: '', phone: '', token: '' };
     INITIAL_DATA.healthRecords = [];
     INITIAL_DATA.medicineSchedule = {};
     if (INITIAL_DATA.familyMembers?.[0]) {
@@ -527,10 +522,9 @@ async function logoutUser() {
   if (typeof renderRecords === 'function') renderRecords();
   if (typeof renderSchedule === 'function') renderSchedule();
 
-  switchAuthTab('login');
-  const overlay = document.getElementById('auth-guard-overlay');
-  if (overlay) overlay.classList.remove('hidden');
+  window.location.replace('login.html');
 }
+
 async function checkSavedSession() {
   const overlay = document.getElementById('auth-guard-overlay');
   const client = getSupabaseClient();
@@ -576,9 +570,8 @@ async function checkSavedSession() {
     localStorage.removeItem('cura_active_user_v1');
   } catch (e) {}
 
-  switchAuthTab('login');
   updateAuthUIState({ isLoggedIn: false, userName: 'Guest User' });
-  if (overlay) overlay.classList.remove('hidden');
+  window.location.replace('login.html');
   return false;
 }
 
