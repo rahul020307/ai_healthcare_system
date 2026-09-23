@@ -5,7 +5,7 @@ const INITIAL_DATA = {
   userAuth: {
     isLoggedIn: false,
     user: {
-      name: "Guest User",
+      name: "",
       email: "",
       phone: "",
       token: ""
