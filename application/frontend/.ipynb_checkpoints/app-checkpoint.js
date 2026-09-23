@@ -267,7 +267,7 @@ async function submitAuth(message, overrideName, mode = 'login') {
   // Capitalize first letter of userName for clean display
   userName = userName.charAt(0).toUpperCase() + userName.slice(1);
   const userEmail = email || `${userName.toLowerCase().replace(/\s+/g, '')}@curahealth.in`;
-  const userPhone = phone || "+91 98765 43210";
+  const userPhone = phone || "";
 
   const userSessionData = {
     isLoggedIn: true,
@@ -362,9 +362,9 @@ function updateAuthUIState(userData) {
 
   const userName = cleanName;
   const userEmail = user.email || `${userName.toLowerCase().replace(/\s+/g, '')}@curahealth.in`;
-  const userPhone = user.phone || "+91 98765 43210";
+  const userPhone = user.phone || "";
   const userBlood = user.blood || user.bloodGroup || "O+";
-  const userCity = user.city || "Hyderabad, Telangana";
+  const userCity = user.city || "";
   const userAge = user.age || "30";
   const userAvatar = user.avatar || (typeof INITIAL_DATA !== 'undefined' && INITIAL_DATA.familyMembers?.[0]?.avatar) || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250";
 
@@ -425,10 +425,10 @@ function openEditProfileModal() {
   if (!modal) return;
 
   const currentSession = JSON.parse(localStorage.getItem('cura_auth_session') || '{}');
-  const currentName = currentSession.userName || document.getElementById('profile-main-name')?.innerText || "Rahul Sharma";
-  const currentEmail = currentSession.email || document.getElementById('profile-main-email')?.innerText || "rahul@curahealth.in";
-  const currentPhone = currentSession.phone || document.getElementById('profile-main-phone')?.innerText || "+91 98765 43210";
-  const currentCity = currentSession.city || document.getElementById('profile-main-location')?.innerText || "Hyderabad, Telangana";
+  const currentName = currentSession.userName || document.getElementById('profile-main-name')?.innerText || "User";
+  const currentEmail = currentSession.email || document.getElementById('profile-main-email')?.innerText || "";
+  const currentPhone = currentSession.phone || document.getElementById('profile-main-phone')?.innerText || "";
+  const currentCity = currentSession.city || document.getElementById('profile-main-location')?.innerText || "";
   const currentBlood = currentSession.blood || document.getElementById('profile-main-blood')?.innerText || "O+";
   const currentAge = currentSession.age || document.getElementById('profile-main-age')?.innerText || "30";
   const currentAvatar = currentSession.avatar || document.getElementById('profile-main-avatar')?.src || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250";
@@ -470,9 +470,9 @@ function saveProfileEdits() {
     isLoggedIn: true,
     userName: name,
     email: email || `${name.toLowerCase().replace(/\s+/g, '')}@curahealth.in`,
-    phone: phone || "+91 98765 43210",
+    phone: phone || "",
     blood: blood,
-    city: city || "Hyderabad, Telangana",
+    city: city || "",
     age: age,
     avatar: avatarUrl,
     token: `jwt-token-${Date.now()}`
@@ -1139,7 +1139,7 @@ function filterStoreCategory(cat) {
   renderStoreMedicines();
 }
 
-let activeStoreLocation = 'Hyderabad, Telangana';
+let activeStoreLocation = '';
 
 function changeStoreLocation(locationName) {
   activeStoreLocation = locationName;
@@ -1443,7 +1443,7 @@ async function processCheckout() {
   }
 
   const userSession = JSON.parse(localStorage.getItem('cura_auth_session') || '{}');
-  const userId = userSession.userName || 'Rahul Sharma';
+  const userId = userSession.userName || 'User';
   const totalAmount = state.cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
 
   const items = state.cart.map(c => ({
@@ -1461,7 +1461,7 @@ async function processCheckout() {
         userId: userId,
         items: items,
         totalAmount: totalAmount,
-        address: "Plot 42, Jubilee Hills, Hyderabad, Telangana",
+        address: "Plot 42, Jubilee Hills, ",
         paymentMethod: "Cash on Delivery / UPI"
       })
     });
@@ -1944,7 +1944,7 @@ async function sendAIMessage() {
   const userText = input.value.trim();
   input.value = '';
 
-  const memberName = document.getElementById('active-family-name')?.innerText || 'Rahul Sharma';
+  const memberName = document.getElementById('active-family-name')?.innerText || 'User';
 
   container.innerHTML += `
     <div class="flex justify-end">
