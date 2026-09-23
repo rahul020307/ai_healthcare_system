@@ -151,33 +151,6 @@ function ensureLucideIcons() {
 }
 window.addEventListener('load', ensureLucideIcons);
 
-// Initialize app when DOM is ready safely
-document.addEventListener('DOMContentLoaded', () => {
-  const safeRun = (fn, name) => {
-    try { fn(); } catch (err) { console.warn(`[CuraAssist] Init warning in ${name}:`, err); }
-  };
-
-  safeRun(() => loadStateFromStorage(), 'initDataState');
-  safeRun(() => checkSavedSession(), 'checkSavedSession');
-
-  safeRun(() => ensureLucideIcons(), 'lucide');
-  setTimeout(ensureLucideIcons, 300);
-  setTimeout(ensureLucideIcons, 800);
-  safeRun(() => initFamilyDropdown(), 'initFamilyDropdown');
-  safeRun(() => renderActiveFamilyContext(), 'renderActiveFamilyContext');
-  safeRun(() => renderSchedule(), 'renderSchedule');
-  safeRun(() => renderRecords(), 'renderRecords');
-  safeRun(() => renderStoreCategories(), 'renderStoreCategories');
-  safeRun(() => renderStoreMedicines(), 'renderStoreMedicines');
-  safeRun(() => renderCart(), 'renderCart');
-  safeRun(() => renderBloodCompatibility(), 'renderBloodCompatibility');
-  safeRun(() => renderFeedbackList(), 'renderFeedbackList');
-  safeRun(() => renderFirstAidGuide(), 'renderFirstAidGuide');
-  safeRun(() => renderGenericDropdown(), 'renderGenericDropdown');
-  safeRun(() => updateUploadsBadgeCount(), 'updateUploadsBadgeCount');
-  safeRun(() => syncDatabaseRecordsWithBackend(), 'syncDatabaseRecordsWithBackend');
-});
-
 async function syncDatabaseRecordsWithBackend() {
   const headers = await getAuthHeaders();
   if (!headers['Authorization']) return;
@@ -198,8 +171,6 @@ async function syncDatabaseRecordsWithBackend() {
     console.warn("SQL health-records sync note:", e);
   }
 }
-
-// TAB SWITCHING ENGINE
 
 function switchTab(tabName) {
   state.currentTab = tabName;
@@ -229,8 +200,6 @@ function toggleNearbyPlacesLayout() {
 }
 
 function scrollToSection(secId) { switchTab('home'); setTimeout(() => document.getElementById(secId)?.scrollIntoView({ behavior: 'smooth' }), 100); }
-
-// MODULE 1: USER AUTHENTICATION ENGINE
 
 function openAuthModal() { switchAuthTab('login'); const overlay = document.getElementById('auth-guard-overlay'); if (overlay) overlay.classList.remove('hidden'); }
 
@@ -365,7 +334,7 @@ async function submitAuth(message, overrideName, mode = 'login') {
   }
 }
 
-let currentPendingAvatarUrl = null;
+// GitHub & Social OAuth Authentication Engine
 
 function handleProfilePhotoUpload(event) {
   const file = event.target.files?.[0];
@@ -511,7 +480,7 @@ function saveProfileEdits() {
   alert(`✨ Profile details, age (${age} Yrs) & avatar photo updated successfully for ${name}!`);
 }
 
-async async async function logoutUser() {
+async async function logoutUser() {
   const client = getSupabaseClient();
   if (client?.auth) { try { await client.auth.signOut(); } catch (e) {} }
   window.authToken = null;
@@ -583,69 +552,8 @@ async async async function logoutUser() {
   updateAuthUIState({ isLoggedIn: false, userName: 'Guest User' });
   if (overlay) overlay.classList.remove('hidden');
   return false;
-}  }
-        }
-        updateAuthUIState({ isLoggedIn: true, userName: userName, email: userEmail, token: session.access_token });
-        if (overlay) overlay.classList.add('hidden');
-
-        await fetchUserDataFromBackend();
-        return true;
-      }
-    } catch (e) {
-      console.warn("Session check note:", e);
-    }
-  }
-
-  // Default to Login Gate on startup when no active Supabase session exists
-  switchAuthTab('login');
-  if (overlay) overlay.classList.remove('hidden');
-  return false;
 }
 
-
-
-// FAMILY MEMBER SWITCHER ENGINE
-
-async function logoutUser() {
-  const client = getSupabaseClient();
-  if (client && client.auth) {
-    try { await client.auth.signOut(); } catch (e) {}
-  }
-  window.authToken = null;
-  state.records = [];
-  state.schedule = [];
-
-  if (typeof INITIAL_DATA !== 'undefined') {
-    INITIAL_DATA.userAuth.isLoggedIn = false;
-    INITIAL_DATA.userAuth.user.name = "Guest User";
-  }
-  updateAuthUIState("Login / Register");
-  const authText = document.getElementById('auth-btn-text');
-  if (authText) authText.innerText = "Login / Register";
-  
-  switchAuthTab('login');
-
-  // Lock app behind mandatory authentication guard
-  const overlay = document.getElementById('auth-guard-overlay');
-  if (overlay) overlay.classList.remove('hidden');
-
-  alert("🔒 Logged out successfully. Please sign up or log in to access CuraAssist.");
-}
-
-async function checkSavedSession() {
-  const overlay = document.getElementById('auth-guard-overlay');
-  const client = getSupabaseClient();
-  if (client && client.auth) {
-    try {
-      const { data: { session } } = await client.auth.getSession();
-      if (session?.access_token) {
-        window.authToken = session.access_token;
-        const userEmail = session.user?.email || "User";
-        const userName = session.user?.user_metadata?.name || userEmail.split('@')[0];
-        
-        if (typeof INITIAL_DATA !== 'undefined') {
-          INITIAL_DATA.userAuth.isLoggedIn = true;
-          INITIAL_DATA.userAuth.user.name = userName;
           if (INITIAL_DATA.familyMembers && INITIAL_DATA.familyMembers[0]) {
             INITIAL_DATA.familyMembers[0].name = userName;
           }
@@ -729,7 +637,6 @@ function renderActiveFamilyContext() {
 }
 
 // MEDICINE SCHEDULE ENGINE
-
 function renderSchedule() {
   const container = document.getElementById('schedule-container');
   if (!container) return;
@@ -809,7 +716,6 @@ function snoozePill(id) {
 function openAddReminderModal() {
   document.getElementById('modal-add-reminder').classList.remove('hidden');
 }
-
 function closeAddReminderModal() {
   document.getElementById('modal-add-reminder').classList.add('hidden');
 }
@@ -852,7 +758,6 @@ async function saveNewReminder() {
 }
 
 // MODULE 8: PRESCRIPTION MANAGEMENT & OCR EXTRACTION
-
 function openPrescriptionScanModal() {
   document.getElementById('modal-presc-scan').classList.remove('hidden');
 }
@@ -1122,7 +1027,6 @@ function renderRecords() {
 }
 
 // MODULE 7: MEDICINE INFORMATION & INSIGHTS ENGINE
-
 async function showMedInfoDetails(medId) {
   const container = document.getElementById('med-info-content');
   if (!container) return;
@@ -1263,7 +1167,6 @@ function closeMedInfoModal() {
 }
 
 // STORE & CART ENGINE
-
 function renderStoreCategories() {
   const container = document.getElementById('store-categories-list');
   if (!container) return;
@@ -1288,7 +1191,6 @@ function renderStoreCategories() {
 }
 
 let activeStoreCat = 'All';
-
 function filterStoreCategory(cat) {
   activeStoreCat = cat;
   renderStoreCategories();
@@ -1639,7 +1541,6 @@ async function processCheckout() {
 }
 
 // MODULE 10: BLOOD SUPPORT ENGINE
-
 function renderBloodCompatibility() {
   const tbody = document.getElementById('blood-compatibility-body');
   if (!tbody) return;
@@ -1658,7 +1559,6 @@ function openBloodRequestModal() {
 }
 
 // MODULE 11: FEEDBACK & REVIEWS ENGINE
-
 function renderFeedbackList() {
   const container = document.getElementById('feedback-list-container');
   if (!container) return;
@@ -1693,7 +1593,6 @@ function submitUserFeedback() {
 }
 
 // MODULE 9: EMERGENCY FIRST AID GUIDE
-
 function renderFirstAidGuide() {
   const container = document.getElementById('first-aid-accordion');
   if (!container) return;
@@ -1709,7 +1608,6 @@ function renderFirstAidGuide() {
 }
 
 // MAPS ENGINE (GOOGLE MAPS INTEGRATION & DYNAMIC LOCAL FACILITY GENERATION)
-
 function initMap() {
   if (state.map) {
     state.map.invalidateSize();
@@ -1958,7 +1856,6 @@ function locateUserOnMap() {
 }
 
 // Helper to calculate distance between two coordinates (Haversine Formula)
-
 function calculateDistanceKm(lat1, lon1, lat2, lon2) {
   const R = 6371; // Earth radius in KM
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -2071,12 +1968,10 @@ function routeToFacility(facId, name, address) {
 }
 
 // AI ASSISTANT CHAT ENGINE
-
 function openAIAssistantModal() {
   document.getElementById('modal-ai-assistant')?.classList.remove('hidden');
   document.getElementById('modal-ai-backdrop')?.classList.remove('hidden');
 }
-
 function closeAIAssistantModal() {
   document.getElementById('modal-ai-assistant')?.classList.add('hidden');
   document.getElementById('modal-ai-backdrop')?.classList.add('hidden');
@@ -3428,7 +3323,6 @@ Hello **${memberName}**! Regarding **"${queryClean}"**:
 
 // EMERGENCY ENGINE
 let sosInterval = null;
-
 function triggerEmergencySOS() {
   document.getElementById('modal-emergency-sos').classList.remove('hidden');
   let count = 5;
@@ -3465,7 +3359,6 @@ function openEmergencyHospitals() {
 }
 
 // GENERIC CALCULATOR ENGINE
-
 function renderGenericDropdown() {
   const select = document.getElementById('generic-select');
   if (!select) return;
@@ -3480,7 +3373,6 @@ function renderGenericDropdown() {
 function openGenericCalculatorModal() {
   document.getElementById('modal-generic-calc').classList.remove('hidden');
 }
-
 function closeGenericCalculatorModal() {
   document.getElementById('modal-generic-calc').classList.add('hidden');
 }
@@ -3547,7 +3439,6 @@ async function updateGenericComparison() {
 }
 
 // DRUG INTERACTION SAFETY CHECKER ENGINE
-
 async function checkDrugInteractionsForSelection(drug1Name, drug2Name) {
   const container = document.getElementById('drug-interaction-results');
   if (!container) return;
@@ -4499,7 +4390,6 @@ async function simulatePrescriptionOCR() {
 }
 
 // NOTIFICATION DRAWER CONTROLLER
-
 function toggleNotifDrawer(forceOpen) {
   const drawer = document.getElementById('drawer-notifications');
   if (!drawer) return;
@@ -4565,7 +4455,6 @@ function renderNotifsFeed(container, list) {
 }
 
 // UTILS & THEMING
-
 function changeLanguage(langKey) {
   state.currentLang = langKey;
   const dict = I18N[langKey] || I18N['en'];
@@ -4582,17 +4471,14 @@ function toggleTheme() {
 // ================= PROFILE FEATURE MODALS & HANDLERS =================
 
 // 1. Medical History Modal
-
 function openMedicalHistoryModal() {
   const modal = document.getElementById('modal-medical-history');
   if (modal) modal.classList.remove('hidden');
 }
-
 function closeMedicalHistoryModal() {
   const modal = document.getElementById('modal-medical-history');
   if (modal) modal.classList.add('hidden');
 }
-
 function addNewAllergy() {
   const name = prompt("Enter Allergy Name (e.g. Sulfa Drugs, Shellfish):");
   if (name && name.trim()) {
@@ -4606,7 +4492,6 @@ function addNewAllergy() {
     }
   }
 }
-
 function addNewCondition() {
   const name = prompt("Enter Chronic Condition (e.g. Type-2 Diabetes):");
   if (name && name.trim()) {
@@ -4622,7 +4507,6 @@ function addNewCondition() {
 }
 
 // 2. Family Members Modal
-
 function openFamilyMembersModal() {
   const modal = document.getElementById('modal-family-members');
   if (modal) {
@@ -4630,12 +4514,10 @@ function openFamilyMembersModal() {
     renderFamilyModalList();
   }
 }
-
 function closeFamilyMembersModal() {
   const modal = document.getElementById('modal-family-members');
   if (modal) modal.classList.add('hidden');
 }
-
 function renderFamilyModalList() {
   const container = document.getElementById('family-modal-list');
   if (!container) return;
@@ -4659,7 +4541,6 @@ function renderFamilyModalList() {
     `;
   }).join('');
 }
-
 function saveNewFamilyMember() {
   const name = document.getElementById('fam-new-name')?.value;
   const relation = document.getElementById('fam-new-relation')?.value;
@@ -4694,29 +4575,24 @@ function saveNewFamilyMember() {
 }
 
 // 3. Settings Modal
-
 function openSettingsModal() {
   const modal = document.getElementById('modal-settings');
   if (modal) modal.classList.remove('hidden');
 }
-
 function closeSettingsModal() {
   const modal = document.getElementById('modal-settings');
   if (modal) modal.classList.add('hidden');
 }
 
 // 4. Language Selector Modal
-
 function openLanguageModal() {
   const modal = document.getElementById('modal-language');
   if (modal) modal.classList.remove('hidden');
 }
-
 function closeLanguageModal() {
   const modal = document.getElementById('modal-language');
   if (modal) modal.classList.add('hidden');
 }
-
 function selectAppLanguage(langCode) {
   changeLanguage(langCode);
   const langLabels = { en: 'English 🇺🇸', es: 'Spanish 🇪🇸', hi: 'Hindi 🇮🇳', fr: 'French 🇫🇷', de: 'German 🇩🇪' };
@@ -4727,17 +4603,14 @@ function selectAppLanguage(langCode) {
 }
 
 // 5. Saved Addresses Modal
-
 function openSavedAddressesModal() {
   const modal = document.getElementById('modal-saved-addresses');
   if (modal) modal.classList.remove('hidden');
 }
-
 function closeSavedAddressesModal() {
   const modal = document.getElementById('modal-saved-addresses');
   if (modal) modal.classList.add('hidden');
 }
-
 function saveNewAddress() {
   const label = document.getElementById('addr-label')?.value;
   const street = document.getElementById('addr-street')?.value;
@@ -4760,29 +4633,24 @@ function saveNewAddress() {
 }
 
 // 6. Emergency Contacts Modal
-
 function openEmergencyContactsModal() {
   const modal = document.getElementById('modal-emergency-contacts');
   if (modal) modal.classList.remove('hidden');
 }
-
 function closeEmergencyContactsModal() {
   const modal = document.getElementById('modal-emergency-contacts');
   if (modal) modal.classList.add('hidden');
 }
 
 // 7. Privacy & Security Modal
-
 function openPrivacySecurityModal() {
   const modal = document.getElementById('modal-privacy-security');
   if (modal) modal.classList.remove('hidden');
 }
-
 function closePrivacySecurityModal() {
   const modal = document.getElementById('modal-privacy-security');
   if (modal) modal.classList.add('hidden');
 }
-
 function exportUserDataJSON() {
   const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
     exportDate: new Date().toISOString(),
@@ -4800,17 +4668,14 @@ function exportUserDataJSON() {
 }
 
 // 8. Help & Support Modal
-
 function openHelpSupportModal() {
   const modal = document.getElementById('modal-help-support');
   if (modal) modal.classList.remove('hidden');
 }
-
 function closeHelpSupportModal() {
   const modal = document.getElementById('modal-help-support');
   if (modal) modal.classList.add('hidden');
 }
-
 function submitSupportTicket() {
   const subj = document.getElementById('supp-subject')?.value;
   if (!subj || !subj.trim()) {
@@ -4959,10 +4824,6 @@ function askAIAboutUploadedFile(uploadId) {
 
 
 // Preserved additions from the latest authentication/UI fix.
-
-
-
-// Preserved additions from the latest authentication/UI fix.
 function initSpotlightCards() {
   document.addEventListener('mousemove', (e) => {
     const cards = document.querySelectorAll('.kokonut-card');
@@ -5010,6 +4871,35 @@ function initScrollReveals() {
   }
 }
 
+document.addEventListener('DOMContentLoaded', () => {
+  const safeRun = (fn, name) => {
+    try { fn(); } catch (err) { console.warn(`[CuraAssist] Init warning in ${name}:`, err); }
+  };
+  safeRun(() => loadStateFromStorage(), 'initDataState');
+  safeRun(() => checkSavedSession(), 'checkSavedSession');
+  safeRun(() => ensureLucideIcons(), 'lucide');
+  setTimeout(ensureLucideIcons, 300);
+  setTimeout(ensureLucideIcons, 800);
+  safeRun(() => initFamilyDropdown(), 'initFamilyDropdown');
+  safeRun(() => renderActiveFamilyContext(), 'renderActiveFamilyContext');
+  safeRun(() => renderSchedule(), 'renderSchedule');
+  safeRun(() => renderRecords(), 'renderRecords');
+  safeRun(() => renderStoreCategories(), 'renderStoreCategories');
+  safeRun(() => renderStoreMedicines(), 'renderStoreMedicines');
+  safeRun(() => renderCart(), 'renderCart');
+  safeRun(() => renderBloodCompatibility(), 'renderBloodCompatibility');
+  safeRun(() => renderFeedbackList(), 'renderFeedbackList');
+  safeRun(() => renderFirstAidGuide(), 'renderFirstAidGuide');
+  safeRun(() => renderGenericDropdown(), 'renderGenericDropdown');
+  safeRun(() => updateUploadsBadgeCount(), 'updateUploadsBadgeCount');
+  safeRun(() => initSpotlightCards(), 'initSpotlightCards');
+  safeRun(() => initScrollProgress(), 'initScrollProgress');
+  safeRun(() => initScrollReveals(), 'initScrollReveals');
+  safeRun(() => typeof AppModal !== 'undefined' && AppModal.init(), 'AppModal.init');
+  safeRun(() => typeof AppAlarms !== 'undefined' && AppAlarms.start(), 'AppAlarms.start');
+  safeRun(() => typeof AppState !== 'undefined' && AppState.init(typeof INITIAL_DATA !== 'undefined' ? INITIAL_DATA : {}), 'AppState.init');
+});
+
 function toggleMobileMenuDrawer() {
   const drawer = document.getElementById('mobile-menu-drawer');
   if (!drawer) return;
@@ -5036,6 +4926,8 @@ function isSupabaseNetworkError(err) {
   return msg.includes('failed to fetch') || msg.includes('network') || msg.includes('fetcherror') || msg.includes('unreachable') || url.includes('curaassist-carehub.supabase.co');
 }
 
+// Added missing auth handler: real Supabase email/password authentication.
+
 async function loginWithOAuth(provider = 'github') {
   const client = getSupabaseClient();
   if (client && client.auth && !isSupabaseNetworkError({ message: window.SUPABASE_URL })) {
@@ -5055,6 +4947,8 @@ async function loginWithOAuth(provider = 'github') {
 }
 
 function loginWithGitHub() { return loginWithOAuth('github'); }
+
+let currentPendingAvatarUrl = null;
 
 function clearAuthInputs() {
   ['auth-reg-name','auth-reg-email','auth-reg-phone','auth-reg-password','auth-login-identity','auth-login-password','auth-otp-input'].forEach(id => {
