@@ -4,7 +4,6 @@
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB.svg?style=flat&logo=python&logoColor=white)](https://www.python.org/)
 [![Supabase](https://img.shields.io/badge/Supabase-Auth%20%26%20Storage-3ECF8E.svg?style=flat&logo=supabase&logoColor=white)](https://supabase.com)
 [![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E.svg?style=flat&logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
-[![Vercel](https://img.shields.io/badge/Deployment-Vercel-000000.svg?style=flat&logo=vercel&logoColor=white)](https://vercel.com)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 **CuraAssist CareHub** is an intelligent, full-stack digital healthcare ecosystem designed to streamline medicine discovery, personal health management, clinical AI assistance, and emergency response. Combining a reactive web interface with a high-performance FastAPI backend, Supabase authentication & storage, and an interactive real-time medication reminder engine, CuraAssist brings modern healthcare support directly to users across any device.
