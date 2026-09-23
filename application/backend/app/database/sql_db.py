@@ -93,7 +93,7 @@ class OrderModel(Base):
     id = Column(String, primary_key=True, index=True)
     owner_user_id = Column(String, ForeignKey("users.id"), index=True, nullable=False)
     user_email = Column(String, index=True, default=None)
-    patient_name = Column(String, default="Rahul Sharma")
+    patient_name = Column(String, default="")
     items_json = Column(Text, nullable=False)
     total_amount = Column(Float, nullable=False)
     delivery_address = Column(Text, nullable=False)
@@ -246,21 +246,8 @@ def seed_initial_sql_data():
         allow_demo_seed = os.getenv("CURAASSIST_DEMO_MODE", "false").strip().lower() == "true"
 
         # 1. Seed Default User and synthetic patient data only in explicit demo mode.
-        if allow_demo_seed:
-            existing_user = session.query(UserModel).filter_by(email="rahul.sharma@email.com").first()
-            if not existing_user:
-                user = UserModel(
-                    id="usr-default-01",
-                    name="",
-                    email="",
-                    phone="",
-                    location="",
-                    age=None,
-                    gender="Male",
-                    blood_group="O+",
-                    role="Patient"
-                )
-                session.add(user)
+        # User records are created from authenticated Supabase identities only.
+        # No hardcoded patient identity is seeded here.
 
         # 2. Seed Medicines (reference data remains safe; no ownership required).
         med_count = session.query(MedicineModel).count()
