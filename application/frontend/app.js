@@ -509,10 +509,15 @@ async function loginWithOAuth(provider = 'github') {
   const client = getSupabaseClient();
   if (client && client.auth && !isSupabaseNetworkError({ message: window.SUPABASE_URL })) {
     try {
+      const redirectTo = new URL(window.location.href);
+      redirectTo.search = '';
+      redirectTo.hash = '';
+      redirectTo.pathname = redirectTo.pathname.endsWith('/') ? redirectTo.pathname : `${redirectTo.pathname}/`;
+
       const { data, error } = await client.auth.signInWithOAuth({
         provider: provider,
         options: {
-          redirectTo: window.location.origin
+          redirectTo: redirectTo.toString()
         }
       });
       if (error) {
