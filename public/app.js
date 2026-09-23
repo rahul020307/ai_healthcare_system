@@ -3232,7 +3232,7 @@ async function sendAIMessage() {
   const userText = input.value.trim();
   input.value = '';
 
-  const memberName = document.getElementById('active-family-name')?.innerText || 'Rahul Sharma';
+  const memberName = document.getElementById('active-family-name')?.innerText || 'User';
 
   container.innerHTML += `
     <div class="flex justify-end">
