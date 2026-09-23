@@ -41,6 +41,8 @@ Base = declarative_base()
 class UserModel(Base):
     __tablename__ = "users"
     id = Column(String, primary_key=True, index=True)
+    # Supabase Auth UUID is the authoritative ownership identity.
+    auth_user_id = Column(String, unique=True, index=True, nullable=False)
     name = Column(String, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
     phone = Column(String, default="+91 98765 43210")
@@ -56,7 +58,7 @@ class UserModel(Base):
 class HealthRecordModel(Base):
     __tablename__ = "health_records"
     id = Column(String, primary_key=True, index=True)
-    owner_user_id = Column(String, ForeignKey("users.id"), index=True, nullable=False)
+    owner_user_id = Column(String, index=True, nullable=False)
     member_id = Column(String, index=True, default="fam1")
     user_email = Column(String, index=True, default=None)
     title = Column(String, nullable=False)
