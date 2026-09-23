@@ -100,21 +100,21 @@
           <h3 class="text-sm font-extrabold text-white">Quick Actions</h3>
 
           <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center">
-            <button onclick="openUploadReportModal()" class="flex flex-col items-center gap-2 group">
+            <button onclick="openProfileRecordUpload()" class="flex flex-col items-center gap-2 group">
               <div class="w-12 h-12 rounded-full bg-slate-900 border border-slate-800 text-emerald-400 flex items-center justify-center group-hover:border-emerald-500 transition-colors shadow">
                 <i data-lucide="upload-cloud" class="w-5 h-5"></i>
               </div>
               <span class="text-[11px] font-bold text-slate-300">Upload Report</span>
             </button>
 
-            <button onclick="openMyPrescriptions()" class="flex flex-col items-center gap-2 group">
+            <button onclick="filterProfileRecords('Prescriptions')" class="flex flex-col items-center gap-2 group">
               <div class="w-12 h-12 rounded-full bg-slate-900 border border-slate-800 text-teal-400 flex items-center justify-center group-hover:border-teal-500 transition-colors shadow">
                 <i data-lucide="file-text" class="w-5 h-5"></i>
               </div>
               <span class="text-[11px] font-bold text-slate-300">My Prescriptions</span>
             </button>
 
-            <button onclick="openMedicalReports()" class="flex flex-col items-center gap-2 group">
+            <button onclick="filterProfileRecords('Medical Reports')" class="flex flex-col items-center gap-2 group">
               <div class="w-12 h-12 rounded-full bg-slate-900 border border-slate-800 text-rose-400 flex items-center justify-center group-hover:border-rose-500 transition-colors shadow">
                 <i data-lucide="heart" class="w-5 h-5"></i>
               </div>
@@ -128,7 +128,7 @@
               <span class="text-[11px] font-bold text-slate-300">Reminders</span>
             </button>
 
-            <button onclick="toggleCartDrawer(true)" class="flex flex-col items-center gap-2 group">
+            <button onclick="alert('Orders & cart will open from the Store page.')" class="flex flex-col items-center gap-2 group">
               <div class="w-12 h-12 rounded-full bg-slate-900 border border-slate-800 text-indigo-400 flex items-center justify-center group-hover:border-indigo-500 transition-colors shadow">
                 <i data-lucide="clipboard-list" class="w-5 h-5"></i>
               </div>
@@ -188,13 +188,13 @@
             <h3 class="text-sm font-extrabold text-white flex items-center gap-2">
               <i data-lucide="heart-pulse" class="w-4 h-4 text-rose-400"></i> Health & Clinical History
             </h3>
-            <button onclick="openUploadReportModal()" class="px-3 py-1.5 rounded-xl bg-teal-500/20 hover:bg-teal-500/30 text-teal-300 border border-teal-500/40 text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm">
+            <button onclick="openProfileRecordUpload()" class="px-3 py-1.5 rounded-xl bg-teal-500/20 hover:bg-teal-500/30 text-teal-300 border border-teal-500/40 text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm">
               <i data-lucide="file-up" class="w-3.5 h-3.5"></i> + Upload Reports
             </button>
           </div>
 
           <div class="glass-panel rounded-3xl border border-slate-800 divide-y divide-slate-800/80 overflow-hidden shadow-xl">
-            <button onclick="openUploadReportModal()" class="w-full p-4 flex items-center justify-between hover:bg-slate-900/50 transition-colors text-left group bg-teal-950/20">
+            <button onclick="openProfileRecordUpload()" class="w-full p-4 flex items-center justify-between hover:bg-slate-900/50 transition-colors text-left group bg-teal-950/20">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-teal-500/20 text-teal-400 flex items-center justify-center">
                   <i data-lucide="upload-cloud" class="w-5 h-5"></i>
@@ -223,7 +223,7 @@
               <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
             </button>
 
-            <button onclick="openMedicalReports()" class="w-full p-4 flex items-center justify-between hover:bg-slate-900/50 transition-colors text-left group">
+            <button onclick="filterProfileRecords('Medical Reports')" class="w-full p-4 flex items-center justify-between hover:bg-slate-900/50 transition-colors text-left group">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-teal-500/20 text-teal-400 flex items-center justify-center">
                   <i data-lucide="folder-heart" class="w-5 h-5"></i>
@@ -394,6 +394,35 @@
   <script src="ocr-image-processor.js?v=1.0.0"></script>
   <script src="data.js?v=14.0.0"></script>
   <script src="app.js?v=14.0.0"></script>
+<script>
+    function profileNotImplementedGuard(name) {
+      console.warn('[CuraAssist Profile] Missing legacy home-only action:', name);
+    }
+    function filterProfileRecords(category) {
+      const buttons = {
+        'All': 'All',
+        'Medical Reports': 'Reports',
+        'Lab Reports': 'Labs',
+        'Prescriptions': 'Prescriptions'
+      };
+      const target = buttons[category] || category;
+      document.querySelectorAll('[data-profile-record-filter]').forEach((el) => {
+        el.classList.toggle('ring-2', el.dataset.profileRecordFilter === target);
+      });
+      const heading = document.getElementById('profile-records-heading');
+      if (heading) heading.textContent = category;
+    }
+    function openProfileRecordUpload() {
+      alert('Report upload is being kept on the Profile page and will be wired to the dedicated records UI next.');
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('[onclick*="switchTab("]').forEach((el) => {
+        if (el.getAttribute('onclick')?.includes("switchTab('home')")) {
+          el.setAttribute('onclick', "window.location.href='home.html'");
+        }
+      });
+    });
+  </script>
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
       if (typeof lucide !== 'undefined') lucide.createIcons();
