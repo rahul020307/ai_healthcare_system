@@ -285,7 +285,7 @@ def seed_initial_sql_data():
                                 id=r.get("id", f"rec-{r.get('title', '001')}"),
                                 owner_user_id="usr-default-01",
                                 member_id=r.get("memberId", "fam1"),
-                                user_email="rahul.sharma@email.com",
+                                user_email=None,
                                 title=r.get("title", "Medical Report"),
                                 category=r.get("category", "Reports"),
                                 date=r.get("date", "2026-08-01"),
