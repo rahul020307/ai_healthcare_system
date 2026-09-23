@@ -93,7 +93,7 @@ class AppointmentModel(Base):
 class OrderModel(Base):
     __tablename__ = "orders"
     id = Column(String, primary_key=True, index=True)
-    owner_user_id = Column(String, ForeignKey("users.id"), index=True, nullable=False)
+    owner_user_id = Column(String, index=True, nullable=False)
     user_email = Column(String, index=True, default=None)
     patient_name = Column(String, default="")
     items_json = Column(Text, nullable=False)
@@ -107,7 +107,7 @@ class OrderModel(Base):
 class VitalRecordModel(Base):
     __tablename__ = "vitals"
     id = Column(String, primary_key=True, index=True)
-    owner_user_id = Column(String, ForeignKey("users.id"), index=True, nullable=False)
+    owner_user_id = Column(String, index=True, nullable=False)
     user_email = Column(String, index=True, default=None)
     systolic = Column(Integer, default=120)
     diastolic = Column(Integer, default=80)
@@ -120,7 +120,7 @@ class VitalRecordModel(Base):
 class MedicineScheduleModel(Base):
     __tablename__ = "schedules"
     id = Column(String, primary_key=True, index=True)
-    owner_user_id = Column(String, ForeignKey("users.id"), index=True, nullable=False)
+    owner_user_id = Column(String, index=True, nullable=False)
     user_email = Column(String, index=True, default="user@curaassist.health")
     name = Column(String, nullable=False)
     dosage = Column(String, default="1 Tablet")
