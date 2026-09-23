@@ -9,7 +9,7 @@ questions = [
 for q in questions:
     try:
         url = "http://localhost:8000/chat/ask"
-        payload = json.dumps({"message": q, "patientContext": "Rahul Sharma"}).encode('utf-8')
+        payload = json.dumps({"message": q, "patientContext": "Test User"}).encode('utf-8')
         req = urllib.request.Request(url, data=payload, headers={'Content-Type': 'application/json'})
         with urllib.request.urlopen(req) as res:
             data = json.loads(res.read().decode('utf-8'))
