@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 import time
 from typing import Any, Dict
 
 import requests
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from jose import JWTError, jwt
+from jose import jwt
 
 from app.core.config import settings
 
@@ -51,7 +53,6 @@ def get_current_identity(
     token = credentials.credentials.strip()
     supabase_base = _supabase_url()
 
-    # 1. Check for live Supabase JWT verification if configured
     if supabase_base and not ("placeholder" in supabase_base or "curaassist-carehub.supabase.co" in supabase_base):
         try:
             keys = _jwks()
@@ -80,44 +81,8 @@ def get_current_identity(
         except Exception:
             pass
 
-    # 2. Resilient session fallback for local development / demo tokens
-    if token.startswith("sess-token-") or token.startswith("demo-") or token.startswith("github-") or token.startswith("oauth-") or len(token) > 5:
-        sanitized_id = "".join(c for c in token if c.isalnum() or c in "-_")[:40] or "demo-user"
-        user_id = f"usr-{sanitized_id}"
-        
-        # Check if user already exists in SQL database to maintain user-customized profile
-        from app.database.sql_db import UserModel, get_db_session
-        session = get_db_session()
-        try:
-            db_user = session.query(UserModel).filter_by(id=user_id).first()
-            if db_user:
-                return {
-                    "sub": db_user.id,
-                    "email": db_user.email,
-                    "role": db_user.role or "Patient",
-                    "claims": {
-                        "sub": db_user.id,
-                        "email": db_user.email,
-                        "name": db_user.name,
-                        "role": db_user.role or "Patient",
-                    },
-                }
-        finally:
-            session.close()
-
-        # If not yet in database, provide unique identity
-        return {
-            "sub": user_id,
-            "email": f"user.{sanitized_id[:12]}@curaassist.health",
-            "role": "Patient",
-            "claims": {
-                "sub": user_id,
-                "email": f"user.{sanitized_id[:12]}@curaassist.health",
-                "name": "Active User",
-                "role": "Patient",
-            },
-        }
-
+    # No synthetic identity fallback is permitted for protected production APIs.
+    # Local tests must pass an explicit identity object to get_current_user().
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Invalid authentication token",
@@ -126,27 +91,40 @@ def get_current_identity(
 
 
 def get_current_user(identity: Dict[str, Any] = Depends(get_current_identity)):
-    """Resolve a verified Supabase identity to the application's SQL user row."""
+    """Resolve the verified Supabase Auth UUID to the application profile row."""
     from app.database.sql_db import UserModel, get_db_session
+
+    user_id = identity.get("sub")
+    email = identity.get("email")
+    if not user_id or not email:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authenticated user identity is incomplete",
+        )
 
     session = get_db_session()
     try:
-        user = session.query(UserModel).filter_by(id=identity["sub"]).first()
-        if not user:
-            # Check by email
-            user = session.query(UserModel).filter_by(email=identity["email"]).first()
+        user = session.query(UserModel).filter_by(auth_user_id=user_id).first()
 
         meta = identity.get("claims", {}).get("user_metadata", {}) or {}
         if not user:
-            name_val = meta.get("name") or identity.get("claims", {}).get("name") or identity["email"].split("@", 1)[0]
+            name_val = (
+                meta.get("name")
+                or identity.get("claims", {}).get("name")
+                or email.split("@", 1)[0]
+            )
             user = UserModel(
-                id=identity["sub"],
+                # Keep the legacy ORM primary key string-compatible while making
+                # Supabase Auth UUID authoritative for ownership.
+                id=user_id,
+                auth_user_id=user_id,
                 name=name_val,
-                email=identity["email"],
+                email=email,
                 phone=meta.get("phone") or "",
                 blood_group=meta.get("blood") or meta.get("bloodGroup") or "O+",
                 location=meta.get("city") or meta.get("location") or "Hyderabad, Telangana",
                 age=int(meta.get("age", 30)) if str(meta.get("age", "")).isdigit() else 30,
+                gender=meta.get("gender") or "Male",
                 avatar_url=meta.get("avatar_url"),
                 role="Patient",
             )
@@ -154,6 +132,12 @@ def get_current_user(identity: Dict[str, Any] = Depends(get_current_identity)):
             session.commit()
             session.refresh(user)
         else:
+            # Do not rebind an existing profile to a different Auth UUID.
+            if str(user.auth_user_id) != str(user_id):
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="Profile identity mismatch",
+                )
             updated = False
             if meta.get("avatar_url") and user.avatar_url != meta["avatar_url"]:
                 user.avatar_url = meta["avatar_url"]
@@ -167,6 +151,9 @@ def get_current_user(identity: Dict[str, Any] = Depends(get_current_identity)):
 
         session.expunge(user)
         return user
+    except HTTPException:
+        session.rollback()
+        raise
     except Exception as exc:
         session.rollback()
         raise HTTPException(
@@ -180,11 +167,10 @@ def get_current_user(identity: Dict[str, Any] = Depends(get_current_identity)):
 def get_optional_current_user(
     credentials: HTTPAuthorizationCredentials | None = Depends(security),
 ):
-    """Optionally resolves a verified Supabase user if Bearer token is provided, else returns None."""
     if not credentials or not credentials.credentials:
         return None
     try:
         identity = get_current_identity(credentials)
         return get_current_user(identity)
-    except Exception:
+    except HTTPException:
         return None
