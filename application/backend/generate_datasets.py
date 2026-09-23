@@ -700,7 +700,7 @@ reviews_data = [
     {
         "review_id": "REV-001",
         "medicine_id": "MED-001",
-        "user_name": "Rahul Sharma",
+        "user_name": "User",
         "rating": 5.0,
         "review": "Very effective for fever reduction. Delivered within 20 mins from MedPlus Express!",
         "review_date": "2026-08-01"
