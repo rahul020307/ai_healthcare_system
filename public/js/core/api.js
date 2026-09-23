@@ -5,12 +5,20 @@
 const AppApi = {
   getBaseUrl() {
     if (typeof window !== 'undefined') {
+      const configured = window.CURAASSIST_API_BASE;
+      if (configured && typeof configured === 'string') {
+        return configured.replace(/\/$/, '');
+      }
+
       const host = window.location.hostname;
       if (host === 'localhost' || host === '127.0.0.1') {
         return 'http://127.0.0.1:8000';
       }
     }
-    return '';
+
+    // GitHub Pages cannot proxy /chat, /profile, /store, etc. to FastAPI.
+    // Keep the production API explicit so browser requests bypass the retired Vercel proxy.
+    return 'https://curaassist-carehub-backend-2.fastapicloud.dev';
   },
 
   async getHeaders(customHeaders = {}) {

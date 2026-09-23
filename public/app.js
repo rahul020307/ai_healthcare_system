@@ -1,5 +1,5 @@
 // CuraAssist CareHub - Complete Application Engine & Logic (11 Prototype Modules)
-const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:8000' : '';
+const API_BASE = (window.CURAASSIST_API_BASE || 'https://curaassist-carehub-backend-2.fastapicloud.dev').replace(/\/$/, '');
 
 let state = {
   currentTab: 'home',
