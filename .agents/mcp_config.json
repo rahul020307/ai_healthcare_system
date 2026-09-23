@@ -19,16 +19,6 @@
       "env": {
         "SUPABASE_ACCESS_TOKEN": "${env:SUPABASE_ACCESS_TOKEN}"
       }
-    },
-    "vercel": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "vercel-mcp"
-      ],
-      "env": {
-        "VERCEL_ACCESS_TOKEN": "${env:VERCEL_ACCESS_TOKEN}"
-      }
     }
   }
 }
