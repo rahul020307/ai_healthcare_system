@@ -45,7 +45,7 @@ DOCTORS_DB = load_data("doctors.json")
 
 
 def get_env_variable(*var_names: str) -> Optional[str]:
-    """Reads the runtime environment configured by Vercel or host process, checking aliases."""
+    """Reads the runtime environment configured by the hosting platform, checking aliases."""
     for name in var_names:
         val = os.getenv(name)
         if val and val.strip():
