@@ -37,8 +37,17 @@ const AppApi = {
       } catch (e) {}
     }
 
+    if (!token && typeof window !== 'undefined' && window.authToken) {
+      token = window.authToken;
+    }
+
     if (!token && typeof localStorage !== 'undefined') {
-      token = localStorage.getItem('supabase_access_token') || localStorage.getItem('auth_token');
+      try {
+        const saved = JSON.parse(localStorage.getItem('cura_active_user_v1') || 'null');
+        token = saved?.token || localStorage.getItem('supabase_access_token') || localStorage.getItem('auth_token');
+      } catch (e) {
+        token = localStorage.getItem('supabase_access_token') || localStorage.getItem('auth_token');
+      }
     }
 
     if (token) {
