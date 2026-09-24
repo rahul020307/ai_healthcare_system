@@ -1487,10 +1487,10 @@
           <input type="text" id="rem-name" placeholder="e.g., Metformin, Lipitor, Paracetamol" class="w-full glass-input rounded-xl px-3.5 py-2.5 text-xs font-semibold text-white focus:border-teal-400">
           <div class="flex items-center gap-1.5 mt-1.5 flex-wrap">
             <span class="text-[10px] text-slate-500">Quick suggestions:</span>
-            <button type="button" onclick="setQuickMedName('Paracetamol 500mg')" class="text-[10px] bg-slate-900 hover:bg-slate-800 text-teal-300 px-2 py-0.5 rounded-lg border border-slate-800">Paracetamol</button>
-            <button type="button" onclick="setQuickMedName('Amoxicillin 250mg')" class="text-[10px] bg-slate-900 hover:bg-slate-800 text-teal-300 px-2 py-0.5 rounded-lg border border-slate-800">Amoxicillin</button>
-            <button type="button" onclick="setQuickMedName('Metformin 500mg')" class="text-[10px] bg-slate-900 hover:bg-slate-800 text-teal-300 px-2 py-0.5 rounded-lg border border-slate-800">Metformin</button>
-            <button type="button" onclick="setQuickMedName('Atorvastatin 20mg')" class="text-[10px] bg-slate-900 hover:bg-slate-800 text-teal-300 px-2 py-0.5 rounded-lg border border-slate-800">Atorvastatin</button>
+            <button type="button" onclick="setReminderQuickMed('Paracetamol 500mg')" class="text-[10px] bg-slate-900 hover:bg-slate-800 text-teal-300 px-2 py-0.5 rounded-lg border border-slate-800">Paracetamol</button>
+            <button type="button" onclick="setReminderQuickMed('Amoxicillin 250mg')" class="text-[10px] bg-slate-900 hover:bg-slate-800 text-teal-300 px-2 py-0.5 rounded-lg border border-slate-800">Amoxicillin</button>
+            <button type="button" onclick="setReminderQuickMed('Metformin 500mg')" class="text-[10px] bg-slate-900 hover:bg-slate-800 text-teal-300 px-2 py-0.5 rounded-lg border border-slate-800">Metformin</button>
+            <button type="button" onclick="setReminderQuickMed('Atorvastatin 20mg')" class="text-[10px] bg-slate-900 hover:bg-slate-800 text-teal-300 px-2 py-0.5 rounded-lg border border-slate-800">Atorvastatin</button>
           </div>
         </div>
 
@@ -1510,11 +1510,11 @@
             <input type="time" id="rem-time" value="08:00" class="w-full glass-input rounded-xl px-3.5 py-2 text-xs font-bold text-teal-300 bg-slate-900">
             <div class="flex items-center gap-1.5 mt-1.5 flex-wrap">
               <span class="text-[10px] text-slate-500">Quick set:</span>
-              <button type="button" onclick="setQuickTimeOffset(1)" class="text-[10px] bg-teal-950/60 hover:bg-teal-900/80 text-teal-300 px-2 py-0.5 rounded-lg border border-teal-500/30 font-bold">⚡ +1 Min (Test)</button>
-              <button type="button" onclick="setQuickTimeOffset(5)" class="text-[10px] bg-slate-900 hover:bg-slate-800 text-slate-300 px-2 py-0.5 rounded-lg border border-slate-800">+5 Mins</button>
-              <button type="button" onclick="setQuickTimeExact(8, 0)" class="text-[10px] bg-slate-900 hover:bg-slate-800 text-slate-300 px-2 py-0.5 rounded-lg border border-slate-800">8 AM</button>
-              <button type="button" onclick="setQuickTimeExact(13, 0)" class="text-[10px] bg-slate-900 hover:bg-slate-800 text-slate-300 px-2 py-0.5 rounded-lg border border-slate-800">1 PM</button>
-              <button type="button" onclick="setQuickTimeExact(20, 0)" class="text-[10px] bg-slate-900 hover:bg-slate-800 text-slate-300 px-2 py-0.5 rounded-lg border border-slate-800">8 PM</button>
+              <button type="button" onclick="setReminderQuickTimeOffset(1)" class="text-[10px] bg-teal-950/60 hover:bg-teal-900/80 text-teal-300 px-2 py-0.5 rounded-lg border border-teal-500/30 font-bold">⚡ +1 Min (Test)</button>
+              <button type="button" onclick="setReminderQuickTimeOffset(5)" class="text-[10px] bg-slate-900 hover:bg-slate-800 text-slate-300 px-2 py-0.5 rounded-lg border border-slate-800">+5 Mins</button>
+              <button type="button" onclick="setReminderQuickTimeExact(8, 0)" class="text-[10px] bg-slate-900 hover:bg-slate-800 text-slate-300 px-2 py-0.5 rounded-lg border border-slate-800">8 AM</button>
+              <button type="button" onclick="setReminderQuickTimeExact(13, 0)" class="text-[10px] bg-slate-900 hover:bg-slate-800 text-slate-300 px-2 py-0.5 rounded-lg border border-slate-800">1 PM</button>
+              <button type="button" onclick="setReminderQuickTimeExact(20, 0)" class="text-[10px] bg-slate-900 hover:bg-slate-800 text-slate-300 px-2 py-0.5 rounded-lg border border-slate-800">8 PM</button>
             </div>
           </div>
         </div>
@@ -1594,7 +1594,7 @@
       </div>
 
       <div class="space-y-2 pt-1">
-        <button id="btn-alarm-taken" onclick="takeMedicationFromAlarm()" class="w-full bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-slate-950 font-extrabold py-3 rounded-2xl text-sm shadow-xl shadow-teal-900/40 flex items-center justify-center gap-2 transition-all">
+        <button id="btn-alarm-taken" onclick="takeCurrentMedicationFromAlarm()" class="w-full bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-slate-950 font-extrabold py-3 rounded-2xl text-sm shadow-xl shadow-teal-900/40 flex items-center justify-center gap-2 transition-all">
           <i data-lucide="check-circle-2" class="w-5 h-5"></i> Mark Taken Now ✓
         </button>
 
@@ -1607,7 +1607,7 @@
           </button>
         </div>
 
-        <button onclick="dismissMedicationAlarm()" class="w-full text-slate-500 hover:text-slate-300 text-xs py-1.5 font-medium text-center">
+        <button onclick="dismissCurrentMedicationAlarm()" class="w-full text-slate-500 hover:text-slate-300 text-xs py-1.5 font-medium text-center">
           Skip / Dismiss this reminder
         </button>
       </div>
@@ -2155,6 +2155,13 @@
   function setReminderQuickMed(name) { if (typeof setQuickMedName === 'function') setQuickMedName(name); }
   function setReminderQuickTimeOffset(minutes) { if (typeof setQuickTimeOffset === 'function') setQuickTimeOffset(minutes); }
   function setReminderQuickTimeExact(value) { if (typeof setQuickTimeExact === 'function') setQuickTimeExact(value); }
+  function takeCurrentMedicationFromAlarm() { if (typeof takeMedicationFromAlarm === 'function') takeMedicationFromAlarm(); }
+  function snoozeCurrentMedicationAlarm() { if (typeof snoozeCurrentAlarm === 'function') snoozeCurrentAlarm(); }
+  function dismissCurrentMedicationAlarm() { if (typeof dismissMedicationAlarm === 'function') dismissMedicationAlarm(); }
+  function clearReportSelectedFile() {
+    const ids = ['report-file-input','report-upload-file','report-camera-input'];
+    ids.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  }
 </script>
   
 </body>
