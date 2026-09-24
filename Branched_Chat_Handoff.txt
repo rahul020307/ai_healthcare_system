@@ -1,0 +1,170 @@
+CuraAssist CareHub — BRANCHED CHAT HANDOFF
+Date: 24 Sep 2026
+
+PURPOSE
+This chat is a BRANCHED CHAT from the main CuraAssist/App(GitHub Pages) work. It originally branched from a login-debugging conversation ("Login does nothing"), but after branching the work moved into frontend architecture and Profile-page fixes.
+
+REPOSITORY
+GitHub: rahul020307/ai_healthcare_system
+Branch: main
+GitHub Pages deployment source: application/frontend
+Pages workflow: .github/workflows/pages.yml
+
+TARGET ARCHITECTURE
+login.html
+  ↓
+home.html
+  ├── profile.html
+  ├── store.html
+  ├── maps.html
+  └── reminders = popup/modal, NOT a separate page
+
+POST-BRANCH WORK COMPLETED
+
+1. CREATED STANDALONE PROFILE PAGE
+Created application/frontend/profile.html by extracting the Profile section from the old monolithic Home SPA into a standalone document.
+
+2. REMOVED PROFILE FROM HOME
+Removed the view-profile section from application/frontend/home.html.
+Validated later that home.html no longer contains id="view-profile".
+
+3. HOME -> PROFILE NAVIGATION
+Changed Home Profile navigation to point to profile.html instead of old SPA tab switching.
+
+4. PROFILE VISIBILITY / BOOTSTRAP
+Changed the standalone Profile section from hidden SPA styling to:
+<section id="view-profile" class="space-y-6">
+Added:
+window.CuraAssistProfilePage = true;
+and a standalone bootstrap to keep Profile visible and restore saved user UI state.
+
+5. PROFILE MODALS/DRAWERS
+Copied required shared Profile modal/drawer markup into profile.html.
+Validated:
+- 25 modal elements
+- 25 unique modal IDs
+
+6. CRITICAL EDIT PROFILE MODAL BUG FIX
+The extracted HTML had malformed markup:
+id="modal-edit-profile" ...
+instead of:
+<div id="modal-edit-profile" ...>
+
+This caused the Edit Profile modal to appear inline at the bottom of the page instead of as a popup. The DOM was repaired.
+
+Final validation:
+- malformed modal openings = 0
+- modal count = 25
+- unique modal IDs = 25
+
+7. REMOVED OLD SPA switchTab() FROM PROFILE
+Final Profile validation:
+switchTab() count = 0
+
+8. UPDATED PROFILE MOBILE NAVIGATION
+Profile mobile navigation was converted away from SPA tab switching.
+Home/Profile use standalone navigation.
+Store/Maps were checked and do NOT currently exist as standalone files, so Profile was not left with broken store.html/maps.html links.
+
+9. FIXED STALE COPIED FUNCTION REFERENCES
+The copied Profile UI contained old Home/SPA-era handlers not present in current application/frontend/app.js.
+Examples:
+- openProfileRecordUpload
+- filterProfileRecords
+- openEmergencyTriggerModal
+- setQuickMedName
+- setQuickTimeOffset
+- setQuickTimeExact
+- takeMedicationFromAlarm
+- snoozeCurrentAlarm
+- dismissMedicationAlarm
+Profile compatibility/fallback handlers were added or mappings normalized.
+
+Final Profile onclick-handler validation found no unresolved handler references after accounting for functions in app.js and profile.html plus normal browser globals.
+
+10. VERIFIED LOCAL SCRIPT ASSETS
+These local files referenced by profile.html were confirmed to exist:
+js/core/events.js
+js/core/storage.js
+js/core/state.js
+js/core/api.js
+js/core/alarms.js
+js/ui/modal.js
+js/ui/toast.js
+js/ui/loading.js
+js/ui/header.js
+js/ui/sidebar.js
+ocr-image-processor.js
+data.js
+app.js
+
+11. CURRENT HOME STRUCTURE
+home.html still contains:
+- view-home
+- view-reminders
+- view-store
+- view-maps
+and does NOT contain view-profile.
+
+12. REMINDERS
+The old reminders module markup still exists in home.html as view-reminders, but the intended architecture is reminders = popup/modal, not a standalone page.
+Profile reminder actions were adjusted to call openAddReminderModal() instead of old SPA navigation.
+
+13. STORE / MAPS
+These files were checked and do not exist:
+application/frontend/store.html
+application/frontend/maps.html
+They were NOT created in this branch. Treat their standalone conversion as future work.
+
+14. LIVE BROWSER / FIRECRAWL NOTE
+A Firecrawl inspection of the live site reached authentication because the Firecrawl environment did not have the user's authenticated Supabase session. Therefore this branch did NOT complete a reliable authenticated live-browser test of Profile.
+
+15. SUPABASE STATUS OBSERVED
+Supabase project:
+ifwsijbkmuzqttwbvifp
+
+Security advisors observed:
+INFO:
+- public.account_deletion_requests: RLS enabled, no policies
+- public.account_deletion_workflow_state: RLS enabled, no policies
+- public.transaction_history: RLS enabled, no policies
+
+WARN:
+- Supabase Auth leaked-password protection is disabled
+
+No Supabase database/security changes were made in this branch.
+
+16. GIT STATE
+Latest validated Profile file blob SHA:
+98d20a5d59cf8728d7e5f4e7bc92885e262e3d95
+
+Recent Profile-related commits:
+1bde21f78e414a88b2f15e2f6ef847412bad5820
+f583029d2ad06f26107fdbb791dd2ca221239c9c
+58fe2c857c2b2021f8e575322da036b4566762e4
+a890e7227c5e4842f9707780819552fcb11dd7c2
+4e8096341eae4964a64ab1e70cafa62b098cde81
+936c70f9cf911b46b8e729bfbaf02c6f046ef60f
+72173658b3f2eb95e1176b3498d6a1d715817d7a
+
+17. FINAL VALIDATION SNAPSHOT
+Profile:
+- malformed modal openings: 0
+- modal elements: 25
+- unique modal IDs: 25
+- switchTab() references: 0
+- Home contains view-profile: false
+- local Profile frontend assets: verified
+- Profile inline handler references: resolved
+
+18. NOT COMPLETED
+- standalone store.html
+- standalone maps.html
+- full conversion of Home reminders markup into fully popup-only architecture
+- authenticated live browser test of Profile
+
+MAIN CHAT INSTRUCTION
+Treat the above as work already performed after the branch was created. Do NOT redo the completed Profile tasks.
+
+Suggested message to MAIN chat:
+"Read Branched_Chat_Handoff.txt. This branch completed the standalone Profile conversion and related fixes. Continue from the latest repository state; do not redo those completed tasks."
