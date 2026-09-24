@@ -2114,27 +2114,30 @@
   <script src="data.js?v=14.0.0"></script>
   <script src="app.js?v=14.0.0"></script>
 <script>
-  // Standalone Profile page bootstrap
+  // Standalone Profile page bootstrap.
+  // Prevent the Home-page auto-initializer from redirecting/altering this page.
   window.CuraAssistProfilePage = true;
+
   document.addEventListener("DOMContentLoaded", async function () {
     const profile = document.getElementById("view-profile");
     if (profile) profile.classList.remove("hidden");
 
-    if (typeof checkSavedSession === "function") {
-      const ok = await checkSavedSession();
-      if (!ok) return;
-    }
+    // app.js registers its own global initializer on DOMContentLoaded.
+    // Wait one tick so that its handlers have been registered, then restore
+    // the Profile page visibility and session-driven user data.
+    setTimeout(async function () {
+      const currentProfile = document.getElementById("view-profile");
+      if (currentProfile) currentProfile.classList.remove("hidden");
 
-    try {
-      const saved = JSON.parse(localStorage.getItem("cura_active_user_v1") || "null");
-      if (saved && saved.isLoggedIn && typeof updateAuthUIState === "function") {
-        updateAuthUIState(saved);
-      }
-    } catch (e) {}
+      try {
+        const saved = JSON.parse(localStorage.getItem("cura_active_user_v1") || "null");
+        if (saved && saved.isLoggedIn && typeof updateAuthUIState === "function") {
+          updateAuthUIState(saved);
+        }
+      } catch (e) {}
 
-    if (typeof ensureLucideIcons === "function") {
-      ensureLucideIcons();
-    }
+      if (typeof ensureLucideIcons === "function") ensureLucideIcons();
+    }, 0);
   });
 </script>
   
