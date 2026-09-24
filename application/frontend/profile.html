@@ -2167,6 +2167,7 @@
 
 <script>
   // Standalone Profile fallbacks for copied shared controls.
+  // These wrappers deliberately keep Profile interactions on profile.html.
   function handleProfileReportUpload() { openUploadReportModal(); }
   function openUploadReportModal() { document.getElementById('modal-upload-report')?.classList.remove('hidden'); }
   function closeUploadReportModal() { document.getElementById('modal-upload-report')?.classList.add('hidden'); }
@@ -2182,6 +2183,20 @@
   function snoozeCurrentMedicationAlarm() { if (typeof snoozeCurrentAlarm==='function') snoozeCurrentAlarm(); }
   function dismissCurrentMedicationAlarm() { if (typeof dismissMedicationAlarm==='function') dismissMedicationAlarm(); }
   function clearReportSelectedFile() { ['report-file-input','report-upload-file','report-camera-input'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';}); }
+
+  // Profile is a standalone page, so shared SPA navigation commands must not
+  // try to reveal hidden view sections that do not exist here.
+  if (window.CuraAssistProfilePage) {
+    const originalSwitchTab = window.switchTab;
+    window.switchTab = function(tabName) {
+      if (tabName === 'profile') return;
+      if (tabName === 'reminders') return openAddReminderModal();
+      if (tabName === 'home') return window.location.href = 'home.html';
+      if (tabName === 'store') return window.location.href = 'store.html';
+      if (tabName === 'maps') return window.location.href = 'maps.html';
+      if (typeof originalSwitchTab === 'function') return originalSwitchTab(tabName);
+    };
+  }
 </script>
 </body>
 </html>
