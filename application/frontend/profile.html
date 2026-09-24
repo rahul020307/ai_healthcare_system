@@ -797,7 +797,7 @@
           <h4 class="text-xs font-bold text-white">Order ORD-982415 Out for Delivery</h4>
           <p class="text-[11px] text-slate-300">MedPlus Express partner is 1.2 km away. ETA 15 mins.</p>
           <div class="pt-1">
-            <button onclick="toggleCartDrawer(true)" class="px-3 py-1 rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-bold text-[11px]">Track Delivery</button>
+            <button onclick="window.location.href='store.html'" class="px-3 py-1 rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-bold text-[11px]">Track Delivery</button>
           </div>
         </div>
 
@@ -811,7 +811,7 @@
           <h4 class="text-xs font-bold text-white">B+ Blood Request Nearby</h4>
           <p class="text-[11px] text-slate-300">Apollo Hospital requested B+ blood. 0.8 km from your location.</p>
           <div class="pt-1">
-            <button onclick="scrollToSection('sec-blood')" class="px-3 py-1 rounded-xl bg-rose-500 text-white font-bold text-[11px]">View Request</button>
+            <button onclick="window.location.href='maps.html'" class="px-3 py-1 rounded-xl bg-rose-500 text-white font-bold text-[11px]">View Request</button>
           </div>
         </div>
 
@@ -2164,5 +2164,24 @@
   }
 </script>
   
+
+<script>
+  // Standalone Profile fallbacks for copied shared controls.
+  function handleProfileReportUpload() { openUploadReportModal(); }
+  function openUploadReportModal() { document.getElementById('modal-upload-report')?.classList.remove('hidden'); }
+  function closeUploadReportModal() { document.getElementById('modal-upload-report')?.classList.add('hidden'); }
+  function filterProfileRecords(category) {
+    if (typeof filterHealthRecords === 'function') filterHealthRecords(category);
+    document.getElementById('records-container')?.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+  function openEmergencySosModal() { if (typeof triggerEmergencySOS === 'function') triggerEmergencySOS(); }
+  function setReminderQuickMed(name) { const e=document.getElementById('rem-name'); if(e)e.value=name; }
+  function setReminderQuickTimeOffset(minutes) { if (typeof setQuickTimeOffset==='function') setQuickTimeOffset(minutes); }
+  function setReminderQuickTimeExact(value) { if (typeof setQuickTimeExact==='function') setQuickTimeExact(value); }
+  function takeCurrentMedicationFromAlarm() { if (typeof takeMedicationFromAlarm==='function') takeMedicationFromAlarm(); }
+  function snoozeCurrentMedicationAlarm() { if (typeof snoozeCurrentAlarm==='function') snoozeCurrentAlarm(); }
+  function dismissCurrentMedicationAlarm() { if (typeof dismissMedicationAlarm==='function') dismissMedicationAlarm(); }
+  function clearReportSelectedFile() { ['report-file-input','report-upload-file','report-camera-input'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';}); }
+</script>
 </body>
 </html>
