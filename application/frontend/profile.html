@@ -1194,7 +1194,7 @@
     </button>
 
     <!-- Reminders -->
-    <button onclick="switchTab('reminders')" id="mobile-nav-reminders" class="mobile-nav-btn flex flex-col items-center gap-0.5 text-slate-400 text-[10px] transition-all p-1">
+    <button onclick="openAddReminderModal()" id="mobile-nav-reminders" class="mobile-nav-btn flex flex-col items-center gap-0.5 text-slate-400 text-[10px] transition-all p-1">
       <i data-lucide="alarm-clock" class="w-5 h-5"></i>
       <span>Reminders</span>
     </button>
@@ -1208,7 +1208,7 @@
     </button>
 
     <!-- Store -->
-    <button onclick="switchTab('store')" id="mobile-nav-store" class="mobile-nav-btn flex flex-col items-center gap-0.5 text-slate-400 text-[10px] transition-all p-1 relative">
+    <button onclick="window.location.href='store.html'" id="mobile-nav-store" class="mobile-nav-btn flex flex-col items-center gap-0.5 text-slate-400 text-[10px] transition-all p-1 relative">
       <i data-lucide="shopping-bag" class="w-5 h-5"></i>
       <span>Store</span>
       <span id="cart-badge-mobile" class="absolute -top-1 right-1 bg-teal-500 text-slate-950 text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center">0</span>
