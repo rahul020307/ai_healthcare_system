@@ -100,21 +100,21 @@
           <h3 class="text-sm font-extrabold text-white">Quick Actions</h3>
 
           <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center">
-            <button onclick="openProfileRecordUpload()" class="flex flex-col items-center gap-2 group">
+            <button onclick="openUploadReportModal()" class="flex flex-col items-center gap-2 group">
               <div class="w-12 h-12 rounded-full bg-slate-900 border border-slate-800 text-emerald-400 flex items-center justify-center group-hover:border-emerald-500 transition-colors shadow">
                 <i data-lucide="upload-cloud" class="w-5 h-5"></i>
               </div>
               <span class="text-[11px] font-bold text-slate-300">Upload Report</span>
             </button>
 
-            <button onclick="filterProfileRecords('Prescriptions')" class="flex flex-col items-center gap-2 group">
+            <button onclick="filterHealthRecords('Prescriptions')" class="flex flex-col items-center gap-2 group">
               <div class="w-12 h-12 rounded-full bg-slate-900 border border-slate-800 text-teal-400 flex items-center justify-center group-hover:border-teal-500 transition-colors shadow">
                 <i data-lucide="file-text" class="w-5 h-5"></i>
               </div>
               <span class="text-[11px] font-bold text-slate-300">My Prescriptions</span>
             </button>
 
-            <button onclick="filterProfileRecords('Medical Reports')" class="flex flex-col items-center gap-2 group">
+            <button onclick="filterHealthRecords('Medical Reports')" class="flex flex-col items-center gap-2 group">
               <div class="w-12 h-12 rounded-full bg-slate-900 border border-slate-800 text-rose-400 flex items-center justify-center group-hover:border-rose-500 transition-colors shadow">
                 <i data-lucide="heart" class="w-5 h-5"></i>
               </div>
@@ -188,13 +188,13 @@
             <h3 class="text-sm font-extrabold text-white flex items-center gap-2">
               <i data-lucide="heart-pulse" class="w-4 h-4 text-rose-400"></i> Health & Clinical History
             </h3>
-            <button onclick="openProfileRecordUpload()" class="px-3 py-1.5 rounded-xl bg-teal-500/20 hover:bg-teal-500/30 text-teal-300 border border-teal-500/40 text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm">
+            <button onclick="openUploadReportModal()" class="px-3 py-1.5 rounded-xl bg-teal-500/20 hover:bg-teal-500/30 text-teal-300 border border-teal-500/40 text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm">
               <i data-lucide="file-up" class="w-3.5 h-3.5"></i> + Upload Reports
             </button>
           </div>
 
           <div class="glass-panel rounded-3xl border border-slate-800 divide-y divide-slate-800/80 overflow-hidden shadow-xl">
-            <button onclick="openProfileRecordUpload()" class="w-full p-4 flex items-center justify-between hover:bg-slate-900/50 transition-colors text-left group bg-teal-950/20">
+            <button onclick="openUploadReportModal()" class="w-full p-4 flex items-center justify-between hover:bg-slate-900/50 transition-colors text-left group bg-teal-950/20">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-teal-500/20 text-teal-400 flex items-center justify-center">
                   <i data-lucide="upload-cloud" class="w-5 h-5"></i>
@@ -223,7 +223,7 @@
               <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
             </button>
 
-            <button onclick="filterProfileRecords('Medical Reports')" class="w-full p-4 flex items-center justify-between hover:bg-slate-900/50 transition-colors text-left group">
+            <button onclick="filterHealthRecords('Medical Reports')" class="w-full p-4 flex items-center justify-between hover:bg-slate-900/50 transition-colors text-left group">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-teal-500/20 text-teal-400 flex items-center justify-center">
                   <i data-lucide="folder-heart" class="w-5 h-5"></i>
@@ -933,7 +933,7 @@
       </div>
       <div class="flex items-center justify-between text-[10px] text-slate-500 px-1">
         <span>Powered by CuraAssist Clinical Intelligence & Gemini AI</span>
-        <button onclick="openEmergencyTriggerModal()" class="text-rose-400 font-bold hover:underline">Emergency? Call 108</button>
+        <button onclick="openEmergencySosModal()" class="text-rose-400 font-bold hover:underline">Emergency? Call 108</button>
       </div>
     </div>
   </div>
@@ -1487,10 +1487,10 @@
           <input type="text" id="rem-name" placeholder="e.g., Metformin, Lipitor, Paracetamol" class="w-full glass-input rounded-xl px-3.5 py-2.5 text-xs font-semibold text-white focus:border-teal-400">
           <div class="flex items-center gap-1.5 mt-1.5 flex-wrap">
             <span class="text-[10px] text-slate-500">Quick suggestions:</span>
-            <button type="button" onclick="setQuickMedName('Paracetamol 500mg')" class="text-[10px] bg-slate-900 hover:bg-slate-800 text-teal-300 px-2 py-0.5 rounded-lg border border-slate-800">Paracetamol</button>
-            <button type="button" onclick="setQuickMedName('Amoxicillin 250mg')" class="text-[10px] bg-slate-900 hover:bg-slate-800 text-teal-300 px-2 py-0.5 rounded-lg border border-slate-800">Amoxicillin</button>
-            <button type="button" onclick="setQuickMedName('Metformin 500mg')" class="text-[10px] bg-slate-900 hover:bg-slate-800 text-teal-300 px-2 py-0.5 rounded-lg border border-slate-800">Metformin</button>
-            <button type="button" onclick="setQuickMedName('Atorvastatin 20mg')" class="text-[10px] bg-slate-900 hover:bg-slate-800 text-teal-300 px-2 py-0.5 rounded-lg border border-slate-800">Atorvastatin</button>
+            <button type="button" onclick="setReminderQuickMed('Paracetamol 500mg')" class="text-[10px] bg-slate-900 hover:bg-slate-800 text-teal-300 px-2 py-0.5 rounded-lg border border-slate-800">Paracetamol</button>
+            <button type="button" onclick="setReminderQuickMed('Amoxicillin 250mg')" class="text-[10px] bg-slate-900 hover:bg-slate-800 text-teal-300 px-2 py-0.5 rounded-lg border border-slate-800">Amoxicillin</button>
+            <button type="button" onclick="setReminderQuickMed('Metformin 500mg')" class="text-[10px] bg-slate-900 hover:bg-slate-800 text-teal-300 px-2 py-0.5 rounded-lg border border-slate-800">Metformin</button>
+            <button type="button" onclick="setReminderQuickMed('Atorvastatin 20mg')" class="text-[10px] bg-slate-900 hover:bg-slate-800 text-teal-300 px-2 py-0.5 rounded-lg border border-slate-800">Atorvastatin</button>
           </div>
         </div>
 
@@ -1510,11 +1510,11 @@
             <input type="time" id="rem-time" value="08:00" class="w-full glass-input rounded-xl px-3.5 py-2 text-xs font-bold text-teal-300 bg-slate-900">
             <div class="flex items-center gap-1.5 mt-1.5 flex-wrap">
               <span class="text-[10px] text-slate-500">Quick set:</span>
-              <button type="button" onclick="setQuickTimeOffset(1)" class="text-[10px] bg-teal-950/60 hover:bg-teal-900/80 text-teal-300 px-2 py-0.5 rounded-lg border border-teal-500/30 font-bold">⚡ +1 Min (Test)</button>
-              <button type="button" onclick="setQuickTimeOffset(5)" class="text-[10px] bg-slate-900 hover:bg-slate-800 text-slate-300 px-2 py-0.5 rounded-lg border border-slate-800">+5 Mins</button>
-              <button type="button" onclick="setQuickTimeExact(8, 0)" class="text-[10px] bg-slate-900 hover:bg-slate-800 text-slate-300 px-2 py-0.5 rounded-lg border border-slate-800">8 AM</button>
-              <button type="button" onclick="setQuickTimeExact(13, 0)" class="text-[10px] bg-slate-900 hover:bg-slate-800 text-slate-300 px-2 py-0.5 rounded-lg border border-slate-800">1 PM</button>
-              <button type="button" onclick="setQuickTimeExact(20, 0)" class="text-[10px] bg-slate-900 hover:bg-slate-800 text-slate-300 px-2 py-0.5 rounded-lg border border-slate-800">8 PM</button>
+              <button type="button" onclick="setReminderQuickTimeOffset(1)" class="text-[10px] bg-teal-950/60 hover:bg-teal-900/80 text-teal-300 px-2 py-0.5 rounded-lg border border-teal-500/30 font-bold">⚡ +1 Min (Test)</button>
+              <button type="button" onclick="setReminderQuickTimeOffset(5)" class="text-[10px] bg-slate-900 hover:bg-slate-800 text-slate-300 px-2 py-0.5 rounded-lg border border-slate-800">+5 Mins</button>
+              <button type="button" onclick="setReminderQuickTimeExact(8, 0)" class="text-[10px] bg-slate-900 hover:bg-slate-800 text-slate-300 px-2 py-0.5 rounded-lg border border-slate-800">8 AM</button>
+              <button type="button" onclick="setReminderQuickTimeExact(13, 0)" class="text-[10px] bg-slate-900 hover:bg-slate-800 text-slate-300 px-2 py-0.5 rounded-lg border border-slate-800">1 PM</button>
+              <button type="button" onclick="setReminderQuickTimeExact(20, 0)" class="text-[10px] bg-slate-900 hover:bg-slate-800 text-slate-300 px-2 py-0.5 rounded-lg border border-slate-800">8 PM</button>
             </div>
           </div>
         </div>
@@ -1594,20 +1594,20 @@
       </div>
 
       <div class="space-y-2 pt-1">
-        <button id="btn-alarm-taken" onclick="takeMedicationFromAlarm()" class="w-full bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-slate-950 font-extrabold py-3 rounded-2xl text-sm shadow-xl shadow-teal-900/40 flex items-center justify-center gap-2 transition-all">
+        <button id="btn-alarm-taken" onclick="takeCurrentMedicationFromAlarm()" class="w-full bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-slate-950 font-extrabold py-3 rounded-2xl text-sm shadow-xl shadow-teal-900/40 flex items-center justify-center gap-2 transition-all">
           <i data-lucide="check-circle-2" class="w-5 h-5"></i> Mark Taken Now ✓
         </button>
 
         <div class="grid grid-cols-2 gap-2">
-          <button onclick="snoozeCurrentAlarm(10)" class="bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5">
+          <button onclick="snoozeCurrentMedicationAlarm(10)" class="bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5">
             <i data-lucide="clock-3" class="w-4 h-4 text-teal-400"></i> Snooze 10m
           </button>
-          <button onclick="snoozeCurrentAlarm(30)" class="bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5">
+          <button onclick="snoozeCurrentMedicationAlarm(30)" class="bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5">
             <i data-lucide="clock-8" class="w-4 h-4 text-teal-400"></i> Snooze 30m
           </button>
         </div>
 
-        <button onclick="dismissMedicationAlarm()" class="w-full text-slate-500 hover:text-slate-300 text-xs py-1.5 font-medium text-center">
+        <button onclick="dismissCurrentMedicationAlarm()" class="w-full text-slate-500 hover:text-slate-300 text-xs py-1.5 font-medium text-center">
           Skip / Dismiss this reminder
         </button>
       </div>
