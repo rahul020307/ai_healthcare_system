@@ -2163,40 +2163,5 @@
     ids.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   }
 </script>
-  
-
-<script>
-  // Standalone Profile fallbacks for copied shared controls.
-  // These wrappers deliberately keep Profile interactions on profile.html.
-  function handleProfileReportUpload() { openUploadReportModal(); }
-  function openUploadReportModal() { document.getElementById('modal-upload-report')?.classList.remove('hidden'); }
-  function closeUploadReportModal() { document.getElementById('modal-upload-report')?.classList.add('hidden'); }
-  function filterProfileRecords(category) {
-    if (typeof filterHealthRecords === 'function') filterHealthRecords(category);
-    document.getElementById('records-container')?.scrollIntoView({behavior:'smooth',block:'start'});
-  }
-  function openEmergencySosModal() { if (typeof triggerEmergencySOS === 'function') triggerEmergencySOS(); }
-  function setReminderQuickMed(name) { const e=document.getElementById('rem-name'); if(e)e.value=name; }
-  function setReminderQuickTimeOffset(minutes) { if (typeof setQuickTimeOffset==='function') setQuickTimeOffset(minutes); }
-  function setReminderQuickTimeExact(value) { if (typeof setQuickTimeExact==='function') setQuickTimeExact(value); }
-  function takeCurrentMedicationFromAlarm() { if (typeof takeMedicationFromAlarm==='function') takeMedicationFromAlarm(); }
-  function snoozeCurrentMedicationAlarm() { if (typeof snoozeCurrentAlarm==='function') snoozeCurrentAlarm(); }
-  function dismissCurrentMedicationAlarm() { if (typeof dismissMedicationAlarm==='function') dismissMedicationAlarm(); }
-  function clearReportSelectedFile() { ['report-file-input','report-upload-file','report-camera-input'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';}); }
-
-  // Profile is a standalone page, so shared SPA navigation commands must not
-  // try to reveal hidden view sections that do not exist here.
-  if (window.CuraAssistProfilePage) {
-    const originalSwitchTab = window.switchTab;
-    window.switchTab = function(tabName) {
-      if (tabName === 'profile') return;
-      if (tabName === 'reminders') return openAddReminderModal();
-      if (tabName === 'home') return window.location.href = 'home.html';
-      if (tabName === 'store') return window.location.href = 'store.html';
-      if (tabName === 'maps') return window.location.href = 'maps.html';
-      if (typeof originalSwitchTab === 'function') return originalSwitchTab(tabName);
-    };
-  }
-</script>
 </body>
 </html>
