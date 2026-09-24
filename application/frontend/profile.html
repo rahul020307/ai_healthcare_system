@@ -121,7 +121,7 @@
               <span class="text-[11px] font-bold text-slate-300">My Health Records</span>
             </button>
 
-            <button onclick="switchTab('reminders')" class="flex flex-col items-center gap-2 group">
+            <button onclick="openAddReminderModal()" class="flex flex-col items-center gap-2 group">
               <div class="w-12 h-12 rounded-full bg-slate-900 border border-slate-800 text-cyan-400 flex items-center justify-center group-hover:border-cyan-500 transition-colors shadow">
                 <i data-lucide="clock" class="w-5 h-5"></i>
               </div>
@@ -377,8 +377,8 @@
 
       </section>
 
-  <!-- Shared Profile Modals & Drawers -->
-  id="modal-edit-profile" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+  <!-- EDIT PROFILE MODAL -->
+  <div id="modal-edit-profile" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
     <div class="glass-panel modal-spring-entry w-full max-w-md rounded-3xl p-6 border border-teal-500/40 space-y-5 relative shadow-2xl">
       <button onclick="closeEditProfileModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
         <i data-lucide="x" class="w-5 h-5"></i>
@@ -825,7 +825,7 @@
           <h4 class="text-xs font-bold text-white">Vitamin C 500mg Low Stock</h4>
           <p class="text-[11px] text-slate-300">Only 3 chewable tablets remaining in your medical locker.</p>
           <div class="pt-1">
-            <button onclick="switchTab('store')" class="px-3 py-1 rounded-xl bg-amber-500 text-slate-950 font-bold text-[11px]">Reorder Now</button>
+            <button onclick="window.location.href='store.html'" class="px-3 py-1 rounded-xl bg-amber-500 text-slate-950 font-bold text-[11px]">Reorder Now</button>
           </div>
         </div>
 
@@ -1188,7 +1188,7 @@
   <!-- MOBILE BOTTOM NAVIGATION BAR (FIXED GUARANTEED BOTTOM NAV BAR) -->
   <nav id="mobile-bottom-nav" style="display: flex !important; position: fixed !important; bottom: 0 !important; left: 0 !important; right: 0 !important; z-index: 9999 !important; background: rgba(15, 23, 42, 0.98) !important; backdrop-filter: blur(16px) !important; -webkit-backdrop-filter: blur(16px) !important; border-top: 1px solid rgba(13, 148, 136, 0.4) !important; padding: 8px 12px !important; justify-content: space-around !important; align-items: center !important; box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.7) !important;">
     <!-- Home -->
-    <button onclick="switchTab('home')" id="mobile-nav-home" class="mobile-nav-btn flex flex-col items-center gap-0.5 text-teal-400 font-black text-[10px] transition-all p-1">
+    <button onclick="window.location.href='home.html'" id="mobile-nav-home" class="mobile-nav-btn flex flex-col items-center gap-0.5 text-teal-400 font-black text-[10px] transition-all p-1">
       <i data-lucide="home" class="w-5 h-5"></i>
       <span>Home</span>
     </button>
@@ -1215,7 +1215,7 @@
     </button>
 
     <!-- Maps -->
-    <button onclick="switchTab('maps')" id="mobile-nav-maps" class="mobile-nav-btn flex flex-col items-center gap-0.5 text-slate-400 text-[10px] transition-all p-1">
+    <button onclick="window.location.href='maps.html'" id="mobile-nav-maps" class="mobile-nav-btn flex flex-col items-center gap-0.5 text-slate-400 text-[10px] transition-all p-1">
       <i data-lucide="map-pin" class="w-5 h-5"></i>
       <span>Maps</span>
     </button>
@@ -1245,19 +1245,19 @@
 
         <!-- Navigation Links in Drawer -->
         <nav class="space-y-1.5">
-          <button onclick="switchTab('home'); toggleMobileMenuDrawer();" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold text-xs text-slate-300 hover:text-white hover:bg-slate-800/80 transition-all">
+          <button onclick="window.location.href='home.html'; toggleMobileMenuDrawer();" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold text-xs text-slate-300 hover:text-white hover:bg-slate-800/80 transition-all">
             <i data-lucide="home" class="w-4 h-4 text-teal-400"></i>
             <span>Home</span>
           </button>
-          <button onclick="switchTab('reminders'); toggleMobileMenuDrawer();" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold text-xs text-slate-300 hover:text-white hover:bg-slate-800/80 transition-all">
+          <button onclick="openAddReminderModal(); toggleMobileMenuDrawer();" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold text-xs text-slate-300 hover:text-white hover:bg-slate-800/80 transition-all">
             <i data-lucide="alarm-clock" class="w-4 h-4 text-amber-400"></i>
             <span>Medicine Reminders</span>
           </button>
-          <button onclick="switchTab('store'); toggleMobileMenuDrawer();" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold text-xs text-slate-300 hover:text-white hover:bg-slate-800/80 transition-all">
+          <button onclick="window.location.href='store.html';" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold text-xs text-slate-300 hover:text-white hover:bg-slate-800/80 transition-all">
             <i data-lucide="shopping-bag" class="w-4 h-4 text-cyan-400"></i>
             <span>Pharmacy Store</span>
           </button>
-          <button onclick="switchTab('maps'); toggleMobileMenuDrawer();" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold text-xs text-slate-300 hover:text-white hover:bg-slate-800/80 transition-all">
+          <button onclick="window.location.href='maps.html'; toggleMobileMenuDrawer();" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold text-xs text-slate-300 hover:text-white hover:bg-slate-800/80 transition-all">
             <i data-lucide="map-pin" class="w-4 h-4 text-indigo-400"></i>
             <span>Hospital & Clinic Maps</span>
           </button>
