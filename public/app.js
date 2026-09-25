@@ -537,10 +537,23 @@ function loginWithGitHub() {
   return loginWithOAuth('github');
 }
 
+let currentPendingAvatarUrl = null;
+let currentPendingAvatarFile = null;
+
 function handleProfilePhotoUpload(event) {
   const file = event.target.files?.[0];
   if (!file) return;
-
+  if (!file.type.startsWith('image/')) {
+    alert("Please select an image file.");
+    event.target.value = '';
+    return;
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    alert("Avatar must be 5 MB or smaller.");
+    event.target.value = '';
+    return;
+  }
+  currentPendingAvatarFile = file;
   const reader = new FileReader();
   reader.onload = function(e) {
     currentPendingAvatarUrl = e.target.result;
@@ -551,239 +564,10 @@ function handleProfilePhotoUpload(event) {
 }
 
 function selectPresetAvatar(url) {
+  currentPendingAvatarFile = null;
   currentPendingAvatarUrl = url;
   const preview = document.getElementById('edit-prof-avatar-preview');
   if (preview) preview.src = url;
-}
-
-function updateAuthUIState(userData) {
-  const isGuest = userData === "Login / Register" || (typeof userData === 'object' && userData !== null && userData.isLoggedIn === false);
-  const user = (typeof userData === 'object' && userData !== null) ? userData : { userName: userData };
-  
-  const bottomNav = document.getElementById('mobile-bottom-nav') || document.getElementById('bottom-mobile-nav');
-  const floatingBtn = document.getElementById('floating-ai-chat-btn');
-  const overlay = document.getElementById('auth-guard-overlay');
-
-  if (isGuest) {
-    if (bottomNav) bottomNav.classList.add('hidden');
-    if (floatingBtn) floatingBtn.classList.add('hidden');
-    if (overlay) overlay.classList.remove('hidden');
-  } else {
-    if (bottomNav) bottomNav.classList.remove('hidden');
-    if (floatingBtn) floatingBtn.classList.remove('hidden');
-    if (overlay) overlay.classList.add('hidden');
-  }
-
-  let rawName = isGuest ? "Guest User" : (user.userName || user.name || "User");
-  let userName = rawName;
-  if (rawName.includes('@')) {
-    userName = rawName.split('@')[0];
-  }
-  userName = userName.trim();
-  if (userName.length > 0) {
-    userName = userName.charAt(0).toUpperCase() + userName.slice(1);
-  }
-
-  const userEmail = isGuest ? "" : (user.email || "");
-  const userPhone = isGuest ? "" : (user.phone || "");
-  const userBlood = isGuest ? "O+" : (user.blood || user.bloodGroup || "O+");
-  const userCity = isGuest ? "" : (user.city || user.location || "");
-  const userAge = isGuest ? "30" : String(user.age || "30");
-  const userAvatar = isGuest 
-    ? "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250"
-    : (user.avatar || (typeof INITIAL_DATA !== 'undefined' && INITIAL_DATA.familyMembers?.[0]?.avatar) || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250");
-
-  const authText = document.getElementById('auth-btn-text');
-  if (authText) authText.innerText = isGuest ? "Login / Register" : `Account (${userName})`;
-
-  const sidebarName = document.getElementById('sidebar-user-name');
-  if (sidebarName) sidebarName.innerText = userName;
-
-  const sidebarAge = document.getElementById('sidebar-user-age');
-  if (sidebarAge) sidebarAge.innerText = isGuest ? "-- Yrs" : `${userAge} Yrs`;
-
-  const sidebarBlood = document.getElementById('sidebar-user-blood');
-  if (sidebarBlood) sidebarBlood.innerText = userBlood;
-
-  const activeFamilyName = document.getElementById('active-family-name');
-  if (activeFamilyName) activeFamilyName.innerText = userName;
-
-  const welcomeName = document.getElementById('home-welcome-name');
-  if (welcomeName) welcomeName.innerText = isGuest ? "Guest" : userName;
-
-  const profileHeaderName = document.getElementById('prof-name');
-  if (profileHeaderName) profileHeaderName.innerText = userName;
-
-  // Sync Avatars Across App
-  const mainAvatar = document.getElementById('profile-main-avatar');
-  if (mainAvatar) mainAvatar.src = userAvatar;
-
-  const sidebarAvatar = document.getElementById('sidebar-avatar');
-  if (sidebarAvatar) sidebarAvatar.src = userAvatar;
-
-  const activeFamilyAvatar = document.getElementById('active-family-avatar');
-  if (activeFamilyAvatar) activeFamilyAvatar.src = userAvatar;
-
-  const drawerAvatar = document.getElementById('drawer-user-avatar');
-  if (drawerAvatar) drawerAvatar.src = userAvatar;
-
-  // Profile Card Dynamic Sync
-  const profMainName = document.getElementById('profile-main-name');
-  if (profMainName) profMainName.innerText = userName;
-
-  const drawerName = document.getElementById('drawer-user-name');
-  if (drawerName) drawerName.innerText = userName;
-
-  const profMainPhone = document.getElementById('profile-main-phone');
-  if (profMainPhone) profMainPhone.innerText = userPhone;
-
-  const profMainEmail = document.getElementById('profile-main-email');
-  if (profMainEmail) profMainEmail.innerText = userEmail;
-
-  const profMainLoc = document.getElementById('profile-main-location');
-  if (profMainLoc) profMainLoc.innerText = userCity;
-
-  const profMainBlood = document.getElementById('profile-main-blood');
-  if (profMainBlood) profMainBlood.innerText = userBlood;
-
-  const profMainAge = document.getElementById('profile-main-age');
-  if (profMainAge) profMainAge.innerText = userAge;
-
-  if (typeof INITIAL_DATA !== 'undefined' && INITIAL_DATA.familyMembers && INITIAL_DATA.familyMembers[0] && !isGuest) {
-    INITIAL_DATA.familyMembers[0].name = userName;
-    INITIAL_DATA.familyMembers[0].phone = userPhone;
-    INITIAL_DATA.familyMembers[0].email = userEmail;
-    INITIAL_DATA.familyMembers[0].bloodGroup = userBlood;
-    INITIAL_DATA.familyMembers[0].age = userAge;
-  }
-
-  if (typeof initFamilyDropdown === 'function') {
-    initFamilyDropdown();
-  }
-}
-
-function openEditProfileModal() {
-  const modal = document.getElementById('modal-edit-profile');
-  if (!modal) return;
-
-  const currentName = document.getElementById('profile-main-name')?.innerText || "User";
-  const currentEmail = document.getElementById('profile-main-email')?.innerText || "";
-  const currentPhone = document.getElementById('profile-main-phone')?.innerText || "";
-  const currentCity = document.getElementById('profile-main-location')?.innerText || "";
-  const currentBlood = document.getElementById('profile-main-blood')?.innerText || "O+";
-  const currentAge = document.getElementById('profile-main-age')?.innerText || "30";
-  const currentAvatar = document.getElementById('profile-main-avatar')?.src || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250";
-
-  currentPendingAvatarUrl = currentAvatar;
-  const avatarPreview = document.getElementById('edit-prof-avatar-preview');
-  if (avatarPreview) avatarPreview.src = currentAvatar;
-
-  if (document.getElementById('edit-prof-name')) document.getElementById('edit-prof-name').value = currentName;
-  if (document.getElementById('edit-prof-email')) document.getElementById('edit-prof-email').value = currentEmail;
-  if (document.getElementById('edit-prof-phone')) document.getElementById('edit-prof-phone').value = currentPhone;
-  if (document.getElementById('edit-prof-city')) document.getElementById('edit-prof-city').value = currentCity;
-  if (document.getElementById('edit-prof-blood')) document.getElementById('edit-prof-blood').value = currentBlood;
-  if (document.getElementById('edit-prof-age')) document.getElementById('edit-prof-age').value = currentAge;
-
-  modal.classList.remove('hidden');
-}
-
-function closeEditProfileModal() {
-  const modal = document.getElementById('modal-edit-profile');
-  if (modal) modal.classList.add('hidden');
-}
-
-async function saveProfileEdits() {
-  const name = (document.getElementById('edit-prof-name')?.value || '').trim();
-  const email = (document.getElementById('edit-prof-email')?.value || '').trim();
-  const phone = (document.getElementById('edit-prof-phone')?.value || '').trim();
-  const blood = document.getElementById('edit-prof-blood')?.value || 'O+';
-  const city = (document.getElementById('edit-prof-city')?.value || '').trim();
-  const age = (document.getElementById('edit-prof-age')?.value || '30').trim();
-  const avatarUrl = currentPendingAvatarUrl || document.getElementById('edit-prof-avatar-preview')?.src || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250";
-
-  if (!name) {
-    alert("Please enter a valid full name.");
-    return;
-  }
-
-  let finalAvatar = avatarUrl;
-
-  // 1. Sync to backend database & Supabase Storage
-  try {
-    const headers = await getAuthHeaders();
-    const res = await fetch(`${API_BASE}/profile/user`, {
-      method: 'PUT',
-      headers: headers,
-      body: JSON.stringify({
-        name: name,
-        email: email,
-        phone: phone,
-        bloodGroup: blood,
-        location: city || "",
-        age: age,
-        avatar_url: avatarUrl
-      })
-    });
-    if (res.ok) {
-      const data = await res.json();
-      if (data?.user?.avatar || data?.user?.avatarUrl) {
-        finalAvatar = data.user.avatar || data.user.avatarUrl;
-      }
-    }
-  } catch (err) {
-    console.warn("Profile update backend note:", err);
-  }
-
-  // 2. Sync to Supabase Auth metadata for seamless cross-device login
-  const client = getSupabaseClient();
-  if (client && client.auth) {
-    try {
-      await client.auth.updateUser({
-        data: {
-          name: name,
-          phone: phone,
-          blood: blood,
-          city: city || "",
-          age: age,
-          avatar_url: finalAvatar
-        }
-      });
-    } catch (e) {
-      console.warn("Supabase auth updateUser note:", e);
-    }
-  }
-
-  // 3. Update localStorage and in-memory state
-  const updatedSession = {
-    isLoggedIn: true,
-    userName: name,
-    email: email,
-    phone: phone,
-    blood: blood,
-    city: city || "",
-    age: age,
-    avatar: finalAvatar,
-    token: window.authToken || ""
-  };
-
-  try {
-    localStorage.setItem('cura_active_user_v1', JSON.stringify(updatedSession));
-  } catch (e) {}
-
-  if (typeof INITIAL_DATA !== 'undefined' && INITIAL_DATA.familyMembers && INITIAL_DATA.familyMembers[0]) {
-    INITIAL_DATA.familyMembers[0].name = name;
-    INITIAL_DATA.familyMembers[0].email = email;
-    INITIAL_DATA.familyMembers[0].phone = phone;
-    INITIAL_DATA.familyMembers[0].bloodGroup = blood;
-    INITIAL_DATA.familyMembers[0].age = age;
-    INITIAL_DATA.familyMembers[0].avatar = finalAvatar;
-  }
-
-  updateAuthUIState(updatedSession);
-  closeEditProfileModal();
-
-  alert(`✨ Profile details & avatar photo saved permanently to database!`);
 }
 
 function clearAuthInputs() {
