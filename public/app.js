@@ -1,4 +1,5 @@
-// CuraAssist CareHub - Complete Application Engine & Logic (11 Prototype Modules)
+// CuraAssist CareHub - Complete Application Engine & Logic
+// Avatar persistence hotfix is served from the public Pages bundle. Cache version: 15.0.0 (11 Prototype Modules)
 const API_BASE = (window.CURAASSIST_API_BASE || 'https://curaassist-carehub-backend-2.fastapicloud.dev').replace(/\/$/, '');
 
 let state = {
