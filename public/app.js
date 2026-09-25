@@ -5888,23 +5888,19 @@ async function saveProfileEdits() {
     });
     const profileData = await profileRes.json().catch(() => ({}));
     if (!profileRes.ok) throw new Error(profileData.detail || 'Profile update failed');
-
     if (!currentPendingAvatarFile) {
       finalAvatar = profileData?.user?.avatar || profileData?.user?.avatarUrl || finalAvatar;
     }
 
     const client = getSupabaseClient();
     if (client?.auth) {
-      const { error } = await client.auth.updateUser({
+      const authUpdate = await client.auth.updateUser({
         data: { name, phone, blood, city: city || '', age, avatar_url: finalAvatar }
       });
-      if (error) console.warn('Supabase Auth metadata update note:', error);
+      if (authUpdate.error) console.warn('Supabase Auth metadata update note:', authUpdate.error);
     }
 
-    const updatedSession = {
-      isLoggedIn: true, userName: name, email, phone, blood, city: city || '', age,
-      avatar: finalAvatar, token: window.authToken || ''
-    };
+    const updatedSession = { isLoggedIn: true, userName: name, email, phone, blood, city: city || '', age, avatar: finalAvatar, token: window.authToken || '' };
     localStorage.setItem('cura_active_user_v1', JSON.stringify(updatedSession));
 
     if (typeof INITIAL_DATA !== 'undefined' && INITIAL_DATA.familyMembers?.[0]) {
@@ -5915,7 +5911,6 @@ async function saveProfileEdits() {
     currentPendingAvatarUrl = finalAvatar;
     updateAuthUIState(updatedSession);
     closeEditProfileModal();
-
     await fetchUserDataFromBackend();
     alert('✨ Profile details & avatar photo saved permanently.');
   } catch (err) {
