@@ -58,7 +58,6 @@ def _sync_supabase_profile(user_id: str, updates: dict) -> None:
     except Exception as e:
         print("[Supabase Sync] Note:", e)
 
-import re
 
 # --- SUPABASE-BACKED USER PROFILE & AVATAR API ---
 
