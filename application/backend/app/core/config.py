@@ -1,32 +1,43 @@
 import os
 from typing import List
 
+
 class Settings:
     PROJECT_NAME: str = "CuraAssist CareHub API"
     VERSION: str = "2.4.0"
-    
+
     # Supabase Configuration
-    SUPABASE_URL: str = os.getenv("SUPABASE_URL", "https://ifwsijbkmuzqttwbvifp.supabase.co").strip().rstrip("/")
+    SUPABASE_URL: str = os.getenv(
+        "SUPABASE_URL",
+        "https://ifwsijbkmuzqttwbvifp.supabase.co",
+    ).strip().rstrip("/")
     SUPABASE_ANON_KEY: str = os.getenv("SUPABASE_ANON_KEY", "").strip()
     SUPABASE_SERVICE_ROLE_KEY: str = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "").strip()
     # Production startup validation is performed by services that require the secret.
-    
+
+    # Astra DB Configuration
+    # Secrets must be supplied by the deployment environment and are never committed.
+    ASTRA_DB_API_ENDPOINT: str = os.getenv("ASTRA_DB_API_ENDPOINT", "").strip().rstrip("/")
+    ASTRA_DB_APPLICATION_TOKEN: str = os.getenv("ASTRA_DB_APPLICATION_TOKEN", "").strip()
+    ASTRA_DB_KEYSPACE: str = os.getenv("ASTRA_DB_KEYSPACE", "default_keyspace").strip() or "default_keyspace"
+
     # Database Configuration
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./curaassist.db")
-    
+
     # CORS Configuration
     CORS_ORIGINS_STR: str = os.getenv(
         "CORS_ORIGINS",
         "http://localhost:3000,http://localhost:8000,http://127.0.0.1:8000,http://localhost:5173,"
         "https://rahul020307.github.io,https://curaassist-carehub-backend-2.fastapicloud.dev"
     )
-    
+
     @property
     def CORS_ORIGINS(self) -> List[str]:
         return [o.strip() for o in self.CORS_ORIGINS_STR.split(",") if o.strip()]
-        
+
     @property
     def ALLOW_ALL_ORIGINS(self) -> bool:
         return "*" in self.CORS_ORIGINS
+
 
 settings = Settings()
