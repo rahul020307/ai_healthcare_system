@@ -6,6 +6,7 @@ from fastapi import APIRouter, HTTPException, Query, Body
 
 from app.database.mongodb import check_mongodb_connection, get_database as get_mongo_db, seed_initial_datasets_to_mongodb
 from app.database.postgresql import check_postgresql_connection
+from app.database.astra import check_astra_connection
 
 router = APIRouter(prefix="/db", tags=["Database Services"])
 
@@ -51,6 +52,7 @@ def load_dataset_file(filename: str) -> List[Any]:
 def get_database_services_status():
     mongo_status = check_mongodb_connection()
     postgres_status = check_postgresql_connection()
+    astra_status = check_astra_connection()
     
     available_datasets = {}
     total_records = 0
@@ -65,6 +67,7 @@ def get_database_services_status():
         "services": {
             "mongodb": mongo_status,
             "postgresql": postgres_status,
+            "astraDB": astra_status,
             "localDiskJSONStorage": {
                 "status": "online",
                 "totalCollections": len(DATASET_FILES),
